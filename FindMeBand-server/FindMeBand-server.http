@@ -1,0 +1,6 @@
+@FindMeBand_server_HostAddress = http://localhost:5251
+
+GET {{FindMeBand_server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
