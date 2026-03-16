@@ -6,8 +6,8 @@ namespace FindMeBand_server.Models
     {
         public int Id { get; set; }
         public int PostId { get; set; }
-        public string Url { get; set; }
+        public string Url { get; set; } = null!;
         public MediaType Type { get; set; }
-        public Post Post { get; set; }
+        public Post Post { get; set; } = null!;
     }
 }
