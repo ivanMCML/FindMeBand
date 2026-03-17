@@ -2,6 +2,7 @@
 {
     public class BandMember
     {
+        public int Id { get; set; }
         public int BandId { get; set; }
         public int MusicianId { get; set; }
         public int InstrumentId { get; set; }
