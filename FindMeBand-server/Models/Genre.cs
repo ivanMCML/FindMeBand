@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
-        public List<Musician> Musicians { get; set; } = new List<Musician>();
+        public List<PlaysGenre> Perforemers { get; set; } = new List<PlaysGenre>();
+
     }
 }

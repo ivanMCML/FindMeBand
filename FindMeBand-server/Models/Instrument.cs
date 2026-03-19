@@ -8,5 +8,6 @@ namespace FindMeBand_server.Models
         public string Name { get; set; } = null!;
         public InstrumentType Type { get; set; }
         public List<PlaysInstrument> Musicians { get; set; } = new List<PlaysInstrument>();
+
     }
 }

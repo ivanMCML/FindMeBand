@@ -10,5 +10,6 @@
         public int SkillLevel { get; set; } // 1 to 5
         public int YearsOfExperience { get; set; }
         public bool IsPrimary { get; set; }
+
     }
 }

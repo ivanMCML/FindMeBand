@@ -7,7 +7,7 @@
         public List<EventApplication> EventApplications { get; set; } = new List<EventApplication>();
         public List<Review> ReceivedReviews { get; set; } = new List<Review>();
         public List<Location> Locations { get; set; } = new List<Location>();
-        public List<Genre> Genres { get; set; } = new List<Genre>();
+        public List<PlaysGenre> PlaysGenres { get; set; } = new List<PlaysGenre>();
 
     }
 }
