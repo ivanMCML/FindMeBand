@@ -6,7 +6,7 @@
         public int BandId { get; set; }
         public int MusicianId { get; set; }
         public int InstrumentId { get; set; }
-        public DateTime JoinedDate { get; set; }
+        public DateTime JoinedDate { get; set; } = DateTime.UtcNow;
         public DateTime? LeftDate { get; set; }
         public Band Band { get; set; } = null!;
         public Musician Musician { get; set; } = null!;

@@ -3,11 +3,11 @@
     public class Profile
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; } = null!;
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
-        public DateTime CreatedAt { get; set; }
-        public int FollowersCount { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public List<Post> Posts { get; set; } = new List<Post>();
+        public List<Review> GivenReviews { get; set; } = new List<Review>();
     }
 }
