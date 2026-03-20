@@ -7,7 +7,7 @@ namespace FindMeBand_server.Models
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public InstrumentType Type { get; set; }
-        public List<PlaysInstrument> Musicians { get; set; } = new List<PlaysInstrument>();
+        public List<PlaysInstrument> PlayedBy { get; set; } = new List<PlaysInstrument>();
 
     }
 }

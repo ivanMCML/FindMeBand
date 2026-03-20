@@ -7,7 +7,7 @@
         public Opportunity Opportunity { get; set; } = null!;
         public int ApplicantId { get; set; }
         public Performer Applicant { get; set; } = null!;
-        public DateTime AppliedAt { get; set; }
+        public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public string? Message { get; set; }
     }
 }

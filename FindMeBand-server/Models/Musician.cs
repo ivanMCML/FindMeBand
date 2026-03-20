@@ -3,6 +3,6 @@
     public class Musician : Performer
     {
         public List<BandMember> BandMemberships { get; set; } = new List<BandMember>();
-        public List<PlaysInstrument> Instruments { get; set; } = new List<PlaysInstrument>();
+        public List<PlaysInstrument> PlayedInstruments { get; set; } = new List<PlaysInstrument>();
     }
 }
