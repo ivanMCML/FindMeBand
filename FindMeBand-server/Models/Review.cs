@@ -1,4 +1,5 @@
-﻿namespace FindMeBand_server.Models
+﻿using System.ComponentModel.DataAnnotations;
+namespace FindMeBand_server.Models
 {
     public class Review
     {
@@ -12,7 +13,8 @@
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public int Rating { get; set; } // 1 to 5
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
+        public int Rating { get; set; }
         public string Comment { get; set; } = null!;
     }
 }

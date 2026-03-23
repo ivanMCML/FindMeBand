@@ -61,21 +61,124 @@ namespace FindMeBand_server.Data
                 .HasForeignKey(pm => pm.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Model builder za BandMember
+            modelBuilder.Entity<BandMember>()
+                .HasOne(bm => bm.Band)
+                .WithMany(b => b.Members)
+                .HasForeignKey(bm => bm.BandId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<BandMember>()
+                .HasOne(bm => bm.Musician)
+                .WithMany(m => m.BandMemberships)
+                .HasForeignKey(bm => bm.MusicianId)
+                .OnDelete(DeleteBehavior.Cascade);
+             modelBuilder.Entity<BandMember>()
+                .HasOne(bm => bm.Instrument)
+                .WithMany()
+                .HasForeignKey(bm => bm.InstrumentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<BandMember>()
+                .HasIndex(bm => new { bm.BandId, bm.MusicianId })
+                .IsUnique();
 
-            // Model builder za PlaysGenre
+            modelBuilder.Entity<PlaysGenre>()
+                .HasOne(pg => pg.Genre)
+                .WithMany(g => g.Performers)
+                .HasForeignKey(pg => pg.GenreId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<PlaysGenre>()
+                .HasOne(pg => pg.Performer)
+                .WithMany(p => p.PlaysGenres)
+                .HasForeignKey(pg => pg.PerformerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<PlaysGenre>()
+                .HasIndex(pg => new { pg.GenreId, pg.PerformerId })
+                .IsUnique();
+         
+            modelBuilder.Entity<PlaysInstrument>()
+                .HasOne(pi => pi.Musician)
+                .WithMany(m=>m.PlayedInstruments)
+                .HasForeignKey(pi => pi.MusicianId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<PlaysInstrument>()
+                .HasOne(pi => pi.Instrument)
+                .WithMany(i => i.PlayedBy)
+                .HasForeignKey(pi => pi.InstrumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<PlaysInstrument>()
+                .HasIndex(pi => new { pi.MusicianId, pi.InstrumentId })
+                .IsUnique();
 
-            // Model builder za PlaysInstrument
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Reviewer)
+                .WithMany(p => p.GivenReviews)
+                .HasForeignKey(r => r.ReviewerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Performer)
+                .WithMany(p => p.ReceivedReviews)
+                .HasForeignKey(r => r.PerformerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Review>()
+                .HasIndex(r => new { r.ReviewerId, r.PerformerId })
+                .IsUnique();
 
-            // Model builder za Review
+            modelBuilder.Entity<Opportunity>()
+                .HasOne(o => o.Author)
+                .WithMany(p => p.AuthoredOpportunities)
+                .HasForeignKey(o => o.AuthorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Opportunity>()
+                .HasOne(o => o.Instrument)
+                .WithMany(i => i.Opportunities)
+                .HasForeignKey(o => o.InstrumentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Opportunity>()
+                .HasOne(o => o.Genre)
+                .WithMany(g => g.Opportunities)
+                .HasForeignKey(o => o.GenreId)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Opportunity>()
+                .HasIndex(o => new { o.AuthorId, o.InstrumentId, o.GenreId })
+                .IsUnique();
 
-            // Model builder za Opportunity
+            modelBuilder.Entity<OpportunityApplication>()
+                .HasOne(oa => oa.Opportunity)
+                .WithMany(o => o.Applications)
+                .HasForeignKey(oa => oa.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OpportunityApplication>()
+                .HasOne(oa => oa.Applicant)
+                .WithMany(p => p.OpportunityApplications)
+                .HasForeignKey(oa => oa.ApplicantId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<OpportunityApplication>()
+                .HasIndex(oa => new { oa.OpportunityId, oa.ApplicantId })
+                .IsUnique();
 
-            // Model builder za OpportunityApplication
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.Organizer)
+                .WithMany(o => o.Events)
+                .HasForeignKey(e => e.OrganizerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Event>()
+                .HasOne(e => e.Genre)
+                .WithMany(g => g.Events)
+                .HasForeignKey(e => e.GenreId)
+                .OnDelete(DeleteBehavior.SetNull);
 
-            // Model builder za Event
-
-            // Model builder za EventApplication
+            modelBuilder.Entity<EventApplication>()
+                .HasOne(ea => ea.Event)
+                .WithMany(e => e.Applications)
+                .HasForeignKey(ea => ea.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<EventApplication>()
+                .HasOne(ea => ea.Performer)
+                .WithMany(p => p.EventApplications)
+                .HasForeignKey(ea => ea.PerformerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<EventApplication>()
+                .HasIndex(ea => new { ea.EventId, ea.PerformerId })
+                .IsUnique();
         }
     }
 }
