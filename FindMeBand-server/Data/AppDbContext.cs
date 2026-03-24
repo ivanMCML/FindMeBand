@@ -19,7 +19,7 @@ namespace FindMeBand_server.Data
         public DbSet<Post> Posts { get; set; } = null!;
         public DbSet<PostMedia> PostsMedia { get; set; } = null!;
 
-        public DbSet<BandMember> BandsMember { get; set; } = null!;
+        public DbSet<BandMember> BandMember { get; set; } = null!;
 
         public DbSet<Genre> Genres { get; set; } = null!;
         public DbSet<PlaysGenre> PlaysGenre { get; set;} = null!;
@@ -47,19 +47,19 @@ namespace FindMeBand_server.Data
                 .HasOne(p => p.User)
                 .WithOne()
                 .HasForeignKey<Profile>(p => p.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder .Entity<Post>()
                 .HasOne(p =>p.Profile)
                 .WithMany(p => p.Posts)
                 .HasForeignKey(p => p.ProfileId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PostMedia>()
                 .HasOne(pm => pm.Post)
                 .WithMany(p => p.Media)
                 .HasForeignKey(pm => pm.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<BandMember>()
                 .HasOne(bm => bm.Band)

@@ -5,8 +5,8 @@ namespace FindMeBand_server.Models
     {
         public int Id { get; set; }
 
-        public int ReviewerId { get; set; }
-        public Profile Reviewer { get; set; } = null!;
+        public int? ReviewerId { get; set; }
+        public Profile? Reviewer { get; set; } = null!;
 
         public int PerformerId { get; set; }
         public Performer Performer { get; set; } = null!;
