@@ -1,6 +1,6 @@
 ﻿namespace FindMeBand_server.Models
 {
-    public class Performer : Profile
+    public class Performer
     {
         public double AverageRating { get; set; }
         public int NumberOfReviews { get; set; }
