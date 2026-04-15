@@ -43,24 +43,49 @@ namespace FindMeBand_server.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // --- Profile ---
             modelBuilder.Entity<Profile>()
                 .HasOne(p => p.User)
                 .WithOne()
                 .HasForeignKey<Profile>(p => p.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder .Entity<Post>()
-                .HasOne(p =>p.Profile)
+            // --- Musician -> Performer (1-na-1) ---
+            modelBuilder.Entity<Musician>()
+                .HasOne(m => m.Performer)
+                .WithOne(p => p.Musician)
+                .HasForeignKey<Musician>(m => m.PerformerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Band -> Performer (1-na-1) ---
+            modelBuilder.Entity<Band>()
+                .HasOne(b => b.Performer)
+                .WithOne(p => p.Band)
+                .HasForeignKey<Band>(b => b.PerformerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Location -> Performer ---
+            modelBuilder.Entity<Location>()
+                .HasOne(l => l.Performer)
+                .WithMany(p => p.Locations)
+                .HasForeignKey(l => l.PerformerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Post ---
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.Profile)
                 .WithMany(p => p.Posts)
                 .HasForeignKey(p => p.ProfileId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // --- PostMedia ---
             modelBuilder.Entity<PostMedia>()
                 .HasOne(pm => pm.Post)
                 .WithMany(p => p.Media)
                 .HasForeignKey(pm => pm.PostId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // --- BandMember ---
             modelBuilder.Entity<BandMember>()
                 .HasOne(bm => bm.Band)
                 .WithMany(b => b.Members)
@@ -71,7 +96,7 @@ namespace FindMeBand_server.Data
                 .WithMany(m => m.BandMemberships)
                 .HasForeignKey(bm => bm.MusicianId)
                 .OnDelete(DeleteBehavior.NoAction);
-             modelBuilder.Entity<BandMember>()
+            modelBuilder.Entity<BandMember>()
                 .HasOne(bm => bm.Instrument)
                 .WithMany()
                 .HasForeignKey(bm => bm.InstrumentId)
@@ -80,6 +105,7 @@ namespace FindMeBand_server.Data
                 .HasIndex(bm => new { bm.BandId, bm.MusicianId })
                 .IsUnique();
 
+            // --- PlaysGenre ---
             modelBuilder.Entity<PlaysGenre>()
                 .HasOne(pg => pg.Genre)
                 .WithMany(g => g.Performers)
@@ -93,10 +119,11 @@ namespace FindMeBand_server.Data
             modelBuilder.Entity<PlaysGenre>()
                 .HasIndex(pg => new { pg.GenreId, pg.PerformerId })
                 .IsUnique();
-         
+
+            // --- PlaysInstrument ---
             modelBuilder.Entity<PlaysInstrument>()
                 .HasOne(pi => pi.Musician)
-                .WithMany(m=>m.PlayedInstruments)
+                .WithMany(m => m.PlayedInstruments)
                 .HasForeignKey(pi => pi.MusicianId)
                 .OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<PlaysInstrument>()
@@ -108,6 +135,7 @@ namespace FindMeBand_server.Data
                 .HasIndex(pi => new { pi.MusicianId, pi.InstrumentId })
                 .IsUnique();
 
+            // --- Review ---
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Reviewer)
                 .WithMany(p => p.GivenReviews)
@@ -122,6 +150,7 @@ namespace FindMeBand_server.Data
                 .HasIndex(r => new { r.ReviewerId, r.PerformerId })
                 .IsUnique();
 
+            // --- Opportunity ---
             modelBuilder.Entity<Opportunity>()
                 .HasOne(o => o.Author)
                 .WithMany(p => p.AuthoredOpportunities)
@@ -141,6 +170,7 @@ namespace FindMeBand_server.Data
                 .HasIndex(o => new { o.AuthorId, o.InstrumentId, o.GenreId })
                 .IsUnique();
 
+            // --- OpportunityApplication ---
             modelBuilder.Entity<OpportunityApplication>()
                 .HasOne(oa => oa.Opportunity)
                 .WithMany(o => o.Applications)
@@ -155,6 +185,7 @@ namespace FindMeBand_server.Data
                 .HasIndex(oa => new { oa.OpportunityId, oa.ApplicantId })
                 .IsUnique();
 
+            // --- Event ---
             modelBuilder.Entity<Event>()
                 .HasOne(e => e.Organizer)
                 .WithMany(o => o.Events)
@@ -166,6 +197,7 @@ namespace FindMeBand_server.Data
                 .HasForeignKey(e => e.GenreId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // --- EventApplication ---
             modelBuilder.Entity<EventApplication>()
                 .HasOne(ea => ea.Event)
                 .WithMany(e => e.Applications)
@@ -179,6 +211,7 @@ namespace FindMeBand_server.Data
             modelBuilder.Entity<EventApplication>()
                 .HasIndex(ea => new { ea.EventId, ea.PerformerId })
                 .IsUnique();
+
         }
     }
 }
