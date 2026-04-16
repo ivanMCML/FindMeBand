@@ -71,14 +71,22 @@ namespace FindMeBand_server.Controllers
                 return NotFound();
 
             var bandMembers = await _context.BandMember
-                .Where(bm => (bm.MusicianId || bm.BandId) == profile.Id)
+                .Where(bm => bm.Musician.PerformerId == profile.Id)
                 .ToListAsync();
             foreach (var member in bandMembers)
             {
                 _context.BandMember.Remove(member);
             }
 
-
+            var musician = await _context.Musicians.FirstOrDefaultAsync(m => m.Id == id);
+            if (musician != null && musician.PerformerId.HasValue)
+            {
+                var performer = await _context.Performers.FindAsync(musician.PerformerId.Value);
+                if (performer != null)
+                {
+                    _context.Performers.Remove(performer);
+                }
+            }
 
             _context.Profiles.Remove(profile);
             await _context.SaveChangesAsync();

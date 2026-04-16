@@ -63,30 +63,6 @@ namespace FindMeBand_server.Controllers
             if (genre == null)
                 return NotFound();
 
-            var eventUsingGenre = await _context.Events
-                .Where(e => e.GenreId == id)
-                .ToListAsync();
-            foreach (var ev in eventUsingGenre)
-            {
-                ev.GenreId = null;
-            }
-
-            var opportunityUsingGenre = await _context.Opportunities
-                .Where(o => o.GenreId == id)
-                .ToListAsync();
-            foreach(var opportunity in opportunityUsingGenre)
-            {
-                opportunity.GenreId = null;
-            }
-
-            var playsGenre = await _context.PlaysGenre
-                .Where(pg => pg.GenreId == id)
-                .ToListAsync();
-            foreach(var pg in playsGenre)
-            {
-                _context.PlaysGenre.Remove(pg);
-            }
-
             _context.Genres.Remove(genre);
             await _context.SaveChangesAsync();
             

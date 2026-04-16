@@ -65,30 +65,6 @@ namespace FindMeBand_server.Controllers
             if (instrument == null)
                 return NotFound();
 
-            var bandMembersUsingInstrument = await _context.BandMember
-                .Where(bm => bm.InstrumentId == id)
-                .ToListAsync();
-            foreach (var bandMember in bandMembersUsingInstrument)
-            {
-                bandMember.InstrumentId = null;
-            }
-
-            var opportunityUsingInstrument = await _context.Opportunities
-                .Where(o => o.InstrumentId == id)
-                .ToListAsync();
-            foreach (var opportunity in opportunityUsingInstrument)
-            {
-                opportunity.InstrumentId = null;
-            }
-
-            var playsInstrument = await _context.PlaysInstrument
-                .Where(pi => pi.InstrumentId == id)
-                .ToListAsync();
-            foreach (var pi in playsInstrument)
-            {
-                _context.PlaysInstrument.Remove(pi);
-            }
-
             _context.Instruments.Remove(instrument);
             await _context.SaveChangesAsync();
 
