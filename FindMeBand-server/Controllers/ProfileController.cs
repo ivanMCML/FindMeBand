@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
 using FindMeBand_server.Models;
@@ -19,15 +19,22 @@ namespace FindMeBand_server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Profile>>> GetProfiles()
         {
-            return await _context.Profiles.Include(p => p.User).ToListAsync();
+            return await _context.Profiles
+                .Include(p => p.User)
+                .ToListAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Profile>> GetProfile(int id)
         {
-            var profile = await _context.Profiles.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
+            var profile = await _context.Profiles
+                .Include(p => p.User)
+                .Include(p => p.Posts).ThenInclude(post => post.Media)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (profile == null)
                 return NotFound();
+
             return profile;
         }
 
@@ -42,8 +49,10 @@ namespace FindMeBand_server.Controllers
                 UserName = profileDto.UserName,
                 Description = profileDto.Description
             };
+
             _context.Profiles.Add(profile);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetProfile), new { id = profile.Id }, profile);
         }
 
@@ -58,8 +67,8 @@ namespace FindMeBand_server.Controllers
             profile.LastName = profileDto.LastName;
             profile.UserName = profileDto.UserName;
             profile.Description = profileDto.Description;
-            await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -69,24 +78,6 @@ namespace FindMeBand_server.Controllers
             var profile = await _context.Profiles.FindAsync(id);
             if (profile == null)
                 return NotFound();
-
-            var bandMembers = await _context.BandMember
-                .Where(bm => bm.Musician.PerformerId == profile.Id)
-                .ToListAsync();
-            foreach (var member in bandMembers)
-            {
-                _context.BandMember.Remove(member);
-            }
-
-            var musician = await _context.Musicians.FirstOrDefaultAsync(m => m.Id == id);
-            if (musician != null && musician.PerformerId.HasValue)
-            {
-                var performer = await _context.Performers.FindAsync(musician.PerformerId.Value);
-                if (performer != null)
-                {
-                    _context.Performers.Remove(performer);
-                }
-            }
 
             _context.Profiles.Remove(profile);
             await _context.SaveChangesAsync();
