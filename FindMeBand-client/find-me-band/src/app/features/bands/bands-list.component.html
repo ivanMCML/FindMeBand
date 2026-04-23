@@ -1,0 +1,32 @@
+<div class="page">
+  <div class="page-header">
+    <h1>🎵 Bands</h1>
+    <p>Discover bands in the music scene.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="state-box"><div class="spinner"></div><p>Loading bands...</p></div>
+  } @else if (error()) {
+    <div class="state-box error"><span>⚠️</span><p>{{ error() }}</p></div>
+  } @else if (bands().length === 0) {
+    <div class="state-box"><span>🎵</span><p>No bands found.</p></div>
+  } @else {
+    <div class="grid">
+      @for (band of bands(); track band.id) {
+        <a [routerLink]="['/bands', band.id]" class="card">
+          <div class="card-avatar">{{ getInitials(band.name) }}</div>
+          <div class="card-body">
+            <h3>{{ band.name }}</h3>
+            <p class="description">{{ band.description || 'No description.' }}</p>
+            <div class="tags">
+              <span class="tag tag-members">👥 {{ getActiveMembers(band) }} member(s)</span>
+              @if (band.performer) {
+                <span class="tag tag-rating">⭐ {{ band.performer.averageRating | number:'1.1-1' }}</span>
+              }
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>

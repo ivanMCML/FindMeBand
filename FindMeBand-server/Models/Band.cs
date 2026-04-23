@@ -13,7 +13,7 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         public List<BandMember> Members { get; set; } = new List<BandMember>();
-        
         public List<Post> Posts { get; set; } = new List<Post>();
+        public List<Follow> Followers { get; set; } = new List<Follow>();
     }
 }

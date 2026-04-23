@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/environments\")",
+      "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/core/models\")",
+      "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/core/services\")",
+      "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/shared/components/navbar\")",
+      "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/features/home\")",
+      "Bash(npx ng *)"
+    ]
+  }
+}

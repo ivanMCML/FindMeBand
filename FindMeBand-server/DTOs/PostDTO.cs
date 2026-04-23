@@ -5,6 +5,7 @@ namespace FindMeBand_server.DTOs
     public class CreatePostDTO
     {
         public int ProfileId { get; set; }
+        public int? BandId { get; set; }
         public string Content { get; set; } = null!;
         public List<PostMediaDTO> Media { get; set; } = new();
     }

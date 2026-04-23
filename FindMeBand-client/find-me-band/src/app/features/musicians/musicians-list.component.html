@@ -1,0 +1,47 @@
+<div class="page">
+  <div class="page-header">
+    <h1>🎸 Musicians</h1>
+    <p>Browse musicians looking to collaborate or join a band.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="state-box">
+      <div class="spinner"></div>
+      <p>Loading musicians...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-box error">
+      <span>⚠️</span>
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (musicians().length === 0) {
+    <div class="state-box">
+      <span>🎸</span>
+      <p>No musicians found.</p>
+    </div>
+  } @else {
+    <div class="grid">
+      @for (musician of musicians(); track musician.id) {
+        <a [routerLink]="['/musicians', musician.id]" class="card">
+          <div class="card-avatar">{{ getInitials(musician) }}</div>
+          <div class="card-body">
+            <h3>{{ musician.firstName }} {{ musician.lastName }}</h3>
+            <span class="username">&#64;{{ musician.userName }}</span>
+            <p class="description">{{ musician.description || 'No description.' }}</p>
+            <div class="tags">
+              @if (getPrimaryInstrument(musician) !== '—') {
+                <span class="tag tag-instrument">🎵 {{ getPrimaryInstrument(musician) }}</span>
+              }
+              @if (musician.performer) {
+                <span class="tag tag-rating">⭐ {{ musician.performer.averageRating | number:'1.1-1' }}</span>
+              }
+              @if (musician.bandMemberships?.length) {
+                <span class="tag tag-band">🎵 In {{ musician.bandMemberships.length }} band(s)</span>
+              }
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>

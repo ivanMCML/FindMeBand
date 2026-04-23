@@ -79,6 +79,12 @@ namespace FindMeBand_server.Controllers
             if (profile == null)
                 return NotFound();
 
+            // NoAction na Follow FK-ovima — brišemo ručno sve followove vezane za ovaj profil
+            var follows = await _context.Follows
+                .Where(f => f.FollowerId == id || f.FolloweeProfileId == id)
+                .ToListAsync();
+            _context.Follows.RemoveRange(follows);
+
             _context.Profiles.Remove(profile);
             await _context.SaveChangesAsync();
             return NoContent();

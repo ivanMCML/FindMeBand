@@ -43,5 +43,23 @@ namespace FindMeBand_server.Controllers
 
             return performer;
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePerformer(int id)
+        {
+            var performer = await _context.Performers.FindAsync(id);
+            if (performer == null)
+                return NotFound();
+
+            // NoAction na ApplicantId FK — brišemo ručno prijave gdje je performer bio aplicant
+            var applicantApplications = await _context.OpportunitiesApplications
+                .Where(a => a.ApplicantId == id)
+                .ToListAsync();
+            _context.OpportunitiesApplications.RemoveRange(applicantApplications);
+
+            _context.Performers.Remove(performer);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

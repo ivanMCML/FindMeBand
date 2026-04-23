@@ -22,6 +22,37 @@ namespace FindMeBand_server.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("FindMeBand_server.Models.Band", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PerformerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PerformerId")
+                        .IsUnique()
+                        .HasFilter("[PerformerId] IS NOT NULL");
+
+                    b.ToTable("Bands");
+                });
+
             modelBuilder.Entity("FindMeBand_server.Models.BandMember", b =>
                 {
                     b.Property<int>("Id")
@@ -54,7 +85,7 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasIndex("BandId", "MusicianId")
                         .IsUnique();
 
-                    b.ToTable("BandsMember");
+                    b.ToTable("BandMember");
                 });
 
             modelBuilder.Entity("FindMeBand_server.Models.Event", b =>
@@ -155,6 +186,43 @@ namespace FindMeBand_server.Data.Migrations
                     b.ToTable("EventsApplications");
                 });
 
+            modelBuilder.Entity("FindMeBand_server.Models.Follow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FollowedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FolloweeBandId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FolloweeProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FollowerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FolloweeBandId");
+
+                    b.HasIndex("FolloweeProfileId");
+
+                    b.HasIndex("FollowerId", "FolloweeBandId")
+                        .IsUnique()
+                        .HasFilter("[FolloweeBandId] IS NOT NULL");
+
+                    b.HasIndex("FollowerId", "FolloweeProfileId")
+                        .IsUnique()
+                        .HasFilter("[FolloweeProfileId] IS NOT NULL");
+
+                    b.ToTable("Follows");
+                });
+
             modelBuilder.Entity("FindMeBand_server.Models.Genre", b =>
                 {
                     b.Property<int>("Id")
@@ -213,7 +281,7 @@ namespace FindMeBand_server.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PerformerId")
+                    b.Property<int>("PerformerId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -289,6 +357,25 @@ namespace FindMeBand_server.Data.Migrations
                     b.ToTable("OpportunitiesApplications");
                 });
 
+            modelBuilder.Entity("FindMeBand_server.Models.Performer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("AverageRating")
+                        .HasColumnType("float");
+
+                    b.Property<int>("NumberOfReviews")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Performers");
+                });
+
             modelBuilder.Entity("FindMeBand_server.Models.PlaysGenre", b =>
                 {
                     b.Property<int>("Id")
@@ -357,6 +444,9 @@ namespace FindMeBand_server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BandId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -368,6 +458,8 @@ namespace FindMeBand_server.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BandId");
 
                     b.HasIndex("ProfileId");
 
@@ -419,13 +511,21 @@ namespace FindMeBand_server.Data.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("nvarchar(13)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -460,7 +560,7 @@ namespace FindMeBand_server.Data.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.Property<int>("ReviewerId")
+                    b.Property<int?>("ReviewerId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -468,7 +568,8 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasIndex("PerformerId");
 
                     b.HasIndex("ReviewerId", "PerformerId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ReviewerId] IS NOT NULL");
 
                     b.ToTable("Reviews");
                 });
@@ -671,6 +772,20 @@ namespace FindMeBand_server.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FindMeBand_server.Models.Musician", b =>
+                {
+                    b.HasBaseType("FindMeBand_server.Models.Profile");
+
+                    b.Property<int?>("PerformerId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("PerformerId")
+                        .IsUnique()
+                        .HasFilter("[PerformerId] IS NOT NULL");
+
+                    b.HasDiscriminator().HasValue("Musician");
+                });
+
             modelBuilder.Entity("FindMeBand_server.Models.Organizer", b =>
                 {
                     b.HasBaseType("FindMeBand_server.Models.Profile");
@@ -678,31 +793,14 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasDiscriminator().HasValue("Organizer");
                 });
 
-            modelBuilder.Entity("FindMeBand_server.Models.Performer", b =>
-                {
-                    b.HasBaseType("FindMeBand_server.Models.Profile");
-
-                    b.Property<double>("AverageRating")
-                        .HasColumnType("float");
-
-                    b.Property<int>("NumberOfReviews")
-                        .HasColumnType("int");
-
-                    b.HasDiscriminator().HasValue("Performer");
-                });
-
             modelBuilder.Entity("FindMeBand_server.Models.Band", b =>
                 {
-                    b.HasBaseType("FindMeBand_server.Models.Performer");
+                    b.HasOne("FindMeBand_server.Models.Performer", "Performer")
+                        .WithOne("Band")
+                        .HasForeignKey("FindMeBand_server.Models.Band", "PerformerId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasDiscriminator().HasValue("Band");
-                });
-
-            modelBuilder.Entity("FindMeBand_server.Models.Musician", b =>
-                {
-                    b.HasBaseType("FindMeBand_server.Models.Performer");
-
-                    b.HasDiscriminator().HasValue("Musician");
+                    b.Navigation("Performer");
                 });
 
             modelBuilder.Entity("FindMeBand_server.Models.BandMember", b =>
@@ -710,18 +808,18 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Band", "Band")
                         .WithMany("Members")
                         .HasForeignKey("BandId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FindMeBand_server.Models.Instrument", "Instrument")
                         .WithMany()
                         .HasForeignKey("InstrumentId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FindMeBand_server.Models.Musician", "Musician")
                         .WithMany("BandMemberships")
                         .HasForeignKey("MusicianId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Band");
@@ -736,7 +834,7 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Genre", "Genre")
                         .WithMany("Events")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FindMeBand_server.Models.Organizer", "Organizer")
                         .WithMany("Events")
@@ -754,13 +852,13 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Event", "Event")
                         .WithMany("Applications")
                         .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FindMeBand_server.Models.Performer", "Performer")
                         .WithMany("EventApplications")
                         .HasForeignKey("PerformerId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Event");
@@ -768,11 +866,40 @@ namespace FindMeBand_server.Data.Migrations
                     b.Navigation("Performer");
                 });
 
+            modelBuilder.Entity("FindMeBand_server.Models.Follow", b =>
+                {
+                    b.HasOne("FindMeBand_server.Models.Band", "FolloweeBand")
+                        .WithMany("Followers")
+                        .HasForeignKey("FolloweeBandId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("FindMeBand_server.Models.Profile", "FolloweeProfile")
+                        .WithMany("Followers")
+                        .HasForeignKey("FolloweeProfileId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("FindMeBand_server.Models.Profile", "Follower")
+                        .WithMany("Following")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("FolloweeBand");
+
+                    b.Navigation("FolloweeProfile");
+
+                    b.Navigation("Follower");
+                });
+
             modelBuilder.Entity("FindMeBand_server.Models.Location", b =>
                 {
-                    b.HasOne("FindMeBand_server.Models.Performer", null)
+                    b.HasOne("FindMeBand_server.Models.Performer", "Performer")
                         .WithMany("Locations")
-                        .HasForeignKey("PerformerId");
+                        .HasForeignKey("PerformerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Performer");
                 });
 
             modelBuilder.Entity("FindMeBand_server.Models.Opportunity", b =>
@@ -780,18 +907,18 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Performer", "Author")
                         .WithMany("AuthoredOpportunities")
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FindMeBand_server.Models.Genre", "Genre")
                         .WithMany("Opportunities")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FindMeBand_server.Models.Instrument", "Instrument")
                         .WithMany("Opportunities")
                         .HasForeignKey("InstrumentId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
 
@@ -811,7 +938,7 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Opportunity", "Opportunity")
                         .WithMany("Applications")
                         .HasForeignKey("OpportunityId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Applicant");
@@ -824,13 +951,13 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Genre", "Genre")
                         .WithMany("Performers")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FindMeBand_server.Models.Performer", "Performer")
                         .WithMany("PlaysGenres")
                         .HasForeignKey("PerformerId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Genre");
@@ -843,13 +970,13 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Instrument", "Instrument")
                         .WithMany("PlayedBy")
                         .HasForeignKey("InstrumentId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FindMeBand_server.Models.Musician", "Musician")
                         .WithMany("PlayedInstruments")
                         .HasForeignKey("MusicianId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Instrument");
@@ -859,11 +986,18 @@ namespace FindMeBand_server.Data.Migrations
 
             modelBuilder.Entity("FindMeBand_server.Models.Post", b =>
                 {
+                    b.HasOne("FindMeBand_server.Models.Band", "Band")
+                        .WithMany("Posts")
+                        .HasForeignKey("BandId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("FindMeBand_server.Models.Profile", "Profile")
                         .WithMany("Posts")
                         .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Band");
 
                     b.Navigation("Profile");
                 });
@@ -884,7 +1018,7 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.User", "User")
                         .WithOne()
                         .HasForeignKey("FindMeBand_server.Models.Profile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -895,14 +1029,13 @@ namespace FindMeBand_server.Data.Migrations
                     b.HasOne("FindMeBand_server.Models.Performer", "Performer")
                         .WithMany("ReceivedReviews")
                         .HasForeignKey("PerformerId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FindMeBand_server.Models.Profile", "Reviewer")
                         .WithMany("GivenReviews")
                         .HasForeignKey("ReviewerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Performer");
 
@@ -960,6 +1093,25 @@ namespace FindMeBand_server.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FindMeBand_server.Models.Musician", b =>
+                {
+                    b.HasOne("FindMeBand_server.Models.Performer", "Performer")
+                        .WithOne("Musician")
+                        .HasForeignKey("FindMeBand_server.Models.Musician", "PerformerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Performer");
+                });
+
+            modelBuilder.Entity("FindMeBand_server.Models.Band", b =>
+                {
+                    b.Navigation("Followers");
+
+                    b.Navigation("Members");
+
+                    b.Navigation("Posts");
+                });
+
             modelBuilder.Entity("FindMeBand_server.Models.Event", b =>
                 {
                     b.Navigation("Applications");
@@ -986,30 +1138,17 @@ namespace FindMeBand_server.Data.Migrations
                     b.Navigation("Applications");
                 });
 
-            modelBuilder.Entity("FindMeBand_server.Models.Post", b =>
-                {
-                    b.Navigation("Media");
-                });
-
-            modelBuilder.Entity("FindMeBand_server.Models.Profile", b =>
-                {
-                    b.Navigation("GivenReviews");
-
-                    b.Navigation("Posts");
-                });
-
-            modelBuilder.Entity("FindMeBand_server.Models.Organizer", b =>
-                {
-                    b.Navigation("Events");
-                });
-
             modelBuilder.Entity("FindMeBand_server.Models.Performer", b =>
                 {
                     b.Navigation("AuthoredOpportunities");
 
+                    b.Navigation("Band");
+
                     b.Navigation("EventApplications");
 
                     b.Navigation("Locations");
+
+                    b.Navigation("Musician");
 
                     b.Navigation("OpportunityApplications");
 
@@ -1018,9 +1157,20 @@ namespace FindMeBand_server.Data.Migrations
                     b.Navigation("ReceivedReviews");
                 });
 
-            modelBuilder.Entity("FindMeBand_server.Models.Band", b =>
+            modelBuilder.Entity("FindMeBand_server.Models.Post", b =>
                 {
-                    b.Navigation("Members");
+                    b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("FindMeBand_server.Models.Profile", b =>
+                {
+                    b.Navigation("Followers");
+
+                    b.Navigation("Following");
+
+                    b.Navigation("GivenReviews");
+
+                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("FindMeBand_server.Models.Musician", b =>
@@ -1028,6 +1178,11 @@ namespace FindMeBand_server.Data.Migrations
                     b.Navigation("BandMemberships");
 
                     b.Navigation("PlayedInstruments");
+                });
+
+            modelBuilder.Entity("FindMeBand_server.Models.Organizer", b =>
+                {
+                    b.Navigation("Events");
                 });
 #pragma warning restore 612, 618
         }

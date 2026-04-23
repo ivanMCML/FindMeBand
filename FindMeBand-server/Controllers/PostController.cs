@@ -20,7 +20,18 @@ namespace FindMeBand_server.Controllers
         public async Task<ActionResult<IEnumerable<Post>>> GetPostsByProfile(int profileId)
         {
             return await _context.Posts
-                .Where(p => p.ProfileId == profileId)
+                .Where(p => p.ProfileId == profileId && p.BandId == null)
+                .Include(p => p.Media)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
+        [HttpGet("band/{bandId}")]
+        public async Task<ActionResult<IEnumerable<Post>>> GetPostsByBand(int bandId)
+        {
+            return await _context.Posts
+                .Where(p => p.BandId == bandId)
+                .Include(p => p.Profile)
                 .Include(p => p.Media)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -47,9 +58,17 @@ namespace FindMeBand_server.Controllers
             if (!profileExists)
                 return BadRequest("Profile not found.");
 
+            if (dto.BandId != null)
+            {
+                var bandExists = await _context.Bands.AnyAsync(b => b.Id == dto.BandId);
+                if (!bandExists)
+                    return BadRequest("Band not found.");
+            }
+
             var post = new Post
             {
                 ProfileId = dto.ProfileId,
+                BandId = dto.BandId,
                 Content = dto.Content,
                 Media = dto.Media.Select(m => new PostMedia
                 {

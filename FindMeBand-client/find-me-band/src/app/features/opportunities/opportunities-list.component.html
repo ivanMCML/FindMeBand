@@ -1,0 +1,35 @@
+<div class="page">
+  <div class="page-header">
+    <h1>🔍 Opportunities</h1>
+    <p>Find or post collaboration opportunities in the music scene.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="state-box"><div class="spinner"></div><p>Loading opportunities...</p></div>
+  } @else if (error()) {
+    <div class="state-box error"><span>⚠️</span><p>{{ error() }}</p></div>
+  } @else if (opportunities().length === 0) {
+    <div class="state-box"><span>🔍</span><p>No opportunities found.</p></div>
+  } @else {
+    <div class="grid">
+      @for (opp of opportunities(); track opp.id) {
+        <a [routerLink]="['/opportunities', opp.id]" class="card">
+          <div class="type-badge" [class]="typeClass(opp.type)">
+            <span>{{ typeIcon(opp.type) }}</span>
+            {{ typeLabel(opp.type) }}
+          </div>
+          <p class="description">{{ opp.description || 'No description provided.' }}</p>
+          <div class="footer">
+            @if (opp.instrument) {
+              <span class="tag tag-instrument">🎵 {{ opp.instrument.name }}</span>
+            }
+            @if (opp.genre) {
+              <span class="tag tag-genre">🎼 {{ opp.genre.name }}</span>
+            }
+            <span class="tag tag-apps">{{ opp.applications?.length ?? 0 }} applicant(s)</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</div>

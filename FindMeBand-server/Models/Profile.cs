@@ -12,5 +12,7 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public List<Post> Posts { get; set; } = new List<Post>();
         public List<Review> GivenReviews { get; set; } = new List<Review>();
+        public List<Follow> Following { get; set; } = new List<Follow>();
+        public List<Follow> Followers { get; set; } = new List<Follow>();
     }
 }

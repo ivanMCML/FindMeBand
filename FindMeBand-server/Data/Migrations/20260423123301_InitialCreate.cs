@@ -78,6 +78,20 @@ namespace FindMeBand_server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Performers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AverageRating = table.Column<double>(type: "float", nullable: false),
+                    NumberOfReviews = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Performers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -184,18 +198,125 @@ namespace FindMeBand_server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Bands",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PerformerId = table.Column<int>(type: "int", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Bands", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Bands_Performers_PerformerId",
+                        column: x => x.PerformerId,
+                        principalTable: "Performers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Locations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PerformerId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Latitude = table.Column<double>(type: "float", nullable: false),
+                    Longitude = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Locations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Locations_Performers_PerformerId",
+                        column: x => x.PerformerId,
+                        principalTable: "Performers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Opportunities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AuthorId = table.Column<int>(type: "int", nullable: false),
+                    InstrumentId = table.Column<int>(type: "int", nullable: true),
+                    GenreId = table.Column<int>(type: "int", nullable: true),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Opportunities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Opportunities_Genres_GenreId",
+                        column: x => x.GenreId,
+                        principalTable: "Genres",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Opportunities_Instruments_InstrumentId",
+                        column: x => x.InstrumentId,
+                        principalTable: "Instruments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Opportunities_Performers_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Performers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlaysGenre",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GenreId = table.Column<int>(type: "int", nullable: false),
+                    PerformerId = table.Column<int>(type: "int", nullable: false),
+                    SkillLevel = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlaysGenre", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlaysGenre_Genres_GenreId",
+                        column: x => x.GenreId,
+                        principalTable: "Genres",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PlaysGenre_Performers_PerformerId",
+                        column: x => x.PerformerId,
+                        principalTable: "Performers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Profiles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Discriminator = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
-                    AverageRating = table.Column<double>(type: "float", nullable: true),
-                    NumberOfReviews = table.Column<int>(type: "int", nullable: true)
+                    PerformerId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -204,12 +325,43 @@ namespace FindMeBand_server.Data.Migrations
                         name: "FK_Profiles_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Profiles_Performers_PerformerId",
+                        column: x => x.PerformerId,
+                        principalTable: "Performers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "BandsMember",
+                name: "OpportunitiesApplications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    OpportunityId = table.Column<int>(type: "int", nullable: false),
+                    ApplicantId = table.Column<int>(type: "int", nullable: false),
+                    AppliedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OpportunitiesApplications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OpportunitiesApplications_Opportunities_OpportunityId",
+                        column: x => x.OpportunityId,
+                        principalTable: "Opportunities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OpportunitiesApplications_Performers_ApplicantId",
+                        column: x => x.ApplicantId,
+                        principalTable: "Performers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BandMember",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -222,22 +374,25 @@ namespace FindMeBand_server.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BandsMember", x => x.Id);
+                    table.PrimaryKey("PK_BandMember", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BandsMember_Instruments_InstrumentId",
+                        name: "FK_BandMember_Bands_BandId",
+                        column: x => x.BandId,
+                        principalTable: "Bands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BandMember_Instruments_InstrumentId",
                         column: x => x.InstrumentId,
                         principalTable: "Instruments",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_BandsMember_Profiles_BandId",
-                        column: x => x.BandId,
-                        principalTable: "Profiles",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_BandsMember_Profiles_MusicianId",
+                        name: "FK_BandMember_Profiles_MusicianId",
                         column: x => x.MusicianId,
                         principalTable: "Profiles",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -269,7 +424,8 @@ namespace FindMeBand_server.Data.Migrations
                         name: "FK_Events_Genres_GenreId",
                         column: x => x.GenreId,
                         principalTable: "Genres",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Events_Profiles_OrganizerId",
                         column: x => x.OrganizerId,
@@ -278,80 +434,33 @@ namespace FindMeBand_server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Locations",
+                name: "Follows",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Latitude = table.Column<double>(type: "float", nullable: false),
-                    Longitude = table.Column<double>(type: "float", nullable: false),
-                    PerformerId = table.Column<int>(type: "int", nullable: true)
+                    FollowerId = table.Column<int>(type: "int", nullable: false),
+                    FolloweeProfileId = table.Column<int>(type: "int", nullable: true),
+                    FolloweeBandId = table.Column<int>(type: "int", nullable: true),
+                    FollowedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Locations", x => x.Id);
+                    table.PrimaryKey("PK_Follows", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Locations_Profiles_PerformerId",
-                        column: x => x.PerformerId,
+                        name: "FK_Follows_Bands_FolloweeBandId",
+                        column: x => x.FolloweeBandId,
+                        principalTable: "Bands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Follows_Profiles_FolloweeProfileId",
+                        column: x => x.FolloweeProfileId,
                         principalTable: "Profiles",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Opportunities",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AuthorId = table.Column<int>(type: "int", nullable: false),
-                    InstrumentId = table.Column<int>(type: "int", nullable: true),
-                    GenreId = table.Column<int>(type: "int", nullable: true),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Opportunities", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Opportunities_Genres_GenreId",
-                        column: x => x.GenreId,
-                        principalTable: "Genres",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Opportunities_Instruments_InstrumentId",
-                        column: x => x.InstrumentId,
-                        principalTable: "Instruments",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Opportunities_Profiles_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Profiles",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PlaysGenre",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    GenreId = table.Column<int>(type: "int", nullable: false),
-                    PerformerId = table.Column<int>(type: "int", nullable: false),
-                    SkillLevel = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PlaysGenre", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PlaysGenre_Genres_GenreId",
-                        column: x => x.GenreId,
-                        principalTable: "Genres",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PlaysGenre_Profiles_PerformerId",
-                        column: x => x.PerformerId,
+                        name: "FK_Follows_Profiles_FollowerId",
+                        column: x => x.FollowerId,
                         principalTable: "Profiles",
                         principalColumn: "Id");
                 });
@@ -375,12 +484,14 @@ namespace FindMeBand_server.Data.Migrations
                         name: "FK_PlaysInstrument_Instruments_InstrumentId",
                         column: x => x.InstrumentId,
                         principalTable: "Instruments",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PlaysInstrument_Profiles_MusicianId",
                         column: x => x.MusicianId,
                         principalTable: "Profiles",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -390,12 +501,19 @@ namespace FindMeBand_server.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProfileId = table.Column<int>(type: "int", nullable: false),
+                    BandId = table.Column<int>(type: "int", nullable: true),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Posts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Posts_Bands_BandId",
+                        column: x => x.BandId,
+                        principalTable: "Bands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Posts_Profiles_ProfileId",
                         column: x => x.ProfileId,
@@ -410,7 +528,7 @@ namespace FindMeBand_server.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ReviewerId = table.Column<int>(type: "int", nullable: false),
+                    ReviewerId = table.Column<int>(type: "int", nullable: true),
                     PerformerId = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Rating = table.Column<int>(type: "int", nullable: false),
@@ -420,15 +538,17 @@ namespace FindMeBand_server.Data.Migrations
                 {
                     table.PrimaryKey("PK_Reviews", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Reviews_Profiles_PerformerId",
+                        name: "FK_Reviews_Performers_PerformerId",
                         column: x => x.PerformerId,
-                        principalTable: "Profiles",
-                        principalColumn: "Id");
+                        principalTable: "Performers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Reviews_Profiles_ReviewerId",
                         column: x => x.ReviewerId,
                         principalTable: "Profiles",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -450,38 +570,14 @@ namespace FindMeBand_server.Data.Migrations
                         name: "FK_EventsApplications_Events_EventId",
                         column: x => x.EventId,
                         principalTable: "Events",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_EventsApplications_Profiles_PerformerId",
+                        name: "FK_EventsApplications_Performers_PerformerId",
                         column: x => x.PerformerId,
-                        principalTable: "Profiles",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "OpportunitiesApplications",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OpportunityId = table.Column<int>(type: "int", nullable: false),
-                    ApplicantId = table.Column<int>(type: "int", nullable: false),
-                    AppliedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OpportunitiesApplications", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OpportunitiesApplications_Opportunities_OpportunityId",
-                        column: x => x.OpportunityId,
-                        principalTable: "Opportunities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_OpportunitiesApplications_Profiles_ApplicantId",
-                        column: x => x.ApplicantId,
-                        principalTable: "Profiles",
-                        principalColumn: "Id");
+                        principalTable: "Performers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -545,20 +641,27 @@ namespace FindMeBand_server.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BandsMember_BandId_MusicianId",
-                table: "BandsMember",
+                name: "IX_BandMember_BandId_MusicianId",
+                table: "BandMember",
                 columns: new[] { "BandId", "MusicianId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_BandsMember_InstrumentId",
-                table: "BandsMember",
+                name: "IX_BandMember_InstrumentId",
+                table: "BandMember",
                 column: "InstrumentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BandsMember_MusicianId",
-                table: "BandsMember",
+                name: "IX_BandMember_MusicianId",
+                table: "BandMember",
                 column: "MusicianId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bands_PerformerId",
+                table: "Bands",
+                column: "PerformerId",
+                unique: true,
+                filter: "[PerformerId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Events_GenreId",
@@ -580,6 +683,30 @@ namespace FindMeBand_server.Data.Migrations
                 name: "IX_EventsApplications_PerformerId",
                 table: "EventsApplications",
                 column: "PerformerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FolloweeBandId",
+                table: "Follows",
+                column: "FolloweeBandId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FolloweeProfileId",
+                table: "Follows",
+                column: "FolloweeProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowerId_FolloweeBandId",
+                table: "Follows",
+                columns: new[] { "FollowerId", "FolloweeBandId" },
+                unique: true,
+                filter: "[FolloweeBandId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowerId_FolloweeProfileId",
+                table: "Follows",
+                columns: new[] { "FollowerId", "FolloweeProfileId" },
+                unique: true,
+                filter: "[FolloweeProfileId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Locations_PerformerId",
@@ -637,6 +764,11 @@ namespace FindMeBand_server.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Posts_BandId",
+                table: "Posts",
+                column: "BandId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Posts_ProfileId",
                 table: "Posts",
                 column: "ProfileId");
@@ -645,6 +777,13 @@ namespace FindMeBand_server.Data.Migrations
                 name: "IX_PostsMedia_PostId",
                 table: "PostsMedia",
                 column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Profiles_PerformerId",
+                table: "Profiles",
+                column: "PerformerId",
+                unique: true,
+                filter: "[PerformerId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Profiles_UserId",
@@ -661,7 +800,8 @@ namespace FindMeBand_server.Data.Migrations
                 name: "IX_Reviews_ReviewerId_PerformerId",
                 table: "Reviews",
                 columns: new[] { "ReviewerId", "PerformerId" },
-                unique: true);
+                unique: true,
+                filter: "[ReviewerId] IS NOT NULL");
         }
 
         /// <inheritdoc />
@@ -683,10 +823,13 @@ namespace FindMeBand_server.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "BandsMember");
+                name: "BandMember");
 
             migrationBuilder.DropTable(
                 name: "EventsApplications");
+
+            migrationBuilder.DropTable(
+                name: "Follows");
 
             migrationBuilder.DropTable(
                 name: "Locations");
@@ -725,10 +868,16 @@ namespace FindMeBand_server.Data.Migrations
                 name: "Instruments");
 
             migrationBuilder.DropTable(
+                name: "Bands");
+
+            migrationBuilder.DropTable(
                 name: "Profiles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Performers");
         }
     }
 }

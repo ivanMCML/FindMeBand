@@ -36,6 +36,8 @@ namespace FindMeBand_server.Data
         public DbSet<Opportunity> Opportunities { get; set; } = null!;
         public DbSet<OpportunityApplication> OpportunitiesApplications { get; set; } = null!;
 
+        public DbSet<Follow> Follows { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -70,6 +72,14 @@ namespace FindMeBand_server.Data
                 .HasOne(p => p.Profile)
                 .WithMany(p => p.Posts)
                 .HasForeignKey(p => p.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // --- Post -> Band ---
+            // Cascade: postovi benda brišu se s bendom
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.Band)
+                .WithMany(b => b.Posts)
+                .HasForeignKey(p => p.BandId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // --- PostMedia -> Post ---
@@ -213,16 +223,26 @@ namespace FindMeBand_server.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // --- OpportunityApplication -> Applicant (Performer) ---
-            // Cascade: prijave se brišu s performerom
+            // NoAction: izbjegavamo višestruke kaskadne putanje do OpportunityApplication
+            // (Performer -> Opportunity -> OpportunityApplication već postoji)
             modelBuilder.Entity<OpportunityApplication>()
                 .HasOne(oa => oa.Applicant)
                 .WithMany(p => p.OpportunityApplications)
                 .HasForeignKey(oa => oa.ApplicantId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<OpportunityApplication>()
                 .HasIndex(oa => new { oa.OpportunityId, oa.ApplicantId })
                 .IsUnique();
+
+            // --- Event decimal preciznost ---
+            modelBuilder.Entity<Event>()
+                .Property(e => e.BudgetMin)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Event>()
+                .Property(e => e.BudgetMax)
+                .HasColumnType("decimal(18,2)");
 
             // --- Event -> Organizer ---
             // NoAction: eventi ostaju u bazi ako se organizer obriše (arhiva)
@@ -259,6 +279,41 @@ namespace FindMeBand_server.Data
             modelBuilder.Entity<EventApplication>()
                 .HasIndex(ea => new { ea.EventId, ea.PerformerId })
                 .IsUnique();
+
+            // --- Follow -> Follower (Profile) ---
+            // NoAction: izbjegavamo višestruke kaskadne putanje od Profile do Follow
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Follower)
+                .WithMany(p => p.Following)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Follow -> FolloweeProfile (Profile) ---
+            // NoAction: isto, drugi FK koji pokazuje na Profile
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.FolloweeProfile)
+                .WithMany(p => p.Followers)
+                .HasForeignKey(f => f.FolloweeProfileId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Follow -> FolloweeBand (Band) ---
+            // Cascade: followovi se brišu kad se bend obriše
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.FolloweeBand)
+                .WithMany(b => b.Followers)
+                .HasForeignKey(f => f.FolloweeBandId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique: jedan profil ne može dvaput pratiti isti profil ili bend
+            modelBuilder.Entity<Follow>()
+                .HasIndex(f => new { f.FollowerId, f.FolloweeProfileId })
+                .IsUnique()
+                .HasFilter("[FolloweeProfileId] IS NOT NULL");
+
+            modelBuilder.Entity<Follow>()
+                .HasIndex(f => new { f.FollowerId, f.FolloweeBandId })
+                .IsUnique()
+                .HasFilter("[FolloweeBandId] IS NOT NULL");
         }
     }
 }
