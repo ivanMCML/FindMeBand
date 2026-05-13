@@ -6,7 +6,21 @@
       "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/core/services\")",
       "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/shared/components/navbar\")",
       "Bash(mkdir -p \"C:/Users/HomePC/Desktop/Završni/FindMeBand/FindMeBand-client/find-me-band/src/app/features/home\")",
-      "Bash(npx ng *)"
+      "Bash(npx ng *)",
+      "Bash(ng version *)",
+      "Bash(npx @angular/cli version)",
+      "Bash(ng new *)",
+      "PowerShell(npm list *)",
+      "Bash(npx @angular/cli@21 new find-me-band --routing --style=scss --standalone --skip-git --no-interactive)",
+      "Bash(npx @angular/cli build --no-progress)",
+      "Bash(npx @angular/cli serve --port 4200)",
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-client\\\\find-me-band\\\\src\\\\app\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\\\\Models\" -File)",
+      "PowerShell(tree *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName } | Sort-Object)"
     ]
   }
 }

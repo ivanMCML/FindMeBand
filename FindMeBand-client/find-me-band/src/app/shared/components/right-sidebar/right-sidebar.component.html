@@ -1,0 +1,522 @@
+<aside class="right-sidebar">
+
+  <!-- ══ OPPORTUNITIES FILTERS ══════════════════════ -->
+  @if (currentSection() === 'opportunities') {
+    <div class="filter-panel">
+      <div class="filter-header">
+        <h3 class="sidebar-title">
+          Filteri
+          @if (oppActiveFilterCount() > 0) {
+            <span class="filter-badge">{{ oppActiveFilterCount() }}</span>
+          }
+        </h3>
+        @if (oppActiveFilterCount() > 0) {
+          <button class="reset-link" (click)="resetOppFilters()">Resetiraj</button>
+        }
+      </div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Vrsta prilike</h4>
+        <div class="type-pills">
+          <button class="type-pill" [class.type-pill--active]="oppFilter.type() === 'all'" (click)="onOppTypeSet('all')">Sve</button>
+          <button class="type-pill type-pill--musician" [class.type-pill--active]="oppFilter.type() === 'SeekingMusician'" (click)="onOppTypeSet('SeekingMusician')">Traži musikanta</button>
+          <button class="type-pill type-pill--band" [class.type-pill--active]="oppFilter.type() === 'SeekingBand'" (click)="onOppTypeSet('SeekingBand')">Traži bend</button>
+          <button class="type-pill type-pill--collab" [class.type-pill--active]="oppFilter.type() === 'SeekingCollaboration'" (click)="onOppTypeSet('SeekingCollaboration')">Traži kolaboraciju</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Žanr</h4>
+        <select class="filter-select" [value]="oppFilter.genre()" (change)="onOppGenreChange($event)">
+          <option value="all">Svi žanrovi</option>
+          @for (g of oppFilter.genres; track g) { <option [value]="g">{{ g }}</option> }
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Instrument</h4>
+        <select class="filter-select" [value]="oppFilter.instrument()" (change)="onOppInstrumentChange($event)">
+          <option value="all">Svi instrumenti</option>
+          @for (i of oppFilter.instruments; track i) { <option [value]="i">{{ i }}</option> }
+        </select>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Sortiraj po</h4>
+        <select class="filter-select" [value]="oppFilter.sortBy()" (change)="onOppSortChange($event)">
+          <option value="newest">Najnoviji</option>
+          <option value="most-applied">Najviše prijava</option>
+          <option value="oldest">Najstariji</option>
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- ══ EVENTS FILTERS ═════════════════════════════ -->
+  @if (currentSection() === 'events') {
+    <div class="filter-panel">
+      <div class="filter-header">
+        <h3 class="sidebar-title">
+          Filteri
+          @if (eventActiveFilterCount() > 0) {
+            <span class="filter-badge">{{ eventActiveFilterCount() }}</span>
+          }
+        </h3>
+        @if (eventActiveFilterCount() > 0) {
+          <button class="reset-link" (click)="resetEventFilters()">Resetiraj</button>
+        }
+      </div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Status</h4>
+        <div class="type-pills">
+          <button class="type-pill" [class.type-pill--active]="eventFilter.status() === 'all'" (click)="onEventStatusSet('all')">Svi</button>
+          <button class="type-pill type-pill--open" [class.type-pill--active]="eventFilter.status() === 'Open'" (click)="onEventStatusSet('Open')">Otvoreni</button>
+          <button class="type-pill type-pill--closed" [class.type-pill--active]="eventFilter.status() === 'Closed'" (click)="onEventStatusSet('Closed')">Zatvoreni</button>
+          <button class="type-pill type-pill--canceled" [class.type-pill--active]="eventFilter.status() === 'Canceled'" (click)="onEventStatusSet('Canceled')">Otkazani</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Žanr</h4>
+        <select class="filter-select" [value]="eventFilter.genre()" (change)="onEventGenreChange($event)">
+          <option value="all">Svi žanrovi</option>
+          @for (g of eventFilter.genres; track g) { <option [value]="g">{{ g }}</option> }
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Vrsta izvođača</h4>
+        <div class="type-pills">
+          <button class="type-pill" [class.type-pill--active]="eventFilter.performerType() === 'all'" (click)="onEventTypeSet('all')">Svi</button>
+          <button class="type-pill type-pill--musician" [class.type-pill--active]="eventFilter.performerType() === 'Musician'" (click)="onEventTypeSet('Musician')">Muzičar</button>
+          <button class="type-pill type-pill--band" [class.type-pill--active]="eventFilter.performerType() === 'Band'" (click)="onEventTypeSet('Band')">Bend</button>
+        </div>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <div class="filter-section">
+        <h4 class="filter-label">Sortiraj po</h4>
+        <select class="filter-select" [value]="eventFilter.sortBy()" (change)="onEventSortChange($event)">
+          <option value="soonest">Najraniji datum</option>
+          <option value="newest">Najnoviji</option>
+          <option value="budget-high">Najveći budžet</option>
+          <option value="budget-low">Najmanji budžet</option>
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- ══ MY BANDS ══════════════════════════════════════ -->
+  @if (currentSection() === 'my-bands') {
+    <div class="bands-panel">
+
+      <!-- Band selector -->
+      <div class="bands-panel-header">
+        <h3 class="sidebar-title">Moji bendovi</h3>
+      </div>
+
+      <div class="bands-list">
+        @for (band of myBands.bands(); track band.id) {
+          <div
+            class="band-item"
+            [class.band-item--active]="myBands.selectedBandId() === band.id"
+            (click)="myBands.selectBand(band.id)"
+          >
+            <div class="band-item-avatar" [style.background]="band.color">{{ band.initials }}</div>
+            <div class="band-item-info">
+              <span class="band-item-name">{{ band.name }}</span>
+              <span class="band-item-sub">
+                {{ band.myRole === 'Admin' ? 'Admin' : 'Član' }} · {{ band.myInstrument }}
+              </span>
+            </div>
+            @if (myBands.selectedBandId() === band.id) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" width="14" height="14"
+                style="color: var(--color-primary); flex-shrink: 0;">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Divider -->
+      @if (myBands.selectedBand()) {
+        <div class="bands-divider"></div>
+
+        <!-- Band actions -->
+        <div class="bands-actions-header">
+          <h4 class="bands-actions-title">Akcije za bend</h4>
+        </div>
+
+        <div class="bands-actions">
+          <button class="band-action-btn">
+            <span class="band-action-icon band-action-icon--post">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </span>
+            Objavi oglas
+          </button>
+
+          <button class="band-action-btn">
+            <span class="band-action-icon band-action-icon--gig">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <line x1="12" y1="14" x2="12" y2="18"/>
+                <line x1="10" y1="16" x2="14" y2="16"/>
+              </svg>
+            </span>
+            Zakaži gažu
+          </button>
+
+          @if (myBands.selectedBand()?.myRole === 'Admin') {
+            <button class="band-action-btn">
+              <span class="band-action-icon band-action-icon--member">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="8.5" cy="7" r="4"/>
+                  <line x1="20" y1="8" x2="20" y2="14"/>
+                  <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+              </span>
+              Dodaj člana
+            </button>
+
+            <button class="band-action-btn">
+              <span class="band-action-icon band-action-icon--edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </span>
+              Uredi informacije
+            </button>
+          }
+
+          <button class="band-action-btn band-action-btn--danger">
+            <span class="band-action-icon band-action-icon--leave">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </span>
+            Napusti bend
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ══ MESSAGES — CONVERSATIONS LIST ════════════════ -->
+  @if (currentSection() === 'messages') {
+
+    <div class="msg-panel">
+
+      <div class="msg-panel-header">
+        <h3 class="sidebar-title">Poruke</h3>
+      </div>
+
+      <div class="msg-search-wrap">
+        <span class="msg-search-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </span>
+        <input
+          class="msg-search-input"
+          type="text"
+          placeholder="Pretraži razgovore..."
+          [value]="messages.searchQuery()"
+          (input)="onMsgSearch($event)"
+        />
+        @if (messages.searchQuery()) {
+          <button class="msg-search-clear" (click)="clearMsgSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <div class="msg-convo-list">
+
+        @if (messages.filteredConversations().length > 0) {
+          @if (messages.searchQuery() && messages.suggestedContacts().length > 0) {
+            <p class="msg-list-label">Razgovori</p>
+          }
+          @for (conv of messages.filteredConversations(); track conv.id) {
+            <div
+              class="msg-convo-item"
+              [class.msg-convo-item--active]="messages.selectedConversationId() === conv.id"
+              (click)="selectConversation(conv.id)"
+            >
+              <div
+                class="msg-convo-avatar"
+                [class.msg-convo-avatar--band]="conv.contact.type === 'band'"
+                [style.background]="conv.contact.color"
+              >
+                {{ conv.contact.initials }}
+              </div>
+              <div class="msg-convo-body">
+                <div class="msg-convo-top">
+                  <span class="msg-convo-name">{{ conv.contact.name }}</span>
+                  <span class="msg-convo-time">{{ messages.formatTime(conv.lastMessageAt) }}</span>
+                </div>
+                <div class="msg-convo-bottom">
+                  <span class="msg-convo-preview" [class.msg-convo-preview--unread]="conv.unreadCount > 0">
+                    @if (conv.lastMessage) {
+                      @if (conv.lastMessageIsOwn) { <span class="msg-own-prefix">Ti: </span> }
+                      {{ conv.lastMessage }}
+                    } @else {
+                      Pokreni razgovor
+                    }
+                  </span>
+                  @if (conv.unreadCount > 0) {
+                    <span class="msg-unread-badge">{{ conv.unreadCount }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        }
+
+        @if (messages.suggestedContacts().length > 0) {
+          <p class="msg-list-label">Kontakti koje pratiš</p>
+          @for (contact of messages.suggestedContacts(); track contact.id) {
+            <div class="msg-convo-item" (click)="startConversation(contact)">
+              <div
+                class="msg-convo-avatar"
+                [class.msg-convo-avatar--band]="contact.type === 'band'"
+                [style.background]="contact.color"
+              >
+                {{ contact.initials }}
+              </div>
+              <div class="msg-convo-body">
+                <div class="msg-convo-top">
+                  <span class="msg-convo-name">{{ contact.name }}</span>
+                </div>
+                <div class="msg-convo-bottom">
+                  <span class="msg-convo-preview msg-convo-preview--new">Pokreni razgovor</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+
+        @if (messages.searchQuery() && messages.filteredConversations().length === 0 && messages.suggestedContacts().length === 0) {
+          <div class="msg-no-results">
+            <p>Nema rezultata</p>
+          </div>
+        }
+
+        @if (!messages.searchQuery() && messages.sortedConversations().length === 0) {
+          <div class="msg-no-results">
+            <p>Još nema razgovora</p>
+            <p class="msg-no-results-hint">Pretraži kontakte koje pratiš</p>
+          </div>
+        }
+
+      </div>
+    </div>
+
+  }
+
+  <!-- ══ MY PROFILE ═══════════════════════════════════ -->
+  @if (currentSection() === 'my-profile') {
+    <div class="profile-panel">
+
+      <!-- Profile snapshot -->
+      <div class="pp-header">
+        <div class="pp-avatar" [style.background]="myProfile.profile().color">
+          {{ myProfile.profile().initials }}
+        </div>
+        <div class="pp-info">
+          <span class="pp-name">{{ myProfile.profile().firstName }} {{ myProfile.profile().lastName }}</span>
+          <span class="pp-username">&#64;{{ myProfile.profile().userName }}</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="pp-stats">
+        <div class="pp-stat">
+          <span class="pp-stat-value">{{ myProfile.profile().followersCount }}</span>
+          <span class="pp-stat-label">Pratilaca</span>
+        </div>
+        <div class="pp-stat-divider"></div>
+        <div class="pp-stat">
+          <span class="pp-stat-value">{{ myProfile.profile().followingCount }}</span>
+          <span class="pp-stat-label">Pratim</span>
+        </div>
+        <div class="pp-stat-divider"></div>
+        <div class="pp-stat">
+          <span class="pp-stat-value">{{ myProfile.profile().averageRating }}</span>
+          <span class="pp-stat-label">Ocjena</span>
+        </div>
+      </div>
+
+      <div class="pp-divider"></div>
+
+      <!-- Actions -->
+      <div class="pp-actions-label">Brze radnje</div>
+      <div class="pp-actions">
+        <button class="pp-action-btn" (click)="myProfile.startEditing()">
+          <span class="pp-action-icon pp-action-icon--edit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </span>
+          Uredi profil
+        </button>
+        <button class="pp-action-btn" (click)="myProfile.setTab('posts')">
+          <span class="pp-action-icon pp-action-icon--posts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </span>
+          Moje objave
+        </button>
+        <button class="pp-action-btn" (click)="myProfile.setTab('reviews')">
+          <span class="pp-action-icon pp-action-icon--reviews">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </span>
+          Recenzije
+          @if (myProfile.profile().numberOfReviews > 0) {
+            <span class="pp-action-count">{{ myProfile.profile().numberOfReviews }}</span>
+          }
+        </button>
+      </div>
+
+      <div class="pp-divider"></div>
+
+      <!-- Instruments & Genres -->
+      <div class="pp-section-label">Instrumenti</div>
+      <div class="pp-chips">
+        @for (instr of myProfile.profile().instruments; track instr.id) {
+          <span class="pp-chip pp-chip--instrument">{{ instr.name }}</span>
+        }
+        @if (myProfile.profile().instruments.length === 0) {
+          <span class="pp-empty-hint">Nema instrumenata</span>
+        }
+      </div>
+
+      <div class="pp-section-label" style="margin-top: 14px;">Žanrovi</div>
+      <div class="pp-chips">
+        @for (genre of myProfile.profile().genres; track genre.id) {
+          <span class="pp-chip pp-chip--genre">{{ genre.name }}</span>
+        }
+        @if (myProfile.profile().genres.length === 0) {
+          <span class="pp-empty-hint">Nema žanrova</span>
+        }
+      </div>
+
+    </div>
+  }
+
+  <!-- ══ HOME SEARCH ════════════════════════════════ -->
+  @if (currentSection() === 'home') {
+
+    <div class="sidebar-header">
+      <h3 class="sidebar-title">Pretraži</h3>
+    </div>
+
+    <div class="search-box">
+      <span class="search-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </span>
+      <input class="search-input" type="text" placeholder="Musikanti, bendovi, organizatori..."
+        [value]="searchTerm()" (input)="onSearch($event)" />
+    </div>
+
+    @if (filteredMusicians().length > 0) {
+      <div class="result-section">
+        <h4 class="section-title">@if (searchTerm()) { Musikanti } @else { Predloženi musikanti }</h4>
+        @for (item of filteredMusicians(); track item.id) {
+          <div class="result-item">
+            <div class="result-avatar" [style.background]="item.color">{{ item.initials }}</div>
+            <div class="result-info">
+              <span class="result-name">{{ item.name }}</span>
+              <span class="result-sub">{{ item.subtitle }}</span>
+            </div>
+            <button class="follow-btn">Prati</button>
+          </div>
+        }
+      </div>
+    }
+
+    @if (filteredBands().length > 0) {
+      <div class="result-section">
+        <h4 class="section-title">@if (searchTerm()) { Bendovi } @else { Popularni bendovi }</h4>
+        @for (item of filteredBands(); track item.id) {
+          <div class="result-item">
+            <div class="result-avatar result-avatar--band" [style.background]="item.color">{{ item.initials }}</div>
+            <div class="result-info">
+              <span class="result-name">{{ item.name }}</span>
+              <span class="result-sub">{{ item.subtitle }}</span>
+            </div>
+            <button class="follow-btn">Prati</button>
+          </div>
+        }
+      </div>
+    }
+
+    @if (filteredOrganizers().length > 0) {
+      <div class="result-section">
+        <h4 class="section-title">@if (searchTerm()) { Organizatori } @else { Organizatori u tvojoj blizini }</h4>
+        @for (item of filteredOrganizers(); track item.id) {
+          <div class="result-item">
+            <div class="result-avatar result-avatar--organizer" [style.background]="item.color">{{ item.initials }}</div>
+            <div class="result-info">
+              <span class="result-name">{{ item.name }}</span>
+              <span class="result-sub">{{ item.subtitle }}</span>
+            </div>
+            <button class="follow-btn">Prati</button>
+          </div>
+        }
+      </div>
+    }
+
+    @if (searchTerm() && filteredMusicians().length === 0 && filteredBands().length === 0 && filteredOrganizers().length === 0) {
+      <div class="no-results">
+        <p>Nema rezultata za "<strong>{{ searchTerm() }}</strong>"</p>
+      </div>
+    }
+
+  }
+
+</aside>

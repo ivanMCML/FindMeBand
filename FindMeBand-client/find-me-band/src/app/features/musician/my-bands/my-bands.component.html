@@ -1,0 +1,375 @@
+@if (s.selectedBand(); as band) {
+
+  <!-- ══ BAND HEADER ══════════════════════════════════ -->
+  <div class="band-header">
+    <div class="band-hero">
+      <div
+        class="band-avatar"
+        [style.background]="band.color"
+      >
+        {{ band.initials }}
+      </div>
+      <div class="band-hero-info">
+        <div class="band-name-row">
+          <h1 class="band-name">{{ band.name }}</h1>
+          <span class="role-badge" [class.role-badge--admin]="band.myRole === 'Admin'">
+            {{ band.myRole === 'Admin' ? 'Admin' : 'Član' }}
+          </span>
+        </div>
+        <div class="band-meta">
+          <span class="band-instrument">{{ band.myInstrument }}</span>
+          <span class="meta-dot">·</span>
+          <div class="band-rating">
+            <div class="stars">
+              @for (star of s.starsArray(band.averageRating); track $index) {
+                <svg class="star" [class.star--full]="star.full" [class.star--half]="star.half"
+                  viewBox="0 0 24 24" width="14" height="14">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              }
+            </div>
+            <span class="rating-val">{{ band.averageRating }}</span>
+            <span class="rating-count">({{ band.numberOfReviews }} recenzija)</span>
+          </div>
+        </div>
+        <div class="band-tags">
+          @for (genre of band.genres; track genre) {
+            <span class="genre-tag">{{ genre }}</span>
+          }
+          @for (loc of band.locations; track loc) {
+            <span class="location-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              {{ loc }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB BAR ══════════════════════════════════════ -->
+  <div class="tab-bar">
+    <button class="tab" [class.tab--active]="s.activeTab() === 'overview'" (click)="s.setTab('overview')">
+      Pregled
+    </button>
+    <button class="tab" [class.tab--active]="s.activeTab() === 'members'" (click)="s.setTab('members')">
+      Članovi
+      <span class="tab-count">{{ band.members.length }}</span>
+    </button>
+    <button class="tab" [class.tab--active]="s.activeTab() === 'gigs'" (click)="s.setTab('gigs')">
+      Gaže
+      <span class="tab-count">{{ s.upcomingGigs().length }}</span>
+    </button>
+    <button class="tab" [class.tab--active]="s.activeTab() === 'posts'" (click)="s.setTab('posts')">
+      Oglasi
+      <span class="tab-count">{{ band.posts.length }}</span>
+    </button>
+  </div>
+
+  <!-- ══ OVERVIEW TAB ══════════════════════════════════ -->
+  @if (s.activeTab() === 'overview') {
+    <div class="tab-content">
+
+      <div class="overview-grid">
+
+        <!-- Description card -->
+        <div class="info-card info-card--full">
+          <h3 class="card-heading">O bendu</h3>
+          <p class="band-description">{{ band.description }}</p>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">{{ band.members.length }}</span>
+            <span class="stat-label">Članova</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ band.gigs.length }}</span>
+            <span class="stat-label">Gaža ukupno</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ s.upcomingGigs().length }}</span>
+            <span class="stat-label">Predstojeće</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-value">{{ band.numberOfReviews }}</span>
+            <span class="stat-label">Recenzija</span>
+          </div>
+        </div>
+
+        <!-- Upcoming gig preview -->
+        @if (s.upcomingGigs().length > 0) {
+          <div class="info-card info-card--full">
+            <h3 class="card-heading">Sljedeća gaža</h3>
+            <div class="next-gig">
+              <div class="next-gig-date">
+                <span class="next-gig-day">{{ s.upcomingGigs()[0].date | slice:8:10 }}</span>
+                <span class="next-gig-month">{{ s.formatDate(s.upcomingGigs()[0].date) | slice:4:8 }}</span>
+              </div>
+              <div class="next-gig-info">
+                <span class="next-gig-title">{{ s.upcomingGigs()[0].title }}</span>
+                <span class="next-gig-venue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  {{ s.upcomingGigs()[0].venue }} · {{ s.upcomingGigs()[0].location }}
+                </span>
+                @if (s.upcomingGigs()[0].notes) {
+                  <span class="next-gig-notes">{{ s.upcomingGigs()[0].notes }}</span>
+                }
+              </div>
+              <span class="next-gig-payment">{{ s.formatPayment(s.upcomingGigs()[0].payment) }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Members preview -->
+        <div class="info-card info-card--full">
+          <h3 class="card-heading">Postava</h3>
+          <div class="members-preview">
+            @for (member of band.members; track member.id) {
+              <div class="member-chip">
+                <div class="member-chip-avatar" [style.background]="member.color">{{ member.initials }}</div>
+                <div class="member-chip-info">
+                  <span class="member-chip-name">{{ member.name }}</span>
+                  <span class="member-chip-instrument">{{ member.instrument }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ══ MEMBERS TAB ═══════════════════════════════════ -->
+  @if (s.activeTab() === 'members') {
+    <div class="tab-content">
+      <div class="members-list">
+        @for (member of band.members; track member.id) {
+          <div class="member-card">
+            <div class="member-avatar" [style.background]="member.color">
+              {{ member.initials }}
+            </div>
+            <div class="member-info">
+              <div class="member-name-row">
+                <span class="member-name">{{ member.name }}</span>
+                @if (member.role === 'Admin') {
+                  <span class="member-admin-badge">Admin</span>
+                }
+              </div>
+              <span class="member-username">&#64;{{ member.username }}</span>
+            </div>
+            <div class="member-instrument-col">
+              <span class="instrument-badge">{{ member.instrument }}</span>
+              <span class="member-since">od {{ s.formatDate(member.joinedDate) }}</span>
+            </div>
+            <button class="member-msg-btn" title="Pošalji poruku">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ══ GIGS TAB ══════════════════════════════════════ -->
+  @if (s.activeTab() === 'gigs') {
+    <div class="tab-content">
+
+      @if (s.upcomingGigs().length > 0) {
+        <div class="gigs-section">
+          <h3 class="gigs-section-heading">
+            <span class="gigs-section-dot gigs-section-dot--upcoming"></span>
+            Predstojeće gaže
+          </h3>
+          <div class="gig-list">
+            @for (gig of s.upcomingGigs(); track gig.id) {
+              <div class="gig-card gig-card--upcoming">
+                <div class="gig-date-col">
+                  <span class="gig-day">{{ gig.date | slice:8:10 }}</span>
+                  <span class="gig-month">{{ s.formatDate(gig.date) | slice:4:8 }}</span>
+                  <span class="gig-year">{{ gig.date | slice:0:4 }}</span>
+                </div>
+                <div class="gig-body">
+                  <div class="gig-title-row">
+                    <span class="gig-title">{{ gig.title }}</span>
+                    <span class="gig-status-badge gig-status-badge--upcoming">Potvrđena</span>
+                  </div>
+                  <div class="gig-venue-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {{ gig.venue }} · {{ gig.location }}
+                  </div>
+                  @if (gig.notes) {
+                    <p class="gig-notes">{{ gig.notes }}</p>
+                  }
+                </div>
+                <div class="gig-payment-col">
+                  <span class="gig-payment">{{ s.formatPayment(gig.payment) }}</span>
+                  <span class="gig-payment-label">honorar</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (s.pastGigs().length > 0) {
+        <div class="gigs-section">
+          <h3 class="gigs-section-heading">
+            <span class="gigs-section-dot gigs-section-dot--past"></span>
+            Prošle gaže
+          </h3>
+          <div class="gig-list">
+            @for (gig of s.pastGigs(); track gig.id) {
+              <div class="gig-card" [class.gig-card--cancelled]="gig.status === 'Cancelled'">
+                <div class="gig-date-col">
+                  <span class="gig-day">{{ gig.date | slice:8:10 }}</span>
+                  <span class="gig-month">{{ s.formatDate(gig.date) | slice:4:8 }}</span>
+                  <span class="gig-year">{{ gig.date | slice:0:4 }}</span>
+                </div>
+                <div class="gig-body">
+                  <div class="gig-title-row">
+                    <span class="gig-title">{{ gig.title }}</span>
+                    @if (gig.status === 'Cancelled') {
+                      <span class="gig-status-badge gig-status-badge--cancelled">Otkazana</span>
+                    } @else {
+                      <span class="gig-status-badge gig-status-badge--completed">Završena</span>
+                    }
+                  </div>
+                  <div class="gig-venue-row">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {{ gig.venue }} · {{ gig.location }}
+                  </div>
+                  @if (gig.notes) {
+                    <p class="gig-notes">{{ gig.notes }}</p>
+                  }
+                </div>
+                <div class="gig-payment-col">
+                  @if (gig.status !== 'Cancelled') {
+                    <span class="gig-payment">{{ s.formatPayment(gig.payment) }}</span>
+                    <span class="gig-payment-label">honorar</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (s.upcomingGigs().length === 0 && s.pastGigs().length === 0) {
+        <div class="tab-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <p>Još nema zakazanih gaža</p>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ══ POSTS TAB ══════════════════════════════════════ -->
+  @if (s.activeTab() === 'posts') {
+    <div class="tab-content">
+      <div class="posts-feed">
+        @for (post of band.posts; track post.id) {
+          <article class="post-card">
+            <div class="post-header">
+              <div class="post-avatar" [style.background]="band.color">{{ band.initials }}</div>
+              <div class="post-author-info">
+                <span class="post-author-name">{{ band.name }}</span>
+                <span class="post-author-meta">&#64;{{ s.toUsername(band.name) }} · {{ s.formatDate(post.createdAt) }}</span>
+              </div>
+            </div>
+            <p class="post-content">{{ post.content }}</p>
+            <div class="post-actions">
+              <button
+                class="post-action-btn"
+                [class.post-action-btn--liked]="post.isLiked"
+                (click)="s.togglePostLike(band.id, post.id)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                {{ post.likes }}
+              </button>
+              <button class="post-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {{ post.comments }}
+              </button>
+              <button class="post-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Dijeli
+              </button>
+            </div>
+          </article>
+        }
+
+        @if (band.posts.length === 0) {
+          <div class="tab-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <p>Bend još nije objavio ništa</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+} @else {
+
+  <!-- ══ EMPTY STATE ════════════════════════════════════ -->
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+      stroke-linecap="round" stroke-linejoin="round" width="56" height="56">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    <h3>Odaberi bend</h3>
+    <p>Odaberi bend iz izbornika s desne strane kako bi pregledao detalje, članove i zakazane gaže.</p>
+  </div>
+
+}

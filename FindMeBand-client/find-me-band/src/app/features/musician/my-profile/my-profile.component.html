@@ -1,0 +1,334 @@
+<!-- ══ PROFILE HEADER ════════════════════════════════════ -->
+<div class="profile-header">
+  <div class="profile-hero">
+    <div class="profile-avatar" [style.background]="s.profile().color">
+      {{ s.profile().initials }}
+    </div>
+    <div class="profile-hero-info">
+      @if (s.isEditing()) {
+        <div class="edit-name-row">
+          <input
+            class="edit-input edit-input--name"
+            type="text"
+            placeholder="Ime"
+            [value]="s.editFirstName()"
+            (input)="s.editFirstName.set($any($event.target).value)"
+          />
+          <input
+            class="edit-input edit-input--name"
+            type="text"
+            placeholder="Prezime"
+            [value]="s.editLastName()"
+            (input)="s.editLastName.set($any($event.target).value)"
+          />
+        </div>
+        <span class="profile-username">&#64;{{ s.profile().userName }}</span>
+        <textarea
+          class="edit-input edit-input--bio"
+          rows="4"
+          placeholder="Opiši sebe — iskustvo, žanrovi, lokacija..."
+          [value]="s.editDescription()"
+          (input)="s.editDescription.set($any($event.target).value)"
+        ></textarea>
+        <div class="edit-actions">
+          <button class="edit-save-btn" (click)="s.saveEditing()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Spremi promjene
+          </button>
+          <button class="edit-cancel-btn" (click)="s.cancelEditing()">Odustani</button>
+        </div>
+      } @else {
+        <div class="profile-name-row">
+          <h1 class="profile-name">{{ s.profile().firstName }} {{ s.profile().lastName }}</h1>
+          <button class="edit-profile-btn" (click)="s.startEditing()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Uredi profil
+          </button>
+        </div>
+        <span class="profile-username">&#64;{{ s.profile().userName }}</span>
+        @if (s.profile().description) {
+          <p class="profile-bio">{{ s.profile().description }}</p>
+        }
+      }
+    </div>
+  </div>
+
+  @if (!s.isEditing()) {
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <span class="profile-stat-value">{{ s.profile().followersCount }}</span>
+        <span class="profile-stat-label">Pratilaca</span>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <span class="profile-stat-value">{{ s.profile().followingCount }}</span>
+        <span class="profile-stat-label">Pratim</span>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <span class="profile-stat-value">{{ s.profile().averageRating }}</span>
+        <span class="profile-stat-label">Ocjena</span>
+      </div>
+      <div class="profile-stat-divider"></div>
+      <div class="profile-stat">
+        <span class="profile-stat-value">{{ s.profile().numberOfReviews }}</span>
+        <span class="profile-stat-label">Recenzija</span>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ══ TAB BAR ════════════════════════════════════════════ -->
+@if (!s.isEditing()) {
+  <div class="tab-bar">
+    <button class="tab" [class.tab--active]="s.activeTab() === 'overview'" (click)="s.setTab('overview')">
+      Pregled
+    </button>
+    <button class="tab" [class.tab--active]="s.activeTab() === 'posts'" (click)="s.setTab('posts')">
+      Objave
+      <span class="tab-count">{{ s.posts().length }}</span>
+    </button>
+    <button class="tab" [class.tab--active]="s.activeTab() === 'reviews'" (click)="s.setTab('reviews')">
+      Recenzije
+      <span class="tab-count">{{ s.reviews().length }}</span>
+    </button>
+  </div>
+
+  <!-- ══ OVERVIEW TAB ════════════════════════════════════ -->
+  @if (s.activeTab() === 'overview') {
+    <div class="tab-content">
+      <div class="overview-grid">
+
+        <!-- Instruments card -->
+        <div class="info-card">
+          <div class="card-heading-row">
+            <h3 class="card-heading">Instrumenti</h3>
+          </div>
+          @if (s.profile().instruments.length > 0) {
+            <div class="tags-list">
+              @for (instr of s.profile().instruments; track instr.id) {
+                <span class="instrument-tag">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                    <path d="M9 18V5l12-2v13"/>
+                    <circle cx="6" cy="18" r="3"/>
+                    <circle cx="18" cy="16" r="3"/>
+                  </svg>
+                  {{ instr.name }}
+                </span>
+              }
+            </div>
+          } @else {
+            <p class="card-empty">Nisi dodao instrumente.</p>
+          }
+        </div>
+
+        <!-- Genres card -->
+        <div class="info-card">
+          <div class="card-heading-row">
+            <h3 class="card-heading">Žanrovi</h3>
+          </div>
+          @if (s.profile().genres.length > 0) {
+            <div class="tags-list">
+              @for (genre of s.profile().genres; track genre.id) {
+                <span class="genre-tag">{{ genre.name }}</span>
+              }
+            </div>
+          } @else {
+            <p class="card-empty">Nisi dodao žanrove.</p>
+          }
+        </div>
+
+        <!-- Bands card -->
+        <div class="info-card info-card--full">
+          <h3 class="card-heading">Bendovi</h3>
+          @if (s.profile().bands.length > 0) {
+            <div class="bands-list">
+              @for (band of s.profile().bands; track band.id) {
+                <div class="band-entry">
+                  <div class="band-entry-avatar" [style.background]="band.color">{{ band.initials }}</div>
+                  <div class="band-entry-info">
+                    <div class="band-entry-top">
+                      <span class="band-entry-name">{{ band.name }}</span>
+                      <span class="band-entry-role" [class.role--admin]="band.role === 'Admin'">
+                        {{ band.role === 'Admin' ? 'Admin' : 'Član' }}
+                      </span>
+                    </div>
+                    <div class="band-entry-meta">
+                      <span class="band-entry-instrument">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                          <path d="M9 18V5l12-2v13"/>
+                          <circle cx="6" cy="18" r="3"/>
+                          <circle cx="18" cy="16" r="3"/>
+                        </svg>
+                        {{ band.instrument }}
+                      </span>
+                      <div class="band-entry-genres">
+                        @for (g of band.genres; track g) {
+                          <span class="band-genre-chip">{{ g }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="card-empty">Još nisi član nijednog benda.</p>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ══ POSTS TAB ══════════════════════════════════════ -->
+  @if (s.activeTab() === 'posts') {
+    <div class="tab-content">
+      <div class="posts-feed">
+        @for (post of s.posts(); track post.id) {
+          <article class="post-card">
+            <div class="post-header">
+              <div class="post-avatar" [style.background]="s.profile().color">{{ s.profile().initials }}</div>
+              <div class="post-author-info">
+                <span class="post-author-name">{{ s.profile().firstName }} {{ s.profile().lastName }}</span>
+                <span class="post-author-meta">&#64;{{ s.profile().userName }} · {{ s.formatDate(post.createdAt) }}</span>
+              </div>
+            </div>
+            <p class="post-content">{{ post.content }}</p>
+            <div class="post-actions">
+              <button
+                class="post-action-btn"
+                [class.post-action-btn--liked]="post.isLiked"
+                (click)="s.togglePostLike(post.id)"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                {{ post.likes }}
+              </button>
+              <button class="post-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                {{ post.comments }}
+              </button>
+              <button class="post-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Dijeli
+              </button>
+            </div>
+          </article>
+        }
+
+        @if (s.posts().length === 0) {
+          <div class="tab-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <p>Još nemaš objava</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ══ REVIEWS TAB ════════════════════════════════════ -->
+  @if (s.activeTab() === 'reviews') {
+    <div class="tab-content">
+
+      @if (s.reviews().length > 0) {
+        <div class="rating-summary">
+          <div class="rating-big-number">{{ s.profile().averageRating }}</div>
+          <div class="rating-big-stars">
+            @for (star of s.starsArray(s.profile().averageRating); track $index) {
+              <svg
+                class="star"
+                [class.star--full]="star.full"
+                [class.star--half]="star.half"
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            }
+          </div>
+          <div class="rating-big-label">{{ s.reviews().length }} recenzija</div>
+        </div>
+
+        <div class="reviews-list">
+          @for (review of s.reviews(); track review.id) {
+            <div class="review-card">
+              <div class="review-header">
+                <div class="review-avatar" [style.background]="review.reviewerColor">
+                  {{ review.reviewerInitials }}
+                </div>
+                <div class="review-meta">
+                  <span class="review-author">{{ review.reviewerName }}</span>
+                  @if (review.eventName) {
+                    <span class="review-event">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" width="10" height="10">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      {{ review.eventName }}
+                    </span>
+                  }
+                  <span class="review-date">{{ s.formatDate(review.createdAt) }}</span>
+                </div>
+                <div class="review-stars">
+                  @for (star of s.starsArray(review.rating); track $index) {
+                    <svg
+                      class="star star--sm"
+                      [class.star--full]="star.full"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                </div>
+              </div>
+              @if (review.comment) {
+                <p class="review-comment">{{ review.comment }}</p>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="tab-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <p>Još nema recenzija</p>
+        </div>
+      }
+
+    </div>
+  }
+}

@@ -1,0 +1,211 @@
+<div class="opportunities">
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab" [class.tab--active]="activeTab() === 'explore'" (click)="activeTab.set('explore')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      Explore
+    </button>
+    <button class="tab" [class.tab--active]="activeTab() === 'create'" (click)="activeTab.set('create')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Objavi oglas
+    </button>
+  </div>
+
+  <!-- ── EXPLORE TAB ── -->
+  @if (activeTab() === 'explore') {
+    <div class="explore">
+      <div class="results-bar">
+        <span class="results-count">
+          {{ filteredOpportunities().length }}
+          {{ filteredOpportunities().length === 1 ? 'oglas' : 'oglasa' }}
+        </span>
+      </div>
+
+      <div class="opp-list">
+        @for (opp of filteredOpportunities(); track opp.id) {
+          <article class="opp-card">
+            <!-- Card top row -->
+            <div class="card-top">
+              <span
+                class="type-badge"
+                [style.background]="typeColors[opp.type] + '18'"
+                [style.color]="typeColors[opp.type]"
+              >
+                {{ typeLabels[opp.type] }}
+              </span>
+              <span class="card-date">{{ formatDate(opp.createdAt) }}</span>
+            </div>
+
+            <!-- Poster -->
+            <div class="poster-row">
+              <div
+                class="poster-avatar"
+                [class.poster-avatar--band]="opp.poster.type === 'band'"
+                [style.background]="opp.poster.color"
+              >
+                {{ opp.poster.initials }}
+              </div>
+              <div class="poster-info">
+                <span class="poster-name">{{ opp.poster.name }}</span>
+                <span class="poster-username">&#64;{{ opp.poster.username }}</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p class="opp-description">{{ opp.description }}</p>
+
+            <!-- Footer: tags + actions -->
+            <div class="card-footer">
+              <div class="tag-row">
+                @if (opp.genre) {
+                  <span class="tag tag--genre">{{ opp.genre }}</span>
+                }
+                @if (opp.instrument) {
+                  <span class="tag tag--instrument">{{ opp.instrument }}</span>
+                }
+              </div>
+              <div class="card-actions">
+                <span class="app-count">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  {{ opp.applicationCount }}
+                </span>
+                <button
+                  class="apply-btn"
+                  [class.apply-btn--applied]="opp.isApplied"
+                  [disabled]="opp.isApplied"
+                  (click)="applyToOpportunity(opp)"
+                >
+                  @if (opp.isApplied) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Prijavljen/a
+                  } @else {
+                    Prijavi se
+                  }
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+
+        @if (filteredOpportunities().length === 0) {
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <p>Nema oglasa koji odgovaraju odabranim filtrima.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── CREATE TAB ── -->
+  @if (activeTab() === 'create') {
+    <div class="create">
+      @if (createSuccess()) {
+        <div class="success-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Oglas je uspješno objavljen!
+        </div>
+      }
+
+      <div class="create-card">
+        <div class="create-header">
+          <h2 class="create-title">Objavi oglas</h2>
+          <p class="create-subtitle">Potraži musikante, bend ili kolaboratore za svoj projekt.</p>
+        </div>
+
+        <form class="create-form" (ngSubmit)="submitCreate()" #f="ngForm">
+          <!-- Type -->
+          <div class="form-group">
+            <label class="form-label">Vrsta prilike</label>
+            <select class="form-select" [(ngModel)]="createFormData.type" name="type">
+              <option value="SeekingMusician">Traži musikanta</option>
+              <option value="SeekingBand">Traži bend</option>
+              <option value="SeekingCollaboration">Traži kolaboraciju</option>
+            </select>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label">
+              Opis
+              <span class="form-required">*</span>
+            </label>
+            <textarea
+              class="form-textarea"
+              [(ngModel)]="createFormData.description"
+              name="description"
+              placeholder="Opiši što tražiš, koje su probe, lokacija, iskustvo..."
+              rows="5"
+              required
+            ></textarea>
+          </div>
+
+          <!-- Genre -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">
+                Žanr
+                <span class="form-optional">(opcionalno)</span>
+              </label>
+              <select class="form-select" [(ngModel)]="createFormData.genre" name="genre">
+                <option value="">Svi žanrovi</option>
+                @for (genre of genres; track genre) {
+                  <option [value]="genre">{{ genre }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Instrument — only for SeekingMusician -->
+            @if (createFormData.type === 'SeekingMusician' || createFormData.type === 'SeekingCollaboration') {
+              <div class="form-group">
+                <label class="form-label">
+                  Instrument
+                  <span class="form-optional">(opcionalno)</span>
+                </label>
+                <select class="form-select" [(ngModel)]="createFormData.instrument" name="instrument">
+                  <option value="">Svi instrumenti</option>
+                  @for (instrument of instruments; track instrument) {
+                    <option [value]="instrument">{{ instrument }}</option>
+                  }
+                </select>
+              </div>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="submit-btn"
+            [disabled]="!createFormData.description.trim() || createSuccess()"
+          >
+            @if (createSuccess()) {
+              Objavljeno!
+            } @else {
+              Objavi oglas
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+</div>

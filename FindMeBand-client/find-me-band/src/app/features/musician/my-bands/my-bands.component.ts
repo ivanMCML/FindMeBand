@@ -1,0 +1,14 @@
+import { Component, inject } from '@angular/core';
+import { SlicePipe } from '@angular/common';
+import { MyBandsService } from '../../../core/services/my-bands.service';
+
+@Component({
+  selector: 'app-my-bands',
+  standalone: true,
+  imports: [SlicePipe],
+  templateUrl: './my-bands.component.html',
+  styleUrl: './my-bands.component.scss'
+})
+export class MyBandsComponent {
+  readonly s = inject(MyBandsService);
+}

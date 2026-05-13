@@ -1,4 +1,63 @@
-import { ApplicationStatus, EventStatus, InstrumentType, MediaType, OpportunityType, PerformerType } from './enums';
+import {
+  ApplicationStatus,
+  EventStatus,
+  InstrumentType,
+  MediaType,
+  OpportunityType,
+  PerformerType
+} from './enums';
+
+export interface Profile {
+  id: number;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface Musician extends Profile {
+  performerId?: number;
+  performer?: Performer;
+  instruments: PlaysInstrument[];
+  bandMemberships: BandMember[];
+}
+
+export interface Organizer extends Profile {
+  events: Event[];
+}
+
+export interface Performer {
+  id: number;
+  musicianId?: number;
+  bandId?: number;
+  averageRating: number;
+  numberOfReviews: number;
+  genres: PlaysGenre[];
+  locations: Location[];
+}
+
+export interface Band {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+  performerId: number;
+  performer?: Performer;
+  members: BandMember[];
+  followers: Follow[];
+  posts: Post[];
+}
+
+export interface BandMember {
+  id: number;
+  musicianId: number;
+  bandId: number;
+  instrument: string;
+  joinedDate: string;
+  leftDate?: string;
+}
 
 export interface Genre {
   id: number;
@@ -8,174 +67,107 @@ export interface Genre {
 export interface Instrument {
   id: number;
   name: string;
-  type: InstrumentType;
-}
-
-export interface PlaysInstrument {
-  id: number;
-  musicianId: number;
-  instrument: Instrument;
-  skillLevel: number;
-  yearsOfExperience: number;
-  isPrimary: boolean;
+  instrumentType: InstrumentType;
 }
 
 export interface PlaysGenre {
-  id: number;
   performerId: number;
-  genre: Genre;
-  skillLevel: number;
+  genreId: number;
+  genre?: Genre;
 }
 
-export interface Location {
-  id: number;
-  performerId: number;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
+export interface PlaysInstrument {
+  musicianId: number;
+  instrumentId: number;
+  instrument?: Instrument;
 }
 
-export interface Review {
+export interface Post {
   id: number;
-  reviewerId: number;
-  performerId: number;
-  rating: number;
-  comment: string;
+  content: string;
   createdAt: string;
+  profileId?: number;
+  bandId?: number;
+  profile?: Profile;
+  band?: Band;
+  media: PostMedia[];
 }
 
 export interface PostMedia {
   id: number;
   postId: number;
+  mediaType: MediaType;
   url: string;
-  type: MediaType;
-}
-
-export interface Post {
-  id: number;
-  profileId: number;
-  content: string;
-  createdAt: string;
-  media: PostMedia[];
-}
-
-export interface Performer {
-  id: number;
-  averageRating: number;
-  numberOfReviews: number;
-  genres: PlaysGenre[];
-  locations: Location[];
-  reviews: Review[];
-}
-
-export interface Musician {
-  id: number;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  userName: string;
-  description: string;
-  createdAt: string;
-  performerId?: number;
-  performer?: Performer;
-  instruments: PlaysInstrument[];
-  bandMemberships: BandMember[];
-}
-
-export interface Band {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: string;
-  performerId?: number;
-  performer?: Performer;
-  members: BandMember[];
-  posts: Post[];
-}
-
-export interface BandMember {
-  id: number;
-  musicianId: number;
-  bandId: number;
-  joinedDate: string;
-  leftDate?: string;
-  instrument?: Instrument;
-  musician?: Musician;
-  band?: Band;
-}
-
-export interface Organizer {
-  id: number;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  userName: string;
-  description: string;
-  createdAt: string;
-  events: Event[];
 }
 
 export interface Event {
   id: number;
-  organizerId: number;
-  organizer?: Organizer;
   title: string;
   description: string;
+  location: string;
+  latitude?: number;
+  longitude?: number;
   scheduledAt: string;
   createdAt: string;
-  location: string;
-  latitude: number;
-  longitude: number;
   budgetMin?: number;
   budgetMax?: number;
-  requiredPerformers?: number;
+  requiredPerformers: number;
   preferredPerformerType?: PerformerType;
   minReviewRequired?: number;
   status: EventStatus;
-  genre?: Genre;
-  applications: EventApplication[];
+  organizerId: number;
+  genreId?: number;
 }
 
 export interface EventApplication {
   id: number;
-  performerId: number;
   eventId: number;
+  performerId: number;
   appliedAt: string;
-  message: string;
+  message?: string;
   status: ApplicationStatus;
-  performer?: Performer;
-  event?: Event;
 }
 
 export interface Opportunity {
   id: number;
-  authorId: number;
-  author?: Performer;
   type: OpportunityType;
-  description?: string;
-  instrument?: Instrument;
-  genre?: Genre;
+  description: string;
+  performerId: number;
+  instrumentId?: number;
+  genreId?: number;
   applications: OpportunityApplication[];
 }
 
 export interface OpportunityApplication {
   id: number;
-  applicantId: number;
   opportunityId: number;
+  performerId: number;
   appliedAt: string;
-  message: string;
-  applicant?: Performer;
-  opportunity?: Opportunity;
+  message?: string;
+  status: ApplicationStatus;
 }
 
-export interface Profile {
+export interface Follow {
   id: number;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  userName: string;
-  description: string;
+  followerId: number;
+  followeeProfileId?: number;
+  followeeBandId?: number;
+}
+
+export interface Review {
+  id: number;
+  rating: number;
+  comment?: string;
   createdAt: string;
-  posts: Post[];
+  reviewerProfileId: number;
+  performerId: number;
+}
+
+export interface Location {
+  id: number;
+  performerId: number;
+  city: string;
+  country: string;
+  latitude: number;
+  longitude: number;
 }

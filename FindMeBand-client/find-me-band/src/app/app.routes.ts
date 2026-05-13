@@ -1,29 +1,51 @@
 import { Routes } from '@angular/router';
+import { MusicianLayoutComponent } from './features/musician/musician-layout/musician-layout.component';
 
 export const routes: Routes = [
   {
-    path: '',
-    loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
+    path: 'musician',
+    component: MusicianLayoutComponent,
+    children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./features/musician/home/home.component').then(m => m.HomeComponent)
+      },
+      {
+        path: 'opportunities',
+        loadComponent: () =>
+          import('./features/musician/opportunities/opportunities.component').then(
+            m => m.OpportunitiesComponent
+          )
+      },
+      {
+        path: 'events',
+        loadComponent: () =>
+          import('./features/musician/events/events.component').then(m => m.EventsComponent)
+      },
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('./features/musician/messages/messages.component').then(
+            m => m.MessagesComponent
+          )
+      },
+      {
+        path: 'my-bands',
+        loadComponent: () =>
+          import('./features/musician/my-bands/my-bands.component').then(
+            m => m.MyBandsComponent
+          )
+      },
+      {
+        path: 'my-profile',
+        loadComponent: () =>
+          import('./features/musician/my-profile/my-profile.component').then(
+            m => m.MyProfileComponent
+          )
+      }
+    ]
   },
-  {
-    path: 'musicians',
-    loadComponent: () => import('./features/musicians/musicians-list.component').then(m => m.MusiciansListComponent)
-  },
-  {
-    path: 'bands',
-    loadComponent: () => import('./features/bands/bands-list.component').then(m => m.BandsListComponent)
-  },
-  {
-    path: 'performers',
-    loadComponent: () => import('./features/performers/performers-list.component').then(m => m.PerformersListComponent)
-  },
-  {
-    path: 'events',
-    loadComponent: () => import('./features/events/events-list.component').then(m => m.EventsListComponent)
-  },
-  {
-    path: 'opportunities',
-    loadComponent: () => import('./features/opportunities/opportunities-list.component').then(m => m.OpportunitiesListComponent)
-  },
-  { path: '**', redirectTo: '' }
+  { path: '', redirectTo: 'musician/home', pathMatch: 'full' }
 ];

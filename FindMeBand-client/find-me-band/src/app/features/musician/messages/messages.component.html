@@ -1,0 +1,87 @@
+@if (selectedConversation(); as conv) {
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div
+      class="chat-avatar"
+      [class.chat-avatar--band]="conv.contact.type === 'band'"
+      [style.background]="conv.contact.color"
+    >
+      {{ conv.contact.initials }}
+    </div>
+    <div class="chat-info">
+      <span class="chat-name">{{ conv.contact.name }}</span>
+      <span class="chat-sub">{{ conv.contact.subtitle }}</span>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-scroll" #messagesList>
+
+    @for (m of currentMessages(); track m.id; let i = $index) {
+      @if (needsDateSeparator(currentMessages(), i)) {
+        <div class="date-sep">
+          <span>{{ formatDateSeparator(m.sentAt) }}</span>
+        </div>
+      }
+      <div class="msg" [class.msg--own]="m.isOwn">
+        @if (!m.isOwn) {
+          <div class="msg-avatar" [style.background]="conv.contact.color">
+            {{ conv.contact.initials }}
+          </div>
+        }
+        <div class="msg-wrap">
+          <div class="msg-bubble">{{ m.text }}</div>
+          <span class="msg-time">{{ formatMessageTime(m.sentAt) }}</span>
+        </div>
+      </div>
+    }
+
+    @if (currentMessages().length === 0) {
+      <div class="empty-chat">
+        <div
+          class="empty-chat-avatar"
+          [class.empty-chat-avatar--band]="conv.contact.type === 'band'"
+          [style.background]="conv.contact.color"
+        >
+          {{ conv.contact.initials }}
+        </div>
+        <p class="empty-chat-name">{{ conv.contact.name }}</p>
+        <p class="empty-chat-hint">Pokreni razgovor slanjem prve poruke</p>
+      </div>
+    }
+
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <input
+      class="msg-input"
+      type="text"
+      placeholder="Napiši poruku..."
+      [value]="newMessageText()"
+      (input)="onNewMessageInput($event)"
+      (keydown)="onKeydown($event)"
+    />
+    <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessageText().trim()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none" />
+      </svg>
+    </button>
+  </div>
+
+} @else {
+
+  <!-- Empty state -->
+  <div class="chat-empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+      stroke-linecap="round" stroke-linejoin="round" width="56" height="56">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+    <h3>Tvoje poruke</h3>
+    <p>Odaberi razgovor ili pretraži kontakte<br />koje pratiš kako bi poslao/la poruku</p>
+  </div>
+
+}
