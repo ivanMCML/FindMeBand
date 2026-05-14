@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -40,6 +41,7 @@ namespace FindMeBand_server.Controllers
             return Ok(ToResponseDTO(review));
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<ReviewResponseDTO>> CreateReview(CreateReviewDTO dto)
         {
@@ -80,6 +82,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetReview), new { id = review.Id }, ToResponseDTO(created));
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateReview(int id, UpdateReviewDTO dto)
         {
@@ -105,6 +108,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReview(int id)
         {

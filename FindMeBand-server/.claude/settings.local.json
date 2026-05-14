@@ -5,7 +5,8 @@
       "Bash(timeout 15 dotnet run)",
       "Bash(dotnet run *)",
       "Bash(kill %1)",
-      "Bash(wait)"
+      "Bash(wait)",
+      "Bash(dotnet add *)"
     ]
   }
 }

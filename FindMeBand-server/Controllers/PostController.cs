@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -58,6 +59,7 @@ namespace FindMeBand_server.Controllers
             return Ok(ToResponseDTO(post));
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<PostResponseDTO>> CreatePost(CreatePostDTO dto)
         {
@@ -96,6 +98,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetPost), new { id = post.Id }, ToResponseDTO(created));
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePost(int id, UpdatePostDTO dto)
         {
@@ -108,6 +111,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost(int id)
         {

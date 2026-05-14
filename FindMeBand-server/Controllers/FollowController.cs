@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -50,6 +51,7 @@ namespace FindMeBand_server.Controllers
             return Ok(follows.Select(ToResponseDTO));
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<FollowResponseDTO>> Follow(CreateFollowDTO dto)
         {
@@ -108,6 +110,7 @@ namespace FindMeBand_server.Controllers
             return Ok(ToResponseDTO(created));
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Unfollow(int id)
         {
