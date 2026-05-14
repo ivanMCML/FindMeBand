@@ -2,8 +2,8 @@
 {
     public enum OpportunityType
     {
-        MusicianLookingForMusician,
-        MusicianLookingForBand,
-        BandLookingForMusician
+        SeekingCollaboration,   // Musician looking for musician
+        SeekingBand,            // Musician looking for band
+        SeekingMusician         // Band looking for musician
     }
 }

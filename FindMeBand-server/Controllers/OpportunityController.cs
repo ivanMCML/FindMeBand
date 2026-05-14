@@ -17,43 +17,47 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Opportunity>>> GetOpportunities()
+        public async Task<ActionResult<IEnumerable<OpportunityResponseDTO>>> GetOpportunities()
         {
-            return await _context.Opportunities
-                .Include(o => o.Author)
+            var opportunities = await _context.Opportunities
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
+                .Include(o => o.Applications)
                 .ToListAsync();
+
+            return Ok(opportunities.Select(ToResponseDTO));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Opportunity>> GetOpportunity(int id)
+        public async Task<ActionResult<OpportunityResponseDTO>> GetOpportunity(int id)
         {
             var opportunity = await _context.Opportunities
-                .Include(o => o.Author)
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
-                .Include(o => o.Applications).ThenInclude(a => a.Applicant)
+                .Include(o => o.Applications)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (opportunity == null)
                 return NotFound();
 
-            return opportunity;
+            return Ok(ToResponseDTO(opportunity));
         }
 
         [HttpGet("performer/{performerId}")]
-        public async Task<ActionResult<IEnumerable<Opportunity>>> GetOpportunitiesByPerformer(int performerId)
+        public async Task<ActionResult<IEnumerable<OpportunityResponseDTO>>> GetOpportunitiesByPerformer(int performerId)
         {
-            return await _context.Opportunities
+            var opportunities = await _context.Opportunities
                 .Where(o => o.AuthorId == performerId)
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
+                .Include(o => o.Applications)
                 .ToListAsync();
+
+            return Ok(opportunities.Select(ToResponseDTO));
         }
 
         [HttpPost]
-        public async Task<ActionResult<Opportunity>> CreateOpportunity(CreateOpportunityDTO dto)
+        public async Task<ActionResult<OpportunityResponseDTO>> CreateOpportunity(CreateOpportunityDTO dto)
         {
             var authorExists = await _context.Performers.AnyAsync(p => p.Id == dto.AuthorId);
             if (!authorExists)
@@ -71,7 +75,13 @@ namespace FindMeBand_server.Controllers
             _context.Opportunities.Add(opportunity);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOpportunity), new { id = opportunity.Id }, opportunity);
+            var created = await _context.Opportunities
+                .Include(o => o.Instrument)
+                .Include(o => o.Genre)
+                .Include(o => o.Applications)
+                .FirstAsync(o => o.Id == opportunity.Id);
+
+            return CreatedAtAction(nameof(GetOpportunity), new { id = opportunity.Id }, ToResponseDTO(created));
         }
 
         [HttpPut("{id}")]
@@ -101,5 +111,25 @@ namespace FindMeBand_server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        private static OpportunityResponseDTO ToResponseDTO(Opportunity o) => new()
+        {
+            Id = o.Id,
+            AuthorId = o.AuthorId,
+            Type = o.Type.ToString(),
+            Description = o.Description,
+            Genre = o.Genre == null ? null : new GenreSummaryDTO
+            {
+                Id = o.Genre.Id,
+                Name = o.Genre.Name
+            },
+            Instrument = o.Instrument == null ? null : new InstrumentSummaryDTO
+            {
+                Id = o.Instrument.Id,
+                Name = o.Instrument.Name,
+                Type = o.Instrument.Type.ToString()
+            },
+            ApplicationCount = o.Applications.Count
+        };
     }
 }

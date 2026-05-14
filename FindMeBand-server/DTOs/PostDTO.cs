@@ -20,4 +20,25 @@ namespace FindMeBand_server.DTOs
         public string Url { get; set; } = null!;
         public MediaType Type { get; set; }
     }
+
+    public class PostResponseDTO
+    {
+        public int Id { get; set; }
+        public int ProfileId { get; set; }
+        public string AuthorFirstName { get; set; } = null!;
+        public string AuthorLastName { get; set; } = null!;
+        public string AuthorUserName { get; set; } = null!;
+        public int? BandId { get; set; }
+        public string? BandName { get; set; }
+        public string Content { get; set; } = null!;
+        public DateTime CreatedAt { get; set; }
+        public List<PostMediaResponseDTO> Media { get; set; } = new();
+    }
+
+    public class PostMediaResponseDTO
+    {
+        public int Id { get; set; }
+        public string Url { get; set; } = null!;
+        public string Type { get; set; } = null!;
+    }
 }

@@ -17,35 +17,41 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet("following/{profileId}")]
-        public async Task<ActionResult<IEnumerable<Follow>>> GetFollowing(int profileId)
+        public async Task<ActionResult<IEnumerable<FollowResponseDTO>>> GetFollowing(int profileId)
         {
-            return await _context.Follows
+            var follows = await _context.Follows
                 .Where(f => f.FollowerId == profileId)
                 .Include(f => f.FolloweeProfile)
                 .Include(f => f.FolloweeBand)
                 .ToListAsync();
+
+            return Ok(follows.Select(ToResponseDTO));
         }
 
         [HttpGet("followers/profile/{profileId}")]
-        public async Task<ActionResult<IEnumerable<Follow>>> GetProfileFollowers(int profileId)
+        public async Task<ActionResult<IEnumerable<FollowResponseDTO>>> GetProfileFollowers(int profileId)
         {
-            return await _context.Follows
+            var follows = await _context.Follows
                 .Where(f => f.FolloweeProfileId == profileId)
                 .Include(f => f.Follower)
                 .ToListAsync();
+
+            return Ok(follows.Select(ToResponseDTO));
         }
 
         [HttpGet("followers/band/{bandId}")]
-        public async Task<ActionResult<IEnumerable<Follow>>> GetBandFollowers(int bandId)
+        public async Task<ActionResult<IEnumerable<FollowResponseDTO>>> GetBandFollowers(int bandId)
         {
-            return await _context.Follows
+            var follows = await _context.Follows
                 .Where(f => f.FolloweeBandId == bandId)
                 .Include(f => f.Follower)
                 .ToListAsync();
+
+            return Ok(follows.Select(ToResponseDTO));
         }
 
         [HttpPost]
-        public async Task<ActionResult<Follow>> Follow(CreateFollowDTO dto)
+        public async Task<ActionResult<FollowResponseDTO>> Follow(CreateFollowDTO dto)
         {
             if (dto.FolloweeProfileId == null && dto.FolloweeBandId == null)
                 return BadRequest("Mora biti postavljen FolloweeProfileId ili FolloweeBandId.");
@@ -93,7 +99,13 @@ namespace FindMeBand_server.Controllers
             _context.Follows.Add(follow);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(null, new { id = follow.Id }, follow);
+            var created = await _context.Follows
+                .Include(f => f.Follower)
+                .Include(f => f.FolloweeProfile)
+                .Include(f => f.FolloweeBand)
+                .FirstAsync(f => f.Id == follow.Id);
+
+            return Ok(ToResponseDTO(created));
         }
 
         [HttpDelete("{id}")]
@@ -107,5 +119,21 @@ namespace FindMeBand_server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        private static FollowResponseDTO ToResponseDTO(Follow f) => new()
+        {
+            Id = f.Id,
+            FollowerId = f.FollowerId,
+            FollowerFirstName = f.Follower?.FirstName,
+            FollowerLastName = f.Follower?.LastName,
+            FollowerUserName = f.Follower?.UserName,
+            FolloweeProfileId = f.FolloweeProfileId,
+            FolloweeProfileFirstName = f.FolloweeProfile?.FirstName,
+            FolloweeProfileLastName = f.FolloweeProfile?.LastName,
+            FolloweeProfileUserName = f.FolloweeProfile?.UserName,
+            FolloweeBandId = f.FolloweeBandId,
+            FolloweeBandName = f.FolloweeBand?.Name,
+            FollowedAt = f.FollowedAt
+        };
     }
 }

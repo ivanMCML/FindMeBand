@@ -20,7 +20,9 @@
       "Bash(Sort-Object)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\\\\Models\" -File)",
       "PowerShell(tree *)",
-      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName } | Sort-Object)"
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName } | Sort-Object)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet ef *)"
     ]
   }
 }

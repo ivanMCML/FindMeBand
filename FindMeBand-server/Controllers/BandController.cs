@@ -17,17 +17,20 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Band>>> GetBands()
+        public async Task<ActionResult<IEnumerable<BandResponseDTO>>> GetBands()
         {
-            return await _context.Bands
+            var bands = await _context.Bands
                 .Include(b => b.Performer)
+                    .ThenInclude(p => p!.PlaysGenres).ThenInclude(pg => pg.Genre)
                 .Include(b => b.Members).ThenInclude(m => m.Musician)
                 .Include(b => b.Members).ThenInclude(m => m.Instrument)
                 .ToListAsync();
+
+            return Ok(bands.Select(ToResponseDTO));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Band>> GetBand(int id)
+        public async Task<ActionResult<BandResponseDTO>> GetBand(int id)
         {
             var band = await _context.Bands
                 .Include(b => b.Performer)
@@ -36,14 +39,56 @@ namespace FindMeBand_server.Controllers
                     .ThenInclude(p => p!.Locations)
                 .Include(b => b.Members).ThenInclude(m => m.Musician)
                 .Include(b => b.Members).ThenInclude(m => m.Instrument)
-                .Include(b => b.Posts)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (band == null)
                 return NotFound();
 
-            return band;
+            return Ok(ToResponseDTO(band));
         }
+
+        private static BandResponseDTO ToResponseDTO(Band b) => new()
+        {
+            Id = b.Id,
+            Name = b.Name,
+            Description = b.Description,
+            CreatedAt = b.CreatedAt,
+            PerformerId = b.PerformerId,
+            AverageRating = b.Performer?.AverageRating,
+            NumberOfReviews = b.Performer?.NumberOfReviews,
+            Genres = b.Performer?.PlaysGenres.Select(pg => new GenreSummaryDTO
+            {
+                Id = pg.Genre.Id,
+                Name = pg.Genre.Name
+            }).ToList() ?? new(),
+            Locations = b.Performer?.Locations.Select(l => new LocationSummaryDTO
+            {
+                Id = l.Id,
+                Name = l.Name,
+                Address = l.Address,
+                Latitude = l.Latitude,
+                Longitude = l.Longitude
+            }).ToList() ?? new(),
+            Members = b.Members.Select(m => new BandMemberResponseDTO
+            {
+                Id = m.Id,
+                BandId = m.BandId,
+                BandName = b.Name,
+                MusicianId = m.MusicianId,
+                MusicianFirstName = m.Musician.FirstName,
+                MusicianLastName = m.Musician.LastName,
+                MusicianUserName = m.Musician.UserName,
+                Role = m.Role.ToString(),
+                JoinedDate = m.JoinedDate,
+                LeftDate = m.LeftDate,
+                Instrument = m.Instrument == null ? null : new InstrumentSummaryDTO
+                {
+                    Id = m.Instrument.Id,
+                    Name = m.Instrument.Name,
+                    Type = m.Instrument.Type.ToString()
+                }
+            }).ToList()
+        };
 
         [HttpPost]
         public async Task<ActionResult<Band>> CreateBand(CreateBandDTO dto)

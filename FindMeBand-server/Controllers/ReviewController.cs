@@ -17,30 +17,31 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet("performer/{performerId}")]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviewsByPerformer(int performerId)
+        public async Task<ActionResult<IEnumerable<ReviewResponseDTO>>> GetReviewsByPerformer(int performerId)
         {
-            return await _context.Reviews
+            var reviews = await _context.Reviews
                 .Where(r => r.PerformerId == performerId)
                 .Include(r => r.Reviewer)
                 .ToListAsync();
+
+            return Ok(reviews.Select(ToResponseDTO));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Review>> GetReview(int id)
+        public async Task<ActionResult<ReviewResponseDTO>> GetReview(int id)
         {
             var review = await _context.Reviews
                 .Include(r => r.Reviewer)
-                .Include(r => r.Performer)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (review == null)
                 return NotFound();
 
-            return review;
+            return Ok(ToResponseDTO(review));
         }
 
         [HttpPost]
-        public async Task<ActionResult<Review>> CreateReview(CreateReviewDTO dto)
+        public async Task<ActionResult<ReviewResponseDTO>> CreateReview(CreateReviewDTO dto)
         {
             if (dto.Rating < 1 || dto.Rating > 5)
                 return BadRequest("Rating must be between 1 and 5.");
@@ -72,7 +73,11 @@ namespace FindMeBand_server.Controllers
 
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
+            var created = await _context.Reviews
+                .Include(r => r.Reviewer)
+                .FirstAsync(r => r.Id == review.Id);
+
+            return CreatedAtAction(nameof(GetReview), new { id = review.Id }, ToResponseDTO(created));
         }
 
         [HttpPut("{id}")]
@@ -124,5 +129,18 @@ namespace FindMeBand_server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        private static ReviewResponseDTO ToResponseDTO(Review r) => new()
+        {
+            Id = r.Id,
+            PerformerId = r.PerformerId,
+            ReviewerId = r.ReviewerId,
+            ReviewerFirstName = r.Reviewer?.FirstName,
+            ReviewerLastName = r.Reviewer?.LastName,
+            ReviewerUserName = r.Reviewer?.UserName,
+            Rating = r.Rating,
+            Comment = r.Comment,
+            CreatedAt = r.CreatedAt
+        };
     }
 }

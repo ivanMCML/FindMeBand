@@ -17,16 +17,18 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Musician>>> GetMusicians()
+        public async Task<ActionResult<IEnumerable<MusicianResponseDTO>>> GetMusicians()
         {
-            return await _context.Musicians
+            var musicians = await _context.Musicians
                 .Include(m => m.Performer)
                 .Include(m => m.PlayedInstruments).ThenInclude(pi => pi.Instrument)
                 .ToListAsync();
+
+            return Ok(musicians.Select(ToResponseDTO));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Musician>> GetMusician(int id)
+        public async Task<ActionResult<MusicianResponseDTO>> GetMusician(int id)
         {
             var musician = await _context.Musicians
                 .Include(m => m.Performer)
@@ -38,8 +40,40 @@ namespace FindMeBand_server.Controllers
             if (musician == null)
                 return NotFound();
 
-            return musician;
+            return Ok(ToResponseDTO(musician));
         }
+
+        private static MusicianResponseDTO ToResponseDTO(Musician m) => new()
+        {
+            Id = m.Id,
+            FirstName = m.FirstName,
+            LastName = m.LastName,
+            UserName = m.UserName,
+            Description = m.Description,
+            CreatedAt = m.CreatedAt,
+            PerformerId = m.PerformerId,
+            AverageRating = m.Performer?.AverageRating,
+            NumberOfReviews = m.Performer?.NumberOfReviews,
+            Genres = m.Performer?.PlaysGenres.Select(pg => new GenreSummaryDTO
+            {
+                Id = pg.Genre.Id,
+                Name = pg.Genre.Name
+            }).ToList() ?? new(),
+            Instruments = m.PlayedInstruments.Select(pi => new InstrumentSummaryDTO
+            {
+                Id = pi.Instrument.Id,
+                Name = pi.Instrument.Name,
+                Type = pi.Instrument.Type.ToString()
+            }).ToList(),
+            Bands = m.BandMemberships.Select(bm => new BandMembershipDTO
+            {
+                BandId = bm.BandId,
+                BandName = bm.Band.Name,
+                Role = bm.Role.ToString(),
+                JoinedDate = bm.JoinedDate,
+                LeftDate = bm.LeftDate
+            }).ToList()
+        };
 
         [HttpPost]
         public async Task<ActionResult<Musician>> CreateMusician(CreateMusicianDTO dto)

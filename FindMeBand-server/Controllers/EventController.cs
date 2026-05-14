@@ -17,40 +17,47 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Event>>> GetEvents()
+        public async Task<ActionResult<IEnumerable<EventResponseDTO>>> GetEvents()
         {
-            return await _context.Events
+            var events = await _context.Events
                 .Include(e => e.Organizer)
                 .Include(e => e.Genre)
+                .Include(e => e.Applications)
                 .ToListAsync();
+
+            return Ok(events.Select(ToResponseDTO));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Event>> GetEvent(int id)
+        public async Task<ActionResult<EventResponseDTO>> GetEvent(int id)
         {
             var ev = await _context.Events
                 .Include(e => e.Organizer)
                 .Include(e => e.Genre)
-                .Include(e => e.Applications).ThenInclude(a => a.Performer)
+                .Include(e => e.Applications)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (ev == null)
                 return NotFound();
 
-            return ev;
+            return Ok(ToResponseDTO(ev));
         }
 
         [HttpGet("organizer/{organizerId}")]
-        public async Task<ActionResult<IEnumerable<Event>>> GetEventsByOrganizer(int organizerId)
+        public async Task<ActionResult<IEnumerable<EventResponseDTO>>> GetEventsByOrganizer(int organizerId)
         {
-            return await _context.Events
+            var events = await _context.Events
                 .Where(e => e.OrganizerId == organizerId)
+                .Include(e => e.Organizer)
                 .Include(e => e.Genre)
+                .Include(e => e.Applications)
                 .ToListAsync();
+
+            return Ok(events.Select(ToResponseDTO));
         }
 
         [HttpPost]
-        public async Task<ActionResult<Event>> CreateEvent(CreateEventDTO dto)
+        public async Task<ActionResult<EventResponseDTO>> CreateEvent(CreateEventDTO dto)
         {
             var organizer = await _context.Organizers.FindAsync(dto.OrganizerId);
             if (organizer == null)
@@ -76,7 +83,13 @@ namespace FindMeBand_server.Controllers
             _context.Events.Add(ev);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEvent), new { id = ev.Id }, ev);
+            var created = await _context.Events
+                .Include(e => e.Organizer)
+                .Include(e => e.Genre)
+                .Include(e => e.Applications)
+                .FirstAsync(e => e.Id == ev.Id);
+
+            return CreatedAtAction(nameof(GetEvent), new { id = ev.Id }, ToResponseDTO(created));
         }
 
         [HttpPut("{id}")]
@@ -126,5 +139,33 @@ namespace FindMeBand_server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        private static EventResponseDTO ToResponseDTO(Event e) => new()
+        {
+            Id = e.Id,
+            OrganizerId = e.OrganizerId,
+            OrganizerFirstName = e.Organizer.FirstName,
+            OrganizerLastName = e.Organizer.LastName,
+            OrganizerUserName = e.Organizer.UserName,
+            Title = e.Title,
+            Description = e.Description,
+            Genre = e.Genre == null ? null : new GenreSummaryDTO
+            {
+                Id = e.Genre.Id,
+                Name = e.Genre.Name
+            },
+            Location = e.Location,
+            Latitude = e.Latitude,
+            Longitude = e.Longitude,
+            BudgetMin = e.BudgetMin,
+            BudgetMax = e.BudgetMax,
+            ScheduledAt = e.ScheduledAt,
+            CreatedAt = e.CreatedAt,
+            Status = e.Status.ToString(),
+            RequiredPerformers = e.RequiredPerformers,
+            PreferredPerformerType = e.PreferredPerformerType?.ToString(),
+            MinReviewRequired = e.MinReviewRequired,
+            ApplicationCount = e.Applications.Count
+        };
     }
 }
