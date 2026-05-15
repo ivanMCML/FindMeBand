@@ -218,7 +218,7 @@ export class RegisterComponent {
       description: this.description || undefined,
       role: this.role
     }).subscribe({
-      next: () => this.router.navigate(['/musician/home']),
+      next: (user) => this.router.navigate([user.role === 'Organizer' ? '/organizer/my-events' : '/musician/home']),
       error: err => {
         this.error.set(this.parseError(err));
         this.loading.set(false);

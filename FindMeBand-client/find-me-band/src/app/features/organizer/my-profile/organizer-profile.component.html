@@ -1,0 +1,136 @@
+@if (s.organizer(); as org) {
+
+  <!-- ══ PROFILE HEADER ════════════════════════════════════ -->
+  <div class="profile-header">
+    <div class="profile-hero">
+      <div class="profile-avatar" [style.background]="org.color">
+        {{ org.initials }}
+      </div>
+      <div class="profile-hero-info">
+        @if (s.isEditing()) {
+          <div class="edit-name-row">
+            <input
+              class="edit-input edit-input--name"
+              type="text"
+              placeholder="Ime"
+              [value]="s.editFirstName()"
+              (input)="s.editFirstName.set($any($event.target).value)"
+            />
+            <input
+              class="edit-input edit-input--name"
+              type="text"
+              placeholder="Prezime"
+              [value]="s.editLastName()"
+              (input)="s.editLastName.set($any($event.target).value)"
+            />
+          </div>
+          <span class="profile-username">&#64;{{ org.userName }}</span>
+          <textarea
+            class="edit-input edit-input--bio"
+            rows="4"
+            placeholder="Opiši se — vrsta evenata koje organiziraš, lokacija, iskustvo..."
+            [value]="s.editDescription()"
+            (input)="s.editDescription.set($any($event.target).value)"
+          ></textarea>
+          <div class="edit-actions">
+            <button class="edit-save-btn" (click)="s.saveEditing()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Spremi promjene
+            </button>
+            <button class="edit-cancel-btn" (click)="s.cancelEditing()">Odustani</button>
+          </div>
+        } @else {
+          <div class="profile-name-row">
+            <h1 class="profile-name">{{ org.firstName }} {{ org.lastName }}</h1>
+            <button class="edit-profile-btn" (click)="s.startEditing()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Uredi profil
+            </button>
+          </div>
+          <span class="profile-username">&#64;{{ org.userName }}</span>
+          @if (org.description) {
+            <p class="profile-bio">{{ org.description }}</p>
+          }
+        }
+      </div>
+    </div>
+
+    @if (!s.isEditing()) {
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <span class="profile-stat-value">{{ s.totalEvents() }}</span>
+          <span class="profile-stat-label">Evenata</span>
+        </div>
+        <div class="profile-stat-divider"></div>
+        <div class="profile-stat">
+          <span class="profile-stat-value">{{ s.openEventsCount() }}</span>
+          <span class="profile-stat-label">Otvorenih</span>
+        </div>
+        <div class="profile-stat-divider"></div>
+        <div class="profile-stat">
+          <span class="profile-stat-value">{{ s.pendingAppCount() }}</span>
+          <span class="profile-stat-label">Prijava na čekanju</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ══ EVENTS OVERVIEW ═══════════════════════════════════ -->
+  @if (!s.isEditing()) {
+    <div class="events-section">
+      <h2 class="section-heading">Pregled evenata</h2>
+
+      @if (s.eventsLoading()) {
+        <p class="section-loading">Učitavanje...</p>
+      } @else if (s.events().length === 0) {
+        <div class="section-empty">
+          <p>Još nemaš nijednog događaja.</p>
+        </div>
+      } @else {
+        <div class="events-summary-list">
+          @for (event of s.events().slice(0, 5); track event.id) {
+            <div class="event-summary-row">
+              <div class="event-summary-left">
+                <span class="event-summary-status status-dot" [class]="'status-dot--' + event.status.toLowerCase()"></span>
+                <div class="event-summary-info">
+                  <span class="event-summary-title">{{ event.title }}</span>
+                  <span class="event-summary-meta">{{ s.formatDateTime(event.scheduledAt) }} · {{ event.location }}</span>
+                </div>
+              </div>
+              <div class="event-summary-right">
+                <span class="event-summary-apps">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>
+                  {{ event.applicationCount }}
+                </span>
+                <span class="event-summary-badge" [class]="'status-badge--' + event.status.toLowerCase()">
+                  {{ s.statusLabel(event.status) }}
+                </span>
+              </div>
+            </div>
+          }
+          @if (s.events().length > 5) {
+            <p class="more-events-hint">+ još {{ s.events().length - 5 }} evenata</p>
+          }
+        </div>
+      }
+    </div>
+  }
+
+}
+
+@if (!s.organizer() && !s.loading()) {
+  <div class="profile-loading">
+    <p>Učitavanje profila...</p>
+  </div>
+}

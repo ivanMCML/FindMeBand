@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { MusicianLayoutComponent } from './features/musician/musician-layout/musician-layout.component';
+import { OrganizerLayoutComponent } from './features/organizer/organizer-layout/organizer-layout.component';
 import { authGuard } from './core/guards/auth.guard';
+import { organizerGuard } from './core/guards/organizer.guard';
 
 export const routes: Routes = [
   {
@@ -55,6 +57,28 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/musician/my-profile/my-profile.component').then(
             m => m.MyProfileComponent
+          )
+      }
+    ]
+  },
+  {
+    path: 'organizer',
+    component: OrganizerLayoutComponent,
+    canActivate: [organizerGuard],
+    children: [
+      { path: '', redirectTo: 'my-events', pathMatch: 'full' },
+      {
+        path: 'my-events',
+        loadComponent: () =>
+          import('./features/organizer/my-events/my-events.component').then(
+            m => m.MyEventsComponent
+          )
+      },
+      {
+        path: 'my-profile',
+        loadComponent: () =>
+          import('./features/organizer/my-profile/organizer-profile.component').then(
+            m => m.OrganizerProfileComponent
           )
       }
     ]

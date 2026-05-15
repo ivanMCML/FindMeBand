@@ -7,6 +7,7 @@ import { EventFilterService } from '../../../core/services/event-filter.service'
 import { MessagesService, Contact } from '../../../core/services/messages.service';
 import { MyBandsService } from '../../../core/services/my-bands.service';
 import { MyProfileService } from '../../../core/services/my-profile.service';
+import { OrganizerService } from '../../../core/services/organizer.service';
 
 interface SearchResult {
   id: number;
@@ -41,6 +42,8 @@ export class RightSidebarComponent {
 
   currentSection = computed(() => {
     const url = this.currentUrl() ?? '';
+    if (url.includes('/organizer/my-events')) return 'organizer-events';
+    if (url.includes('/organizer/my-profile')) return 'organizer-profile';
     if (url.includes('/opportunities')) return 'opportunities';
     if (url.includes('/events')) return 'events';
     if (url.includes('/messages')) return 'messages';
@@ -125,6 +128,9 @@ export class RightSidebarComponent {
 
   // ── My Profile ─────────────────────────────────────
   readonly myProfile = inject(MyProfileService);
+
+  // ── Organizer ──────────────────────────────────────
+  readonly organizer = inject(OrganizerService);
 
   // ── Messages conversations ─────────────────────────
   readonly messages = inject(MessagesService);

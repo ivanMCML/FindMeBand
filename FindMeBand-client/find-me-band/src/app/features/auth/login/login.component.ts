@@ -138,7 +138,7 @@ export class LoginComponent {
     this.error.set('');
 
     this.auth.login({ email: this.email, password: this.password }).subscribe({
-      next: () => this.router.navigate(['/musician/home']),
+      next: (user) => this.router.navigate([user.role === 'Organizer' ? '/organizer/my-events' : '/musician/home']),
       error: err => {
         this.error.set(this.parseError(err));
         this.loading.set(false);

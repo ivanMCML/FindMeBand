@@ -1,0 +1,413 @@
+<!-- ══ PAGE HEADER ══════════════════════════════════════════ -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Moji eventi</h1>
+    <span class="page-count">{{ s.totalEvents() }} {{ s.totalEvents() === 1 ? 'event' : 'evenata' }}</span>
+  </div>
+  <button class="new-event-btn" (click)="s.openCreateForm()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+      stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Novi event
+  </button>
+</div>
+
+<!-- ══ LOADING STATE ════════════════════════════════════════ -->
+@if (s.eventsLoading()) {
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Učitavanje događaja...</p>
+  </div>
+}
+
+<!-- ══ EMPTY STATE ══════════════════════════════════════════ -->
+@if (!s.eventsLoading() && s.events().length === 0) {
+  <div class="empty-state">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+      stroke-linecap="round" stroke-linejoin="round" width="48" height="48">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+      <line x1="12" y1="14" x2="12" y2="18"/>
+      <line x1="10" y1="16" x2="14" y2="16"/>
+    </svg>
+    <p>Još nemaš nijednog događaja.</p>
+    <button class="empty-create-btn" (click)="s.openCreateForm()">Kreiraj prvi event</button>
+  </div>
+}
+
+<!-- ══ EVENT LIST ════════════════════════════════════════════ -->
+@if (!s.eventsLoading() && s.events().length > 0) {
+  <div class="event-list">
+    @for (event of s.events(); track event.id) {
+
+      <div class="event-card" [class.event-card--expanded]="event.isExpanded">
+
+        <!-- Card header row -->
+        <div class="card-top-row">
+          <div class="card-badges">
+            <span class="status-badge" [class]="'status-badge--' + event.status.toLowerCase()">
+              {{ s.statusLabel(event.status) }}
+            </span>
+            @if (event.genreName) {
+              <span class="genre-badge">{{ event.genreName }}</span>
+            }
+          </div>
+          <span class="card-date">{{ s.formatDateTime(event.scheduledAt) }}</span>
+        </div>
+
+        <!-- Title + Location -->
+        <h3 class="event-title">{{ event.title }}</h3>
+        <div class="event-location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          {{ event.location }}
+        </div>
+
+        <!-- Description -->
+        <p class="event-description">{{ event.description }}</p>
+
+        <!-- Details row -->
+        <div class="event-details">
+          <span class="detail-chip detail-chip--budget">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            {{ s.formatBudget(event.budgetMin, event.budgetMax) }}
+          </span>
+          @if (event.preferredPerformerType) {
+            <span class="detail-chip">{{ s.performerTypeLabel(event.preferredPerformerType) }}</span>
+          }
+          @if (event.requiredPerformers) {
+            <span class="detail-chip">{{ event.requiredPerformers }} izvođača</span>
+          }
+          @if (event.minReviewRequired) {
+            <span class="detail-chip detail-chip--rating">★ min {{ event.minReviewRequired }}</span>
+          }
+        </div>
+
+        <!-- Card footer -->
+        <div class="card-footer">
+
+          <!-- Applications toggle -->
+          <button
+            class="apps-toggle-btn"
+            [class.apps-toggle-btn--active]="event.isExpanded"
+            (click)="s.toggleExpand(event.id)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Prijave
+            <span class="apps-count">{{ event.applicationCount }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="12" height="12"
+              class="chevron" [class.chevron--up]="event.isExpanded">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          <!-- Action buttons -->
+          <div class="card-actions">
+
+            <!-- Status change -->
+            @if (event.status !== 'Open') {
+              <button class="action-btn action-btn--open" (click)="s.updateEventStatus(event.id, 'Open')" title="Otvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 8 12 12 14 14"/>
+                </svg>
+                Otvori
+              </button>
+            }
+            @if (event.status === 'Open') {
+              <button class="action-btn action-btn--close" (click)="s.updateEventStatus(event.id, 'Closed')" title="Zatvori">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                Zatvori
+              </button>
+            }
+            @if (event.status !== 'Canceled') {
+              <button class="action-btn action-btn--cancel" (click)="s.updateEventStatus(event.id, 'Canceled')" title="Otkaži">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6"/>
+                  <path d="M14 11v6"/>
+                </svg>
+                Otkaži
+              </button>
+            }
+
+            <button class="action-btn action-btn--edit" (click)="s.openEditForm(event)" title="Uredi">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Uredi
+            </button>
+
+            @if (confirmDeleteId === event.id) {
+              <div class="confirm-delete">
+                <span class="confirm-text">Sigurno?</span>
+                <button class="confirm-yes" (click)="confirmDelete()">Da</button>
+                <button class="confirm-no" (click)="cancelDelete()">Ne</button>
+              </div>
+            } @else {
+              <button class="action-btn action-btn--delete" (click)="requestDelete(event.id)" title="Obriši">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6"/>
+                  <path d="M14 11v6"/>
+                </svg>
+                Obriši
+              </button>
+            }
+
+          </div>
+        </div>
+
+        <!-- ══ APPLICATIONS SECTION ════════════════════════ -->
+        @if (event.isExpanded) {
+          <div class="applications-section">
+            <div class="applications-divider"></div>
+            <h4 class="applications-title">Prijave za ovaj event</h4>
+
+            @if (!event.applicationsLoaded) {
+              <p class="apps-loading">Učitavanje prijava...</p>
+            } @else if (event.applications.length === 0) {
+              <div class="apps-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                </svg>
+                <p>Još nema prijava.</p>
+              </div>
+            } @else {
+              <div class="applications-list">
+                @for (app of event.applications; track app.id) {
+                  <div class="application-row">
+                    <div class="app-avatar">
+                      {{ app.performerId }}
+                    </div>
+                    <div class="app-info">
+                      <span class="app-performer">Izvođač #{{ app.performerId }}</span>
+                      @if (app.message) {
+                        <p class="app-message">{{ app.message }}</p>
+                      }
+                      <span class="app-date">{{ s.formatDate(app.createdAt) }}</span>
+                    </div>
+                    <div class="app-status-area">
+                      <span class="app-status-badge" [class]="'app-status--' + app.status.toLowerCase()">
+                        {{ s.appStatusLabel(app.status) }}
+                      </span>
+                      @if (app.status === 'Pending') {
+                        <div class="app-actions">
+                          <button class="app-accept-btn" (click)="s.updateApplicationStatus(event.id, app.id, 'Accepted')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                              stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Prihvati
+                          </button>
+                          <button class="app-reject-btn" (click)="s.updateApplicationStatus(event.id, app.id, 'Rejected')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                              stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                              <line x1="18" y1="6" x2="6" y2="18"/>
+                              <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                            Odbij
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+
+    }
+  </div>
+}
+
+<!-- ══ EVENT FORM MODAL ══════════════════════════════════════ -->
+@if (s.showEventForm()) {
+  <div class="modal-overlay" (click)="s.closeForm()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2 class="modal-title">
+          {{ s.editingEventId() !== null ? 'Uredi event' : 'Novi event' }}
+        </h2>
+        <button class="modal-close-btn" (click)="s.closeForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-row">
+          <div class="form-group form-group--full">
+            <label class="form-label">Naziv *</label>
+            <input
+              class="form-input"
+              type="text"
+              placeholder="Naziv događaja"
+              [value]="s.formTitle()"
+              (input)="s.formTitle.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group form-group--full">
+            <label class="form-label">Opis *</label>
+            <textarea
+              class="form-input form-textarea"
+              rows="3"
+              placeholder="Kratki opis događaja..."
+              [value]="s.formDescription()"
+              (input)="s.formDescription.set($any($event.target).value)"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lokacija *</label>
+            <input
+              class="form-input"
+              type="text"
+              placeholder="Grad, Venue..."
+              [value]="s.formLocation()"
+              (input)="s.formLocation.set($any($event.target).value)"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Datum i vrijeme *</label>
+            <input
+              class="form-input"
+              type="datetime-local"
+              [value]="s.formScheduledAt()"
+              (input)="s.formScheduledAt.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Žanr</label>
+            <select class="form-input form-select" [value]="s.formGenreId() ?? ''" (change)="onGenreChange($event)">
+              <option value="">— Bez žanra —</option>
+              @for (g of s.genres(); track g.id) {
+                <option [value]="g.id">{{ g.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vrsta izvođača</label>
+            <select class="form-input form-select" [value]="s.formPreferredType()" (change)="onPreferredTypeChange($event)">
+              <option value="">— Bilo koji —</option>
+              <option value="Musician">Muzičar</option>
+              <option value="Band">Bend</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Budžet od (€)</label>
+            <input
+              class="form-input"
+              type="number"
+              placeholder="npr. 200"
+              [value]="s.formBudgetMin()"
+              (input)="s.formBudgetMin.set($any($event.target).value)"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Budžet do (€)</label>
+            <input
+              class="form-input"
+              type="number"
+              placeholder="npr. 800"
+              [value]="s.formBudgetMax()"
+              (input)="s.formBudgetMax.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Broj izvođača</label>
+            <input
+              class="form-input"
+              type="number"
+              placeholder="npr. 1"
+              [value]="s.formRequiredPerformers()"
+              (input)="s.formRequiredPerformers.set($any($event.target).value)"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Min. ocjena</label>
+            <input
+              class="form-input"
+              type="number"
+              placeholder="npr. 4"
+              min="1" max="5"
+              [value]="s.formMinReview()"
+              (input)="s.formMinReview.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-cancel-btn" (click)="s.closeForm()">Odustani</button>
+        <button
+          class="modal-submit-btn"
+          [disabled]="s.formLoading() || !s.formTitle() || !s.formDescription() || !s.formLocation() || !s.formScheduledAt()"
+          (click)="s.submitForm()"
+        >
+          @if (s.formLoading()) {
+            Sprema se...
+          } @else {
+            {{ s.editingEventId() !== null ? 'Spremi izmjene' : 'Kreiraj event' }}
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
