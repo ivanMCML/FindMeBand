@@ -1,4 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export type ProfileTab = 'overview' | 'posts' | 'reviews';
 
@@ -61,130 +66,182 @@ export interface ProfilePost {
   isLiked: boolean;
 }
 
+// Odgovori koje šalje backend
+interface MusicianResponse {
+  id: number;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  description: string;
+  createdAt: string;
+  performerId?: number;
+  averageRating?: number;
+  numberOfReviews?: number;
+  genres: { id: number; name: string }[];
+  instruments: { id: number; name: string; type: string }[];
+  bands: { bandId: number; bandName: string; role: string; joinedDate: string; leftDate?: string }[];
+}
+
+interface ReviewResponse {
+  id: number;
+  performerId: number;
+  reviewerId?: number;
+  reviewerFirstName?: string;
+  reviewerLastName?: string;
+  reviewerUserName?: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+interface PostResponse {
+  id: number;
+  profileId: number;
+  content: string;
+  createdAt: string;
+}
+
+interface FollowResponse {
+  id: number;
+}
+
+const API = environment.apiBaseUrl;
+
+const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
+
+function profileColor(id: number): string {
+  return PALETTE[Math.abs(id) % PALETTE.length];
+}
+
+function initials(firstName: string, lastName: string): string {
+  return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
+}
+
 @Injectable({ providedIn: 'root' })
 export class MyProfileService {
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
+
   readonly profile = signal<MyProfileData>({
-    id: 1,
-    firstName: 'Pero',
-    lastName: 'Perić',
-    userName: 'pero_peric',
-    description: 'Profesionalni klavijaturist s više od 10 godina iskustva u funk, soul i jazz glazbi. Nastupam s više bendova diljem Hrvatske i uvijek sam otvoren za nove kolaboracije i projekte. Sviram u The Groove Factory i Acoustic Shadows.',
-    initials: 'PP',
-    color: '#7c3aed',
-    createdAt: '2020-03-15',
-    followersCount: 142,
-    followingCount: 38,
-    averageRating: 4.8,
-    numberOfReviews: 17,
-    instruments: [
-      { id: 1, name: 'Klavijature', type: 'Keyboard' },
-      { id: 2, name: 'Klavir', type: 'Keyboard' },
-      { id: 3, name: 'Sintesajzer', type: 'Electronic' },
-    ],
-    genres: [
-      { id: 1, name: 'Funk' },
-      { id: 2, name: 'Soul' },
-      { id: 3, name: 'Jazz' },
-      { id: 4, name: 'R&B' },
-    ],
-    bands: [
-      { id: 1, name: 'The Groove Factory', initials: 'GF', color: '#0891b2', instrument: 'Klavijature', role: 'Admin', genres: ['Funk', 'Soul', 'R&B'] },
-      { id: 2, name: 'Acoustic Shadows', initials: 'AS', color: '#059669', instrument: 'Klavijature', role: 'Member', genres: ['Acoustic', 'Indie', 'Folk'] },
-    ],
+    id: 0, firstName: '', lastName: '', userName: '', description: '',
+    initials: '', color: '', createdAt: '', followersCount: 0, followingCount: 0,
+    averageRating: 0, numberOfReviews: 0, instruments: [], genres: [], bands: []
   });
 
   readonly activeTab = signal<ProfileTab>('overview');
   readonly isEditing = signal(false);
+  readonly loading = signal(false);
 
   readonly editFirstName = signal('');
   readonly editLastName = signal('');
   readonly editDescription = signal('');
 
-  readonly reviews = signal<ProfileReview[]>([
-    {
-      id: 1,
-      rating: 5,
-      comment: 'Nevjerojatan muzičar! Pero je bio profesionalan, punktualan i iznimno talentiran. Naš nastup je bio savršen zahvaljujući njemu.',
-      createdAt: '2026-04-12',
-      reviewerName: 'Tvornica kulture',
-      reviewerInitials: 'TK',
-      reviewerColor: '#1e40af',
-      eventName: 'Art Kafe — Funk & Soul Night',
-    },
-    {
-      id: 2,
-      rating: 5,
-      comment: 'Odlična suradnja, profesionalan i pouzdan. Svakako preporučam!',
-      createdAt: '2026-02-08',
-      reviewerName: 'Club Boogaloo',
-      reviewerInitials: 'CB',
-      reviewerColor: '#7c3aed',
-    },
-    {
-      id: 3,
-      rating: 4,
-      comment: 'Pero je sjajan muzičar koji odlično radi u timu. Jedina zamjerka je kašnjenje na probu, ali nastup je bio odličan.',
-      createdAt: '2025-11-20',
-      reviewerName: 'INmusic Festival',
-      reviewerInitials: 'IN',
-      reviewerColor: '#065f46',
-      eventName: 'INmusic Festival — Mala pozornica',
-    },
-    {
-      id: 4,
-      rating: 5,
-      comment: 'Pravi profesionalac. Sve pohvale!',
-      createdAt: '2025-09-05',
-      reviewerName: 'Sara Ćosić',
-      reviewerInitials: 'SC',
-      reviewerColor: '#dc2626',
-    },
-    {
-      id: 5,
-      rating: 5,
-      comment: 'Fantastičan muzičar, zadovoljstvo raditi s njim. Preporučujem svim organizatorima!',
-      createdAt: '2025-07-20',
-      reviewerName: 'Split Summer Festival',
-      reviewerInitials: 'SF',
-      reviewerColor: '#059669',
-      eventName: 'Split Summer Festival',
-    },
-  ]);
+  readonly reviews = signal<ProfileReview[]>([]);
+  readonly posts = signal<ProfilePost[]>([]);
 
-  readonly posts = signal<ProfilePost[]>([
-    {
-      id: 1,
-      content: 'Upravo završio snimanje za novi album benda The Groove Factory! Jedva čekam da čujete materijal koji smo pripremili. Bit će odlično! 🎹',
-      createdAt: '2026-05-03',
-      likes: 67,
-      comments: 9,
-      isLiked: false,
-    },
-    {
-      id: 2,
-      content: 'Tražim bas gitarista za kratki side-projekt koji radim u slobodno vrijeme. Žanr: jazz-funk, probe jednom tjedno u Zagrebu. Ako te zanima, javi se!',
-      createdAt: '2026-04-18',
-      likes: 23,
-      comments: 14,
-      isLiked: false,
-    },
-    {
-      id: 3,
-      content: 'Sjajno veče u Art Kafeu večeras! Hvala svima koji su podržali The Groove Factory — energija publike bila je nevjerojatna. Do sljedeći put! 🎶',
-      createdAt: '2026-04-14',
-      likes: 89,
-      comments: 12,
-      isLiked: true,
-    },
-    {
-      id: 4,
-      content: 'Upravo sam završio online tečaj jazz harmonije. Preporučam svim klavijaturistima koji žele proširiti vokabular.',
-      createdAt: '2026-03-29',
-      likes: 41,
-      comments: 6,
-      isLiked: false,
-    },
-  ]);
+  constructor() {
+    // Automatski učitaj profil kad se korisnik prijavi
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (user?.role === 'Musician') {
+        this.loadProfile(user.profileId);
+      } else {
+        this.resetProfile();
+      }
+    });
+  }
+
+  loadProfile(profileId: number): void {
+    this.loading.set(true);
+
+    forkJoin({
+      musician: this.http.get<MusicianResponse>(`${API}/musician/${profileId}`),
+      followers: this.http.get<FollowResponse[]>(`${API}/follow/followers/profile/${profileId}`).pipe(catchError(() => of([]))),
+      following: this.http.get<FollowResponse[]>(`${API}/follow/following/${profileId}`).pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: ({ musician, followers, following }) => {
+        this.profile.set({
+          id: musician.id,
+          firstName: musician.firstName,
+          lastName: musician.lastName,
+          userName: musician.userName,
+          description: musician.description,
+          initials: initials(musician.firstName, musician.lastName),
+          color: profileColor(musician.id),
+          createdAt: musician.createdAt,
+          followersCount: followers.length,
+          followingCount: following.length,
+          averageRating: musician.averageRating ?? 0,
+          numberOfReviews: musician.numberOfReviews ?? 0,
+          instruments: musician.instruments,
+          genres: musician.genres,
+          bands: musician.bands.map(b => ({
+            id: b.bandId,
+            name: b.bandName,
+            initials: b.bandName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+            color: profileColor(b.bandId),
+            instrument: musician.instruments[0]?.name ?? '',
+            role: b.role === 'Admin' ? 'Admin' : 'Member',
+            genres: [],
+          }))
+        });
+
+        // Učitaj recenzije ako postoji performer profil
+        if (musician.performerId) {
+          this.loadReviews(musician.performerId);
+        }
+
+        this.loadPosts(profileId);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  private loadReviews(performerId: number): void {
+    this.http.get<ReviewResponse[]>(`${API}/review/performer/${performerId}`)
+      .pipe(catchError(() => of([])))
+      .subscribe(reviews => {
+        this.reviews.set(reviews.map(r => ({
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt,
+          reviewerName: r.reviewerFirstName && r.reviewerLastName
+            ? `${r.reviewerFirstName} ${r.reviewerLastName}`
+            : r.reviewerUserName ?? 'Anonimni',
+          reviewerInitials: r.reviewerFirstName && r.reviewerLastName
+            ? initials(r.reviewerFirstName, r.reviewerLastName)
+            : '??',
+          reviewerColor: profileColor(r.reviewerId ?? 0),
+        })));
+      });
+  }
+
+  private loadPosts(profileId: number): void {
+    this.http.get<PostResponse[]>(`${API}/post/profile/${profileId}`)
+      .pipe(catchError(() => of([])))
+      .subscribe(posts => {
+        this.posts.set(posts.map(p => ({
+          id: p.id,
+          content: p.content,
+          createdAt: p.createdAt,
+          likes: 0,
+          comments: 0,
+          isLiked: false,
+        })));
+      });
+  }
+
+  private resetProfile(): void {
+    this.profile.set({
+      id: 0, firstName: '', lastName: '', userName: '', description: '',
+      initials: '', color: '', createdAt: '', followersCount: 0, followingCount: 0,
+      averageRating: 0, numberOfReviews: 0, instruments: [], genres: [], bands: []
+    });
+    this.reviews.set([]);
+    this.posts.set([]);
+  }
 
   setTab(tab: ProfileTab): void {
     this.activeTab.set(tab);
@@ -207,8 +264,20 @@ export class MyProfileService {
     const lastName = this.editLastName().trim();
     const description = this.editDescription().trim();
     if (!firstName || !lastName) return;
-    this.profile.update(p => ({ ...p, firstName, lastName, description }));
-    this.isEditing.set(false);
+
+    const id = this.profile().id;
+    const userName = this.profile().userName;
+
+    this.http.put(`${API}/musician/${id}`, { firstName, lastName, userName, description })
+      .subscribe({
+        next: () => {
+          this.profile.update(p => ({
+            ...p, firstName, lastName, description,
+            initials: initials(firstName, lastName)
+          }));
+          this.isEditing.set(false);
+        }
+      });
   }
 
   togglePostLike(postId: number): void {

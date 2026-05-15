@@ -1,4 +1,9 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export type BandRole = 'Admin' | 'Member';
 export type GigStatus = 'Upcoming' | 'Completed' | 'Cancelled';
@@ -53,76 +58,72 @@ export interface MyBand {
   posts: BandPost[];
 }
 
+// Backend odgovori
+interface BandMembershipResponse {
+  id: number;
+  bandId: number;
+  bandName: string;
+  musicianId: number;
+  role: string;
+  joinedDate: string;
+  leftDate?: string;
+  instrument?: { id: number; name: string; type: string };
+}
+
+interface BandResponse {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+  performerId?: number;
+  averageRating?: number;
+  numberOfReviews?: number;
+  genres: { id: number; name: string }[];
+  locations: { id: number; name: string }[];
+  members: {
+    id: number;
+    musicianId: number;
+    musicianFirstName: string;
+    musicianLastName: string;
+    musicianUserName: string;
+    role: string;
+    joinedDate: string;
+    leftDate?: string;
+    instrument?: { id: number; name: string; type: string };
+  }[];
+}
+
+interface BandPostResponse {
+  id: number;
+  content: string;
+  createdAt: string;
+}
+
+const API = environment.apiBaseUrl;
+
+const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
+
+function profileColor(id: number): string {
+  return PALETTE[Math.abs(id) % PALETTE.length];
+}
+
+function toInitials(name: string): string {
+  return name.split(' ').map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase();
+}
+
+function memberInitials(first: string, last: string): string {
+  return ((first[0] ?? '') + (last[0] ?? '')).toUpperCase();
+}
+
 @Injectable({ providedIn: 'root' })
 export class MyBandsService {
-  readonly bands = signal<MyBand[]>([
-    {
-      id: 1,
-      name: 'The Groove Factory',
-      initials: 'GF',
-      color: '#0891b2',
-      description: 'Funk i soul bend iz Zagreba s više od 5 godina iskustva na domaćoj glazbenoj sceni. Nastupamo na festivalima, privatnim proslavama i klubskim večerima. Naš zvuk spaja klasični Motown soul s modernim funk grooveom.',
-      genres: ['Funk', 'Soul', 'R&B'],
-      locations: ['Zagreb', 'Split'],
-      averageRating: 4.7,
-      numberOfReviews: 23,
-      myRole: 'Admin',
-      myInstrument: 'Klavijature',
-      foundedAt: '2020-03-15',
-      members: [
-        { id: 1, name: 'Pero Perić', username: 'pero_peric', initials: 'PP', color: '#7c3aed', instrument: 'Klavijature', role: 'Admin', joinedDate: '2020-03-15' },
-        { id: 2, name: 'Marko Novak', username: 'marko_novak', initials: 'MN', color: '#6d28d9', instrument: 'Gitara', role: 'Member', joinedDate: '2020-03-15' },
-        { id: 3, name: 'Luka Petrović', username: 'luka_bass', initials: 'LP', color: '#d97706', instrument: 'Bas gitara', role: 'Member', joinedDate: '2020-06-01' },
-        { id: 4, name: 'Ivan Blažević', username: 'ivan_drums', initials: 'IB', color: '#dc2626', instrument: 'Bubnjevi', role: 'Member', joinedDate: '2021-01-10' },
-        { id: 5, name: 'Ana Horvat', username: 'ana_violin', initials: 'AH', color: '#059669', instrument: 'Vokal', role: 'Member', joinedDate: '2021-08-20' },
-      ],
-      gigs: [
-        { id: 1, title: 'INmusic Festival — Mala pozornica', venue: 'Jarun', location: 'Zagreb', date: '2026-06-22', payment: 2500, status: 'Upcoming', notes: 'Nastup u 21:00, zvučna proba u 18:30. Organizator pokriva putne troškove.' },
-        { id: 2, title: 'Art Kafe — Funk & Soul Night', venue: 'Art Kafe', location: 'Zagreb', date: '2026-05-24', payment: 1000, status: 'Upcoming', notes: '3-satni set s pauzama, plešni podij.' },
-        { id: 3, title: 'Zagreb Rock Night (Tvornica)', venue: 'Tvornica kulture', location: 'Zagreb', date: '2026-07-10', payment: 1500, status: 'Upcoming' },
-        { id: 4, title: 'Privatna proslava — Villa Magdalena', venue: 'Villa Magdalena', location: 'Zagreb', date: '2026-04-12', payment: 1800, status: 'Completed', notes: 'Vjenčanje, 4-satni set.' },
-        { id: 5, title: 'Split Summer Festival', venue: 'Obala HNK', location: 'Split', date: '2025-07-15', payment: 3000, status: 'Completed' },
-        { id: 6, title: 'Club Boogaloo — Tjedna sesija', venue: 'Club Boogaloo', location: 'Zagreb', date: '2025-11-08', payment: 600, status: 'Completed' },
-        { id: 7, title: 'Osijek Jazz Night', venue: 'Gradska kavana', location: 'Osijek', date: '2025-09-20', payment: null, status: 'Cancelled', notes: 'Otkazano zbog nedovoljne prodaje karata.' },
-      ],
-      posts: [
-        { id: 1, content: 'Dragi prijatelji, s ponosom objavljujemo naš novi singl "Noćni Grad"! Dostupan od petka na svim streaming platformama. Hvala svima koji su nam bili podrška na ovom putovanju! 🎶', createdAt: '2026-05-08', likes: 156, comments: 23, isLiked: false },
-        { id: 2, content: 'Sjajno večer u Art Kafeu! Publika je bila nevjerojatna — hvala svima koji su došli podržati. Vidimo se idući petak na istom mjestu!', createdAt: '2026-04-14', likes: 89, comments: 12, isLiked: true },
-        { id: 3, content: 'Tražimo vokalista/vokalisticu za povremene gostujuće nastupe! Sviramo funk i soul, tražimo iskusnog pjevača/pjevačicu. Javite se u DM za audiciju.', createdAt: '2026-03-22', likes: 44, comments: 31, isLiked: false },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Acoustic Shadows',
-      initials: 'AS',
-      color: '#059669',
-      description: 'Acoustic indie projekt fokusiran na originalne kompozicije i reinterpretacije folkskih klasika. Nastupamo uglavnom na intimnim venue-ima i open-air festivalima diljem Hrvatske.',
-      genres: ['Acoustic', 'Indie', 'Folk'],
-      locations: ['Zagreb'],
-      averageRating: 4.3,
-      numberOfReviews: 11,
-      myRole: 'Member',
-      myInstrument: 'Klavijature',
-      foundedAt: '2023-09-01',
-      members: [
-        { id: 6, name: 'Sara Ćosić', username: 'sara_keys', initials: 'SC', color: '#7c3aed', instrument: 'Vokal / Gitara', role: 'Admin', joinedDate: '2023-09-01' },
-        { id: 7, name: 'Pero Perić', username: 'pero_peric', initials: 'PP', color: '#7c3aed', instrument: 'Klavijature', role: 'Member', joinedDate: '2023-09-01' },
-        { id: 8, name: 'Tomislav Kos', username: 'toma_guitar', initials: 'TK', color: '#b45309', instrument: 'Gitara', role: 'Member', joinedDate: '2024-01-15' },
-      ],
-      gigs: [
-        { id: 8, title: 'Boogaloo Acoustic Sessions', venue: 'Club Boogaloo', location: 'Zagreb', date: '2026-05-09', payment: 400, status: 'Upcoming' },
-        { id: 9, title: 'Indie Showcase Rijeka', venue: 'Klub Palach', location: 'Rijeka', date: '2026-05-17', payment: 500, status: 'Upcoming', notes: 'Showcase format, 20-minutni set.' },
-        { id: 10, title: 'Café Kino debut', venue: 'Café Kino', location: 'Zagreb', date: '2024-03-10', payment: 300, status: 'Completed' },
-      ],
-      posts: [
-        { id: 4, content: 'Uskoro objavljujemo naše prve snimke! Ostanite s nama i pratite naš profil za više informacija.', createdAt: '2026-05-01', likes: 41, comments: 8, isLiked: false },
-        { id: 5, content: 'Hvala Club Boogaloou na sjajnoj večeri! Sjajno se sviralo pred tako toplom publikom. Do sljedeći put! 🎸', createdAt: '2024-04-12', likes: 28, comments: 4, isLiked: true },
-      ],
-    },
-  ]);
+  private http = inject(HttpClient);
+  private auth = inject(AuthService);
 
+  readonly bands = signal<MyBand[]>([]);
   readonly selectedBandId = signal<number | null>(null);
   readonly activeTab = signal<BandTab>('overview');
+  readonly loading = signal(false);
 
   readonly selectedBand = computed(() => {
     const id = this.selectedBandId();
@@ -146,6 +147,90 @@ export class MyBandsService {
       .filter(g => g.date < today || g.status === 'Cancelled')
       .sort((a, b) => b.date.localeCompare(a.date));
   });
+
+  constructor() {
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (user?.role === 'Musician') {
+        this.loadBands(user.profileId);
+      } else {
+        this.bands.set([]);
+        this.selectedBandId.set(null);
+      }
+    });
+  }
+
+  loadBands(musicianId: number): void {
+    this.loading.set(true);
+
+    // 1. Dohvati sva članstva glazbenika u bendovima
+    this.http.get<BandMembershipResponse[]>(`${API}/bandmember/musician/${musicianId}`)
+      .pipe(
+        catchError(() => of([])),
+        // 2. Paralelno dohvati detalje svakog benda i postove
+        switchMap(memberships => {
+          if (!memberships.length) return of([]);
+
+          const uniqueBandIds = [...new Set(memberships.map(m => m.bandId))];
+
+          const bandRequests = uniqueBandIds.map(bandId =>
+            forkJoin({
+              band: this.http.get<BandResponse>(`${API}/band/${bandId}`),
+              posts: this.http.get<BandPostResponse[]>(`${API}/post/band/${bandId}`).pipe(catchError(() => of([]))),
+              membership: of(memberships.find(m => m.bandId === bandId)!)
+            })
+          );
+
+          return forkJoin(bandRequests);
+        })
+      )
+      .subscribe({
+        next: results => {
+          const mapped: MyBand[] = results.map(({ band, posts, membership }) => ({
+            id: band.id,
+            name: band.name,
+            initials: toInitials(band.name),
+            color: profileColor(band.id),
+            description: band.description,
+            genres: band.genres.map(g => g.name),
+            locations: band.locations.map(l => l.name),
+            averageRating: band.averageRating ?? 0,
+            numberOfReviews: band.numberOfReviews ?? 0,
+            myRole: membership.role === 'Admin' ? 'Admin' : 'Member',
+            myInstrument: membership.instrument?.name ?? '',
+            foundedAt: band.createdAt,
+            members: band.members.map(m => ({
+              id: m.id,
+              name: `${m.musicianFirstName} ${m.musicianLastName}`,
+              username: m.musicianUserName,
+              initials: memberInitials(m.musicianFirstName, m.musicianLastName),
+              color: profileColor(m.musicianId),
+              instrument: m.instrument?.name ?? '',
+              role: m.role === 'Admin' ? 'Admin' : 'Member',
+              joinedDate: m.joinedDate,
+            })),
+            gigs: [],
+            posts: posts.map(p => ({
+              id: p.id,
+              content: p.content,
+              createdAt: p.createdAt,
+              likes: 0,
+              comments: 0,
+              isLiked: false,
+            })),
+          }));
+
+          this.bands.set(mapped);
+
+          if (mapped.length && this.selectedBandId() === null) {
+            this.selectedBandId.set(mapped[0].id);
+          }
+
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false)
+      });
+  }
 
   selectBand(id: number): void {
     this.selectedBandId.set(id);
