@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -75,6 +76,7 @@ namespace FindMeBand_server.Controllers
             }).ToList()
         };
 
+        [Authorize(Roles = "Musician")]
         [HttpPost]
         public async Task<ActionResult<Musician>> CreateMusician(CreateMusicianDTO dto)
         {
@@ -93,6 +95,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetMusician), new { id = musician.Id }, musician);
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateMusician(int id, UpdateMusicianDTO dto)
         {
@@ -109,6 +112,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMusician(int id)
         {
@@ -127,6 +131,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpPost("{id}/performer")]
         public async Task<ActionResult<Musician>> CreatePerformerForMusician(int id)
         {

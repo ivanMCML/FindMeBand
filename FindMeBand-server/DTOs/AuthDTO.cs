@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FindMeBand_server.Enums;
 
 namespace FindMeBand_server.DTOs
 {
@@ -20,6 +21,9 @@ namespace FindMeBand_server.DTOs
         public string UserName { get; set; } = string.Empty;
 
         public string? Description { get; set; }
+
+        [Required]
+        public UserRole Role { get; set; }
     }
 
     public class LoginDTO
@@ -40,5 +44,6 @@ namespace FindMeBand_server.DTOs
         public string LastName { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 }

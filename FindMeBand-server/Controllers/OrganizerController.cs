@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -37,6 +38,7 @@ namespace FindMeBand_server.Controllers
             return organizer;
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpPost]
         public async Task<ActionResult<Organizer>> CreateOrganizer(CreateOrganizerDTO dto)
         {
@@ -55,6 +57,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetOrganizer), new { id = organizer.Id }, organizer);
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrganizer(int id, UpdateOrganizerDTO dto)
         {
@@ -71,6 +74,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrganizer(int id)
         {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -56,6 +57,7 @@ namespace FindMeBand_server.Controllers
             return Ok(opportunities.Select(ToResponseDTO));
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpPost]
         public async Task<ActionResult<OpportunityResponseDTO>> CreateOpportunity(CreateOpportunityDTO dto)
         {
@@ -84,6 +86,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetOpportunity), new { id = opportunity.Id }, ToResponseDTO(created));
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOpportunity(int id, UpdateOpportunityDTO dto)
         {
@@ -100,6 +103,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOpportunity(int id)
         {

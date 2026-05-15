@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -48,6 +49,7 @@ namespace FindMeBand_server.Controllers
             return application;
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpPost]
         public async Task<ActionResult<OpportunityApplication>> CreateApplication(CreateOpportunityApplicationDTO dto)
         {
@@ -77,6 +79,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetApplication), new { id = application.Id }, application);
         }
 
+        [Authorize(Roles = "Musician")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteApplication(int id)
         {

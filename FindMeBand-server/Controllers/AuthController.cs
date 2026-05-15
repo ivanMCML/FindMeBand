@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using FindMeBand_server.Data;
 using FindMeBand_server.DTOs;
+using FindMeBand_server.Enums;
 using FindMeBand_server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -41,19 +42,29 @@ namespace FindMeBand_server.Controllers
             if (!result.Succeeded)
                 return BadRequest(result.Errors.Select(e => e.Description));
 
-            var profile = new Profile
-            {
-                UserId = user.Id,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                UserName = dto.UserName,
-                Description = dto.Description ?? string.Empty
-            };
+            Profile profile = dto.Role == UserRole.Organizer
+                ? new Organizer
+                {
+                    UserId = user.Id,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    UserName = dto.UserName,
+                    Description = dto.Description ?? string.Empty
+                }
+                : new Musician
+                {
+                    UserId = user.Id,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    UserName = dto.UserName,
+                    Description = dto.Description ?? string.Empty
+                };
 
             _context.Profiles.Add(profile);
             await _context.SaveChangesAsync();
 
-            var token = GenerateToken(user, profile);
+            var role = profile is Organizer ? "Organizer" : "Musician";
+            var token = GenerateToken(user, profile, role);
 
             return Ok(new AuthResponseDTO
             {
@@ -63,7 +74,8 @@ namespace FindMeBand_server.Controllers
                 FirstName = profile.FirstName,
                 LastName = profile.LastName,
                 UserName = profile.UserName,
-                Email = user.Email!
+                Email = user.Email!,
+                Role = role
             });
         }
 
@@ -78,7 +90,8 @@ namespace FindMeBand_server.Controllers
             if (profile == null)
                 return NotFound("Profil za ovog korisnika nije pronađen.");
 
-            var token = GenerateToken(user, profile);
+            var role = profile is Organizer ? "Organizer" : "Musician";
+            var token = GenerateToken(user, profile, role);
 
             return Ok(new AuthResponseDTO
             {
@@ -88,11 +101,12 @@ namespace FindMeBand_server.Controllers
                 FirstName = profile.FirstName,
                 LastName = profile.LastName,
                 UserName = profile.UserName,
-                Email = user.Email!
+                Email = user.Email!,
+                Role = role
             });
         }
 
-        private string GenerateToken(User user, Profile profile)
+        private string GenerateToken(User user, Profile profile, string role)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -103,6 +117,7 @@ namespace FindMeBand_server.Controllers
                 new Claim(ClaimTypes.Email, user.Email!),
                 new Claim("profileId", profile.Id.ToString()),
                 new Claim("userName", profile.UserName),
+                new Claim(ClaimTypes.Role, role),
             };
 
             var expires = DateTime.UtcNow.AddDays(int.Parse(_config["Jwt:ExpiresInDays"]!));

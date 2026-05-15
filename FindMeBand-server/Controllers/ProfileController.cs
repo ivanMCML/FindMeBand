@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -38,6 +39,7 @@ namespace FindMeBand_server.Controllers
             return profile;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Profile>> CreateProfile(CreateProfileDTO profileDto)
         {
@@ -56,6 +58,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetProfile), new { id = profile.Id }, profile);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProfile(int id, CreateProfileDTO profileDto)
         {
@@ -72,6 +75,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProfile(int id)
         {

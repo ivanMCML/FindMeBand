@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
@@ -56,6 +57,7 @@ namespace FindMeBand_server.Controllers
             return Ok(events.Select(ToResponseDTO));
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpPost]
         public async Task<ActionResult<EventResponseDTO>> CreateEvent(CreateEventDTO dto)
         {
@@ -92,6 +94,7 @@ namespace FindMeBand_server.Controllers
             return CreatedAtAction(nameof(GetEvent), new { id = ev.Id }, ToResponseDTO(created));
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEvent(int id, UpdateEventDTO dto)
         {
@@ -116,6 +119,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateEventStatus(int id, UpdateEventStatusDTO dto)
         {
@@ -128,6 +132,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Organizer")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
