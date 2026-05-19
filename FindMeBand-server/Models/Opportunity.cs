@@ -17,6 +17,8 @@ namespace FindMeBand_server.Models
         public OpportunityType Type { get; set; }
         public string? Description { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public List<OpportunityApplication> Applications { get; set; } = new List<OpportunityApplication>();
     }
 }

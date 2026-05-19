@@ -23,10 +23,14 @@ namespace FindMeBand_server.DTOs
     {
         public int Id { get; set; }
         public int AuthorId { get; set; }
+        public string? AuthorName { get; set; }
+        public string? AuthorUserName { get; set; }
+        public string AuthorType { get; set; } = "musician";
         public string Type { get; set; } = null!;
         public string? Description { get; set; }
         public GenreSummaryDTO? Genre { get; set; }
         public InstrumentSummaryDTO? Instrument { get; set; }
         public int ApplicationCount { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

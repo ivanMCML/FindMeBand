@@ -17,6 +17,50 @@ namespace FindMeBand_server.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetAllPosts()
+        {
+            var posts = await _context.Posts
+                .Include(p => p.Profile)
+                .Include(p => p.Band)
+                .Include(p => p.Media)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return Ok(posts.Select(ToResponseDTO));
+        }
+
+        [HttpGet("feed/{profileId}")]
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetFeed(int profileId)
+        {
+            var follows = await _context.Follows
+                .Where(f => f.FollowerId == profileId)
+                .ToListAsync();
+
+            var followedProfileIds = follows
+                .Where(f => f.FolloweeProfileId.HasValue)
+                .Select(f => f.FolloweeProfileId!.Value)
+                .ToList();
+
+            var followedBandIds = follows
+                .Where(f => f.FolloweeBandId.HasValue)
+                .Select(f => f.FolloweeBandId!.Value)
+                .ToList();
+
+            var posts = await _context.Posts
+                .Where(p =>
+                    (p.BandId == null && followedProfileIds.Contains(p.ProfileId)) ||
+                    (p.BandId != null && p.BandId.HasValue && followedBandIds.Contains(p.BandId.Value))
+                )
+                .Include(p => p.Profile)
+                .Include(p => p.Band)
+                .Include(p => p.Media)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return Ok(posts.Select(ToResponseDTO));
+        }
+
         [HttpGet("profile/{profileId}")]
         public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetPostsByProfile(int profileId)
         {

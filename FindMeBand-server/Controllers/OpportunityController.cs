@@ -24,6 +24,8 @@ namespace FindMeBand_server.Controllers
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
                 .Include(o => o.Applications)
+                .Include(o => o.Author).ThenInclude(p => p.Musician)
+                .Include(o => o.Author).ThenInclude(p => p.Band)
                 .ToListAsync();
 
             return Ok(opportunities.Select(ToResponseDTO));
@@ -36,6 +38,8 @@ namespace FindMeBand_server.Controllers
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
                 .Include(o => o.Applications)
+                .Include(o => o.Author).ThenInclude(p => p.Musician)
+                .Include(o => o.Author).ThenInclude(p => p.Band)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (opportunity == null)
@@ -52,6 +56,8 @@ namespace FindMeBand_server.Controllers
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
                 .Include(o => o.Applications)
+                .Include(o => o.Author).ThenInclude(p => p.Musician)
+                .Include(o => o.Author).ThenInclude(p => p.Band)
                 .ToListAsync();
 
             return Ok(opportunities.Select(ToResponseDTO));
@@ -81,6 +87,8 @@ namespace FindMeBand_server.Controllers
                 .Include(o => o.Instrument)
                 .Include(o => o.Genre)
                 .Include(o => o.Applications)
+                .Include(o => o.Author).ThenInclude(p => p.Musician)
+                .Include(o => o.Author).ThenInclude(p => p.Band)
                 .FirstAsync(o => o.Id == opportunity.Id);
 
             return CreatedAtAction(nameof(GetOpportunity), new { id = opportunity.Id }, ToResponseDTO(created));
@@ -116,24 +124,54 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
-        private static OpportunityResponseDTO ToResponseDTO(Opportunity o) => new()
+        private static OpportunityResponseDTO ToResponseDTO(Opportunity o)
         {
-            Id = o.Id,
-            AuthorId = o.AuthorId,
-            Type = o.Type.ToString(),
-            Description = o.Description,
-            Genre = o.Genre == null ? null : new GenreSummaryDTO
+            string authorName;
+            string authorUserName;
+            string authorType;
+
+            if (o.Author.Band != null)
             {
-                Id = o.Genre.Id,
-                Name = o.Genre.Name
-            },
-            Instrument = o.Instrument == null ? null : new InstrumentSummaryDTO
+                authorName = o.Author.Band.Name;
+                authorUserName = o.Author.Band.Name;
+                authorType = "band";
+            }
+            else if (o.Author.Musician != null)
             {
-                Id = o.Instrument.Id,
-                Name = o.Instrument.Name,
-                Type = o.Instrument.Type.ToString()
-            },
-            ApplicationCount = o.Applications.Count
-        };
+                authorName = $"{o.Author.Musician.FirstName} {o.Author.Musician.LastName}";
+                authorUserName = o.Author.Musician.UserName;
+                authorType = "musician";
+            }
+            else
+            {
+                authorName = "Nepoznat";
+                authorUserName = "";
+                authorType = "musician";
+            }
+
+            return new OpportunityResponseDTO
+            {
+                Id = o.Id,
+                AuthorId = o.AuthorId,
+                AuthorName = authorName,
+                AuthorUserName = authorUserName,
+                AuthorType = authorType,
+                Type = o.Type.ToString(),
+                Description = o.Description,
+                Genre = o.Genre == null ? null : new GenreSummaryDTO
+                {
+                    Id = o.Genre.Id,
+                    Name = o.Genre.Name
+                },
+                Instrument = o.Instrument == null ? null : new InstrumentSummaryDTO
+                {
+                    Id = o.Instrument.Id,
+                    Name = o.Instrument.Name,
+                    Type = o.Instrument.Type.ToString()
+                },
+                ApplicationCount = o.Applications.Count,
+                CreatedAt = o.CreatedAt
+            };
+        }
     }
 }

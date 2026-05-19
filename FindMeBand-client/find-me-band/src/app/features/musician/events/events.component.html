@@ -1,122 +1,145 @@
 <div class="events">
   <!-- Page header -->
   <div class="page-header">
-    <div class="results-count">
-      {{ filteredEvents().length }}
-      {{ filteredEvents().length === 1 ? 'događaj' : 'događaja' }}
-    </div>
-  </div>
-
-  <!-- Event list -->
-  <div class="event-list">
-    @for (event of filteredEvents(); track event.id) {
-      <article class="event-card">
-
-        <!-- Top row: status + genre + date -->
-        <div class="card-top">
-          <div class="card-badges">
-            <span class="status-badge" [class]="'status-badge--' + event.status.toLowerCase()">
-              {{ statusLabel(event.status) }}
-            </span>
-            <span class="genre-badge">{{ event.genre }}</span>
-          </div>
-          <span class="card-date">{{ formatEventDate(event.scheduledAt) }}</span>
-        </div>
-
-        <!-- Title -->
-        <h3 class="event-title">{{ event.title }}</h3>
-
-        <!-- Organizer -->
-        <div class="organizer-row">
-          <div class="org-avatar" [style.background]="event.organizer.color">
-            {{ event.organizer.initials }}
-          </div>
-          <div class="org-info">
-            <span class="org-name">{{ event.organizer.name }}</span>
-            <span class="org-username">&#64;{{ event.organizer.username }}</span>
-          </div>
-        </div>
-
-        <!-- Location -->
-        <div class="event-location">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
-          {{ event.location }}
-        </div>
-
-        <!-- Description -->
-        <p class="event-description">{{ event.description }}</p>
-
-        <!-- Footer -->
-        <div class="card-footer">
-          <div class="event-details">
-            <span class="detail-chip detail-chip--budget">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-              </svg>
-              {{ formatBudget(event.budgetMin, event.budgetMax) }}
-            </span>
-            <span class="detail-chip">
-              {{ formatPerformerType(event.preferredPerformerType) }}
-            </span>
-            @if (event.minReviewRequired) {
-              <span class="detail-chip detail-chip--rating">
-                ★ min {{ event.minReviewRequired }}
-              </span>
-            }
-          </div>
-          <div class="card-actions">
-            <span class="app-count">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              {{ event.applicationCount }}
-            </span>
-            <button
-              class="apply-btn"
-              [class.apply-btn--applied]="event.isApplied"
-              [class.apply-btn--closed]="event.status !== 'Open'"
-              [disabled]="event.isApplied || event.status !== 'Open'"
-              (click)="applyToEvent(event)"
-            >
-              @if (event.isApplied) {
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                Prijavljen/a
-              } @else if (event.status !== 'Open') {
-                Zatvoreno
-              } @else {
-                Prijavi se
-              }
-            </button>
-          </div>
-        </div>
-
-      </article>
-    }
-
-    @if (filteredEvents().length === 0) {
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-          stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-        <p>Nema događaja koji odgovaraju odabranim filtrima.</p>
+    @if (!service.loading() && !service.error()) {
+      <div class="results-count">
+        {{ filteredEvents().length }}
+        {{ filteredEvents().length === 1 ? 'događaj' : 'događaja' }}
       </div>
     }
   </div>
+
+  @if (service.loading()) {
+    <div class="empty-state">
+      <p>Učitavanje događaja...</p>
+    </div>
+  } @else if (service.error()) {
+    <div class="empty-state">
+      <p>{{ service.error() }}</p>
+    </div>
+  } @else {
+    <!-- Event list -->
+    <div class="event-list">
+      @for (event of filteredEvents(); track event.id) {
+        <article class="event-card">
+
+          <!-- Top row: status + genre + date -->
+          <div class="card-top">
+            <div class="card-badges">
+              <span class="status-badge" [class]="'status-badge--' + event.status.toLowerCase()">
+                {{ service.statusLabel(event.status) }}
+              </span>
+              @if (event.genre) {
+                <span class="genre-badge">{{ event.genre.name }}</span>
+              }
+            </div>
+            <span class="card-date">{{ service.formatEventDate(event.scheduledAt) }}</span>
+          </div>
+
+          <!-- Title -->
+          <h3 class="event-title">{{ event.title }}</h3>
+
+          <!-- Organizer -->
+          <div class="organizer-row">
+            <div class="org-avatar" [style.background]="event.organizerColor">
+              {{ event.organizerInitials }}
+            </div>
+            <div class="org-info">
+              <span class="org-name">{{ event.organizerName }}</span>
+              <span class="org-username">&#64;{{ event.organizerUserName }}</span>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="event-location">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ event.location }}
+          </div>
+
+          <!-- Description -->
+          <p class="event-description">{{ event.description }}</p>
+
+          <!-- Footer -->
+          <div class="card-footer">
+            <div class="event-details">
+              <span class="detail-chip detail-chip--budget">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                  <line x1="12" y1="1" x2="12" y2="23"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                {{ service.formatBudget(event.budgetMin, event.budgetMax) }}
+              </span>
+              @if (event.preferredPerformerType) {
+                <span class="detail-chip">
+                  {{ service.formatPerformerType(event.preferredPerformerType) }}
+                </span>
+              }
+              @if (event.minReviewRequired) {
+                <span class="detail-chip detail-chip--rating">
+                  ★ min {{ event.minReviewRequired }}
+                </span>
+              }
+            </div>
+            <div class="card-actions">
+              <span class="app-count">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                {{ event.applicationCount }}
+              </span>
+
+              @if (event.isApplied) {
+                <button
+                  class="apply-btn apply-btn--applied"
+                  (click)="service.withdrawApplication(event.id, event.myApplicationId!)"
+                  title="Klikni za povlačenje prijave"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Prijavljen/a
+                </button>
+              } @else if (event.status !== 'Open') {
+                <button class="apply-btn apply-btn--closed" disabled>
+                  Zatvoreno
+                </button>
+              } @else {
+                <button
+                  class="apply-btn"
+                  [disabled]="service.performerId() === null"
+                  (click)="service.applyToEvent(event.id)"
+                >
+                  Prijavi se
+                </button>
+              }
+            </div>
+          </div>
+
+        </article>
+      }
+
+      @if (filteredEvents().length === 0) {
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <p>Nema događaja koji odgovaraju odabranim filtrima.</p>
+        </div>
+      }
+    </div>
+  }
 </div>

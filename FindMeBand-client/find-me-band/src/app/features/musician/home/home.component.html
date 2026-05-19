@@ -3,89 +3,129 @@
   <div class="tab-bar">
     <button
       class="tab"
-      [class.tab--active]="activeTab() === 'following'"
-      (click)="setTab('following')"
+      [class.tab--active]="service.activeTab() === 'following'"
+      (click)="service.setTab('following')"
     >
       Following
     </button>
     <button
       class="tab"
-      [class.tab--active]="activeTab() === 'explore'"
-      (click)="setTab('explore')"
+      [class.tab--active]="service.activeTab() === 'explore'"
+      (click)="service.setTab('explore')"
     >
       Explore
     </button>
   </div>
 
-  <!-- Feed -->
-  <div class="feed">
-    @for (post of currentPosts(); track post.id) {
-      <article class="post-card">
-        <!-- Post Header -->
-        <div class="post-header">
-          <div
-            class="avatar"
-            [class.avatar--band]="post.author.type === 'band'"
-            [style.background]="post.author.color"
-          >
-            {{ post.author.initials }}
-          </div>
-          <div class="author-info">
-            <div class="author-top">
-              <span class="author-name">{{ post.author.name }}</span>
-              <span class="author-role">{{ post.author.role }}</span>
-            </div>
-            <span class="author-meta">&#64;{{ post.author.username }} · {{ post.timestamp }}</span>
-          </div>
-        </div>
-
-        <!-- Post Content -->
-        <p class="post-content">{{ post.content }}</p>
-
-        <!-- Genre Tags -->
-        @if (post.genres.length > 0) {
-          <div class="genre-tags">
-            @for (genre of post.genres; track genre) {
-              <span class="genre-tag">{{ genre }}</span>
-            }
-          </div>
-        }
-
-        <!-- Post Actions -->
-        <div class="post-actions">
-          <button
-            class="action-btn"
-            [class.action-btn--liked]="post.isLiked"
-            (click)="toggleLike(post)"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            <span>{{ post.likes }}</span>
-          </button>
-
-          <button class="action-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            <span>{{ post.comments }}</span>
-          </button>
-
-          <button class="action-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
-            <span>Dijeli</span>
-          </button>
-        </div>
-      </article>
-    }
+  <!-- Post Composer -->
+  <div class="composer">
+    <textarea
+      class="composer-input"
+      [(ngModel)]="newPostContent"
+      placeholder="Što se novo dešava? Podijeli s muzičarima..."
+      rows="3"
+    ></textarea>
+    <div class="composer-footer">
+      <button
+        class="composer-btn"
+        [disabled]="!newPostContent().trim() || service.submittingPost()"
+        (click)="submitPost()"
+      >
+        @if (service.submittingPost()) { Objavljujem... } @else { Objavi }
+      </button>
+    </div>
   </div>
+
+  <!-- Feed -->
+  @if (service.loading()) {
+    <div class="empty-state">
+      <p>Učitavanje objava...</p>
+    </div>
+  } @else if (service.error()) {
+    <div class="empty-state">
+      <p>{{ service.error() }}</p>
+    </div>
+  } @else {
+    <div class="feed">
+      @for (post of service.currentPosts(); track post.id) {
+        <article class="post-card">
+          <!-- Post Header -->
+          <div class="post-header">
+            <div
+              class="avatar"
+              [class.avatar--band]="post.authorType === 'band'"
+              [style.background]="post.authorColor"
+            >
+              {{ post.authorInitials }}
+            </div>
+            <div class="author-info">
+              <div class="author-top">
+                <span class="author-name">{{ post.authorName }}</span>
+              </div>
+              <span class="author-meta">&#64;{{ post.authorUserName }} · {{ post.timestamp }}</span>
+            </div>
+          </div>
+
+          <!-- Post Content -->
+          <p class="post-content">{{ post.content }}</p>
+
+          <!-- Post Actions -->
+          <div class="post-actions">
+            <button
+              class="action-btn"
+              [class.action-btn--liked]="post.isLiked"
+              (click)="service.toggleLike(post.id)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span>{{ post.likes }}</span>
+            </button>
+
+            <button class="action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>0</span>
+            </button>
+
+            <button class="action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              <span>Dijeli</span>
+            </button>
+          </div>
+        </article>
+      }
+
+      @if (service.currentPosts().length === 0) {
+        <div class="empty-state">
+          @if (service.activeTab() === 'following') {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <p>Nema objava od profila koje pratiš.</p>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <p>Još nema objava. Budi prvi!</p>
+          }
+        </div>
+      }
+    </div>
+  }
 </div>
