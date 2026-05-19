@@ -134,6 +134,7 @@ namespace FindMeBand_server.Controllers
             FolloweeProfileFirstName = f.FolloweeProfile?.FirstName,
             FolloweeProfileLastName = f.FolloweeProfile?.LastName,
             FolloweeProfileUserName = f.FolloweeProfile?.UserName,
+            FolloweeProfileDescription = f.FolloweeProfile?.Description,
             FolloweeBandId = f.FolloweeBandId,
             FolloweeBandName = f.FolloweeBand?.Name,
             FollowedAt = f.FollowedAt

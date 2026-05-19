@@ -38,6 +38,9 @@ namespace FindMeBand_server.Data
 
         public DbSet<Follow> Follows { get; set; } = null!;
 
+        public DbSet<Conversation> Conversations { get; set; } = null!;
+        public DbSet<DirectMessage> DirectMessages { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -314,6 +317,43 @@ namespace FindMeBand_server.Data
                 .HasIndex(f => new { f.FollowerId, f.FolloweeBandId })
                 .IsUnique()
                 .HasFilter("[FolloweeBandId] IS NOT NULL");
+
+            // --- Conversation -> Profile1 ---
+            // NoAction: izbjegavamo višestruke kaskadne putanje od Profile do Conversation
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.Profile1)
+                .WithMany()
+                .HasForeignKey(c => c.Profile1Id)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Conversation -> Profile2 ---
+            // NoAction: isto, drugi FK koji pokazuje na Profile
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.Profile2)
+                .WithMany()
+                .HasForeignKey(c => c.Profile2Id)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Unique: svaki par profila može imati samo jedan razgovor
+            modelBuilder.Entity<Conversation>()
+                .HasIndex(c => new { c.Profile1Id, c.Profile2Id })
+                .IsUnique();
+
+            // --- DirectMessage -> Conversation ---
+            // Cascade: poruke se brišu s razgovorom
+            modelBuilder.Entity<DirectMessage>()
+                .HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // --- DirectMessage -> Sender (Profile) ---
+            // NoAction: izbjegavamo višestruke kaskadne putanje od Profile do DirectMessage
+            modelBuilder.Entity<DirectMessage>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

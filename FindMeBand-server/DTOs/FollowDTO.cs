@@ -18,6 +18,7 @@ namespace FindMeBand_server.DTOs
         public string? FolloweeProfileFirstName { get; set; }
         public string? FolloweeProfileLastName { get; set; }
         public string? FolloweeProfileUserName { get; set; }
+        public string? FolloweeProfileDescription { get; set; }
         public int? FolloweeBandId { get; set; }
         public string? FolloweeBandName { get; set; }
         public DateTime FollowedAt { get; set; }
