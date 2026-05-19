@@ -562,7 +562,11 @@
               <span class="result-name">{{ item.name }}</span>
               <span class="result-sub">{{ item.subtitle }}</span>
             </div>
-            <button class="follow-btn">Prati</button>
+            <button class="follow-btn"
+              [class.follow-btn--following]="item.followId !== null"
+              (click)="toggleFollow(item)">
+              {{ item.followId !== null ? 'Pratiš' : 'Prati' }}
+            </button>
           </div>
         }
       </div>
@@ -578,7 +582,11 @@
               <span class="result-name">{{ item.name }}</span>
               <span class="result-sub">{{ item.subtitle }}</span>
             </div>
-            <button class="follow-btn">Prati</button>
+            <button class="follow-btn"
+              [class.follow-btn--following]="item.followId !== null"
+              (click)="toggleFollow(item)">
+              {{ item.followId !== null ? 'Pratiš' : 'Prati' }}
+            </button>
           </div>
         }
       </div>
@@ -594,7 +602,11 @@
               <span class="result-name">{{ item.name }}</span>
               <span class="result-sub">{{ item.subtitle }}</span>
             </div>
-            <button class="follow-btn">Prati</button>
+            <button class="follow-btn"
+              [class.follow-btn--following]="item.followId !== null"
+              (click)="toggleFollow(item)">
+              {{ item.followId !== null ? 'Pratiš' : 'Prati' }}
+            </button>
           </div>
         }
       </div>
