@@ -18,6 +18,7 @@ namespace FindMeBand_server.Data
 
         public DbSet<Post> Posts { get; set; } = null!;
         public DbSet<PostMedia> PostsMedia { get; set; } = null!;
+        public DbSet<PostLike> PostLikes { get; set; } = null!;
 
         public DbSet<BandMember> BandMember { get; set; } = null!;
 
@@ -84,6 +85,26 @@ namespace FindMeBand_server.Data
                 .WithMany(b => b.Posts)
                 .HasForeignKey(p => p.BandId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // --- PostLike -> Post ---
+            // Cascade: lajkovi se brišu s postom
+            modelBuilder.Entity<PostLike>()
+                .HasOne(pl => pl.Post)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(pl => pl.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // --- PostLike -> Profile ---
+            // NoAction: izbjegavamo višestruke kaskadne putanje od Profile do PostLike
+            modelBuilder.Entity<PostLike>()
+                .HasOne(pl => pl.Profile)
+                .WithMany()
+                .HasForeignKey(pl => pl.ProfileId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PostLike>()
+                .HasIndex(pl => new { pl.PostId, pl.ProfileId })
+                .IsUnique();
 
             // --- PostMedia -> Post ---
             // Cascade: mediji nemaju smisla bez posta

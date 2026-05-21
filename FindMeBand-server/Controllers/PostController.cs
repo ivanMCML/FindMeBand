@@ -18,16 +18,17 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetAllPosts()
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetAllPosts([FromQuery] int? profileId = null)
         {
             var posts = await _context.Posts
                 .Include(p => p.Profile)
                 .Include(p => p.Band)
                 .Include(p => p.Media)
+                .Include(p => p.Likes)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return Ok(posts.Select(ToResponseDTO));
+            return Ok(posts.Select(p => ToResponseDTO(p, profileId)));
         }
 
         [HttpGet("feed/{profileId}")]
@@ -55,52 +56,56 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Profile)
                 .Include(p => p.Band)
                 .Include(p => p.Media)
+                .Include(p => p.Likes)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return Ok(posts.Select(ToResponseDTO));
+            return Ok(posts.Select(p => ToResponseDTO(p, profileId)));
         }
 
         [HttpGet("profile/{profileId}")]
-        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetPostsByProfile(int profileId)
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetPostsByProfile(int profileId, [FromQuery] int? viewerProfileId = null)
         {
             var posts = await _context.Posts
                 .Where(p => p.ProfileId == profileId && p.BandId == null)
                 .Include(p => p.Profile)
                 .Include(p => p.Media)
+                .Include(p => p.Likes)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return Ok(posts.Select(ToResponseDTO));
+            return Ok(posts.Select(p => ToResponseDTO(p, viewerProfileId)));
         }
 
         [HttpGet("band/{bandId}")]
-        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetPostsByBand(int bandId)
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetPostsByBand(int bandId, [FromQuery] int? profileId = null)
         {
             var posts = await _context.Posts
                 .Where(p => p.BandId == bandId)
                 .Include(p => p.Profile)
                 .Include(p => p.Band)
                 .Include(p => p.Media)
+                .Include(p => p.Likes)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
-            return Ok(posts.Select(ToResponseDTO));
+            return Ok(posts.Select(p => ToResponseDTO(p, profileId)));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<PostResponseDTO>> GetPost(int id)
+        public async Task<ActionResult<PostResponseDTO>> GetPost(int id, [FromQuery] int? profileId = null)
         {
             var post = await _context.Posts
                 .Include(p => p.Profile)
                 .Include(p => p.Band)
                 .Include(p => p.Media)
+                .Include(p => p.Likes)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (post == null)
                 return NotFound();
 
-            return Ok(ToResponseDTO(post));
+            return Ok(ToResponseDTO(post, profileId));
         }
 
         [Authorize]
@@ -168,7 +173,7 @@ namespace FindMeBand_server.Controllers
             return NoContent();
         }
 
-        private static PostResponseDTO ToResponseDTO(Post p) => new()
+        private static PostResponseDTO ToResponseDTO(Post p, int? viewerProfileId = null) => new()
         {
             Id = p.Id,
             ProfileId = p.ProfileId,
@@ -184,7 +189,9 @@ namespace FindMeBand_server.Controllers
                 Id = m.Id,
                 Url = m.Url,
                 Type = m.Type.ToString()
-            }).ToList()
+            }).ToList(),
+            LikesCount = p.Likes.Count,
+            IsLiked = viewerProfileId.HasValue && p.Likes.Any(l => l.ProfileId == viewerProfileId.Value)
         };
     }
 }

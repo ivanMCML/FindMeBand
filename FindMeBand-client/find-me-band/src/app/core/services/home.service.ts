@@ -30,6 +30,8 @@ interface PostResponse {
   bandName: string | null;
   content: string;
   createdAt: string;
+  likesCount: number;
+  isLiked: boolean;
 }
 
 const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
@@ -71,8 +73,6 @@ export class HomeService {
   readonly error = signal<string | null>(null);
   readonly submittingPost = signal(false);
 
-  private readonly likedIds = signal<Set<number>>(new Set());
-
   readonly currentPosts = computed(() =>
     this.activeTab() === 'following' ? this.followingPosts() : this.explorePosts()
   );
@@ -85,7 +85,6 @@ export class HomeService {
       } else {
         this.followingPosts.set([]);
         this.explorePosts.set([]);
-        this.likedIds.set(new Set());
       }
     });
   }
@@ -98,14 +97,13 @@ export class HomeService {
     this.error.set(null);
 
     forkJoin({
-      explore: this.http.get<PostResponse[]>(`${API}/post`),
+      explore: this.http.get<PostResponse[]>(`${API}/post?profileId=${user.profileId}`),
       following: this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}`)
         .pipe(catchError(() => of([]))),
     }).subscribe({
       next: ({ explore, following }) => {
-        const liked = this.likedIds();
-        this.explorePosts.set(explore.map(p => this.toPost(p, liked)));
-        this.followingPosts.set(following.map(p => this.toPost(p, liked)));
+        this.explorePosts.set(explore.map(p => this.toPost(p)));
+        this.followingPosts.set(following.map(p => this.toPost(p)));
         this.loading.set(false);
       },
       error: () => {
@@ -120,12 +118,14 @@ export class HomeService {
   }
 
   toggleLike(postId: number): void {
-    this.likedIds.update(set => {
-      const next = new Set(set);
-      if (next.has(postId)) next.delete(postId);
-      else next.add(postId);
-      return next;
-    });
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    const allPosts = [...this.followingPosts(), ...this.explorePosts()];
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) return;
+
+    const wasLiked = post.isLiked;
 
     const toggle = (posts: FeedPost[]) =>
       posts.map(p => p.id !== postId ? p : {
@@ -136,6 +136,16 @@ export class HomeService {
 
     this.followingPosts.update(toggle);
     this.explorePosts.update(toggle);
+
+    const request$ = wasLiked
+      ? this.http.delete(`${API}/postlike?postId=${postId}&profileId=${user.profileId}`)
+      : this.http.post(`${API}/postlike`, { postId, profileId: user.profileId });
+
+    request$.pipe(catchError(() => {
+      this.followingPosts.update(toggle);
+      this.explorePosts.update(toggle);
+      return of(null);
+    })).subscribe();
   }
 
   createPost(content: string, onSuccess: () => void): void {
@@ -160,7 +170,7 @@ export class HomeService {
     });
   }
 
-  private toPost(p: PostResponse, liked: Set<number>): FeedPost {
+  private toPost(p: PostResponse): FeedPost {
     const isBandPost = p.bandId !== null;
     const displayName = isBandPost ? (p.bandName ?? 'Bend') : `${p.authorFirstName} ${p.authorLastName}`;
     const displayUserName = isBandPost ? (p.bandName ?? '') : p.authorUserName;
@@ -178,8 +188,8 @@ export class HomeService {
       content: p.content,
       createdAt: p.createdAt,
       timestamp: relativeTime(p.createdAt),
-      likes: 0,
-      isLiked: liked.has(p.id),
+      likes: p.likesCount,
+      isLiked: p.isLiked,
     };
   }
 }

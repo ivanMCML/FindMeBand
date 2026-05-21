@@ -33,6 +33,8 @@ namespace FindMeBand_server.DTOs
         public string Content { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public List<PostMediaResponseDTO> Media { get; set; } = new();
+        public int LikesCount { get; set; }
+        public bool IsLiked { get; set; }
     }
 
     public class PostMediaResponseDTO

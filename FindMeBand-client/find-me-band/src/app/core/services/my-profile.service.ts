@@ -99,6 +99,8 @@ interface PostResponse {
   profileId: number;
   content: string;
   createdAt: string;
+  likesCount: number;
+  isLiked: boolean;
 }
 
 interface FollowResponse {
@@ -219,16 +221,16 @@ export class MyProfileService {
   }
 
   private loadPosts(profileId: number): void {
-    this.http.get<PostResponse[]>(`${API}/post/profile/${profileId}`)
+    this.http.get<PostResponse[]>(`${API}/post/profile/${profileId}?viewerProfileId=${profileId}`)
       .pipe(catchError(() => of([])))
       .subscribe(posts => {
         this.posts.set(posts.map(p => ({
           id: p.id,
           content: p.content,
           createdAt: p.createdAt,
-          likes: 0,
+          likes: p.likesCount,
           comments: 0,
-          isLiked: false,
+          isLiked: p.isLiked,
         })));
       });
   }
@@ -281,15 +283,33 @@ export class MyProfileService {
   }
 
   togglePostLike(postId: number): void {
-    this.posts.update(posts =>
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    const post = this.posts().find(p => p.id === postId);
+    if (!post) return;
+
+    const wasLiked = post.isLiked;
+
+    const toggle = (posts: ProfilePost[]) =>
       posts.map(p =>
         p.id !== postId ? p : {
           ...p,
           isLiked: !p.isLiked,
-          likes: p.isLiked ? p.likes - 1 : p.likes + 1,
+          likes: p.isLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
         }
-      )
-    );
+      );
+
+    this.posts.update(toggle);
+
+    const request$ = wasLiked
+      ? this.http.delete(`${API}/postlike?postId=${postId}&profileId=${user.profileId}`)
+      : this.http.post(`${API}/postlike`, { postId, profileId: user.profileId });
+
+    request$.pipe(catchError(() => {
+      this.posts.update(toggle);
+      return of(null);
+    })).subscribe();
   }
 
   starsArray(rating: number): { full: boolean; half: boolean }[] {
