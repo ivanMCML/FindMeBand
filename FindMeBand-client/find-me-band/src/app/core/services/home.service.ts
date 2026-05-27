@@ -125,8 +125,6 @@ export class HomeService {
     const post = allPosts.find(p => p.id === postId);
     if (!post) return;
 
-    const wasLiked = post.isLiked;
-
     const toggle = (posts: FeedPost[]) =>
       posts.map(p => p.id !== postId ? p : {
         ...p,
@@ -137,15 +135,28 @@ export class HomeService {
     this.followingPosts.update(toggle);
     this.explorePosts.update(toggle);
 
-    const request$ = wasLiked
-      ? this.http.delete(`${API}/postlike?postId=${postId}&profileId=${user.profileId}`)
-      : this.http.post(`${API}/postlike`, { postId, profileId: user.profileId });
-
-    request$.pipe(catchError(() => {
-      this.followingPosts.update(toggle);
-      this.explorePosts.update(toggle);
-      return of(null);
-    })).subscribe();
+    this.http.post<{ liked: boolean }>(`${API}/postlike`, { postId, profileId: user.profileId })
+      .pipe(catchError(() => {
+        this.followingPosts.update(toggle);
+        this.explorePosts.update(toggle);
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res) {
+          // Korigira drift između optimističnog stanja i stvarnog odgovora servera
+          const sync = (posts: FeedPost[]) =>
+            posts.map(p => {
+              if (p.id !== postId || p.isLiked === res.liked) return p;
+              return {
+                ...p,
+                isLiked: res.liked,
+                likes: res.liked ? p.likes + 1 : Math.max(0, p.likes - 1),
+              };
+            });
+          this.followingPosts.update(sync);
+          this.explorePosts.update(sync);
+        }
+      });
   }
 
   createPost(content: string, onSuccess: () => void): void {

@@ -289,8 +289,6 @@ export class MyProfileService {
     const post = this.posts().find(p => p.id === postId);
     if (!post) return;
 
-    const wasLiked = post.isLiked;
-
     const toggle = (posts: ProfilePost[]) =>
       posts.map(p =>
         p.id !== postId ? p : {
@@ -302,14 +300,25 @@ export class MyProfileService {
 
     this.posts.update(toggle);
 
-    const request$ = wasLiked
-      ? this.http.delete(`${API}/postlike?postId=${postId}&profileId=${user.profileId}`)
-      : this.http.post(`${API}/postlike`, { postId, profileId: user.profileId });
-
-    request$.pipe(catchError(() => {
-      this.posts.update(toggle);
-      return of(null);
-    })).subscribe();
+    this.http.post<{ liked: boolean }>(`${API}/postlike`, { postId, profileId: user.profileId })
+      .pipe(catchError(() => {
+        this.posts.update(toggle);
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res) {
+          this.posts.update(posts =>
+            posts.map(p => {
+              if (p.id !== postId || p.isLiked === res.liked) return p;
+              return {
+                ...p,
+                isLiked: res.liked,
+                likes: res.liked ? p.likes + 1 : Math.max(0, p.likes - 1),
+              };
+            })
+          );
+        }
+      });
   }
 
   starsArray(rating: number): { full: boolean; half: boolean }[] {

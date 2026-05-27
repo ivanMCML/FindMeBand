@@ -19,7 +19,7 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Like(CreatePostLikeDTO dto)
+        public async Task<IActionResult> ToggleLike(CreatePostLikeDTO dto)
         {
             var postExists = await _context.Posts.AnyAsync(p => p.Id == dto.PostId);
             if (!postExists)
@@ -29,30 +29,19 @@ namespace FindMeBand_server.Controllers
             if (!profileExists)
                 return NotFound("Profil nije pronađen.");
 
-            var duplicate = await _context.PostLikes
-                .AnyAsync(pl => pl.PostId == dto.PostId && pl.ProfileId == dto.ProfileId);
-            if (duplicate)
-                return Conflict("Već ste lajkali ovaj post.");
+            var existing = await _context.PostLikes
+                .FirstOrDefaultAsync(pl => pl.PostId == dto.PostId && pl.ProfileId == dto.ProfileId);
+
+            if (existing != null)
+            {
+                _context.PostLikes.Remove(existing);
+                await _context.SaveChangesAsync();
+                return Ok(new PostLikeResponseDTO { Liked = false });
+            }
 
             _context.PostLikes.Add(new PostLike { PostId = dto.PostId, ProfileId = dto.ProfileId });
             await _context.SaveChangesAsync();
-
-            return Ok();
-        }
-
-        [HttpDelete]
-        public async Task<IActionResult> Unlike([FromQuery] int postId, [FromQuery] int profileId)
-        {
-            var like = await _context.PostLikes
-                .FirstOrDefaultAsync(pl => pl.PostId == postId && pl.ProfileId == profileId);
-
-            if (like == null)
-                return NotFound();
-
-            _context.PostLikes.Remove(like);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok(new PostLikeResponseDTO { Liked = true });
         }
     }
 }

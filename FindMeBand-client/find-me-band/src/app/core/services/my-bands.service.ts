@@ -242,20 +242,51 @@ export class MyBandsService {
   }
 
   togglePostLike(bandId: number, postId: number): void {
-    this.bands.update(bands =>
-      bands.map(b =>
-        b.id !== bandId ? b : {
-          ...b,
-          posts: b.posts.map(p =>
-            p.id !== postId ? p : {
-              ...p,
-              isLiked: !p.isLiked,
-              likes: p.isLiked ? p.likes - 1 : p.likes + 1,
-            }
-          ),
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    const toggle = () =>
+      this.bands.update(bands =>
+        bands.map(b =>
+          b.id !== bandId ? b : {
+            ...b,
+            posts: b.posts.map(p =>
+              p.id !== postId ? p : {
+                ...p,
+                isLiked: !p.isLiked,
+                likes: p.isLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
+              }
+            ),
+          }
+        )
+      );
+
+    toggle();
+
+    this.http.post<{ liked: boolean }>(`${API}/postlike`, { postId, profileId: user.profileId })
+      .pipe(catchError(() => {
+        toggle();
+        return of(null);
+      }))
+      .subscribe(res => {
+        if (res) {
+          this.bands.update(bands =>
+            bands.map(b =>
+              b.id !== bandId ? b : {
+                ...b,
+                posts: b.posts.map(p => {
+                  if (p.id !== postId || p.isLiked === res.liked) return p;
+                  return {
+                    ...p,
+                    isLiked: res.liked,
+                    likes: res.liked ? p.likes + 1 : Math.max(0, p.likes - 1),
+                  };
+                }),
+              }
+            )
+          );
         }
-      )
-    );
+      });
   }
 
   formatDate(dateStr: string): string {
