@@ -171,7 +171,7 @@ export class HomeService {
       media: [],
     }).subscribe({
       next: (created) => {
-        const newPost = this.toPost(created, this.likedIds());
+        const newPost = this.toPost(created);
         this.followingPosts.update(posts => [newPost, ...posts]);
         this.explorePosts.update(posts => [newPost, ...posts]);
         this.submittingPost.set(false);
