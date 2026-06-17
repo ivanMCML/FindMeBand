@@ -125,6 +125,12 @@ export class MyBandsService {
   readonly activeTab = signal<BandTab>('overview');
   readonly loading = signal(false);
 
+  readonly isCreating = signal(false);
+  readonly createName = signal('');
+  readonly createDescription = signal('');
+  readonly createInstrumentId = signal<number | null>(null);
+  readonly submitting = signal(false);
+
   readonly selectedBand = computed(() => {
     const id = this.selectedBandId();
     return id !== null ? (this.bands().find(b => b.id === id) ?? null) : null;
@@ -309,5 +315,47 @@ export class MyBandsService {
       full: i < Math.floor(rating),
       half: i === Math.floor(rating) && rating % 1 >= 0.5,
     }));
+  }
+
+  openCreateForm(): void {
+    this.createName.set('');
+    this.createDescription.set('');
+    this.createInstrumentId.set(null);
+    this.isCreating.set(true);
+  }
+
+  cancelCreate(): void {
+    this.isCreating.set(false);
+  }
+
+  submitCreate(musicianId: number): void {
+    const name = this.createName().trim();
+    const description = this.createDescription().trim();
+    if (!name || !description) return;
+
+    this.submitting.set(true);
+
+    this.http.post<{ id: number }>(`${API}/band`, { name, description })
+      .pipe(
+        switchMap(band =>
+          this.http.post(`${API}/bandmember`, {
+            bandId: band.id,
+            musicianId,
+            instrumentId: this.createInstrumentId() ?? null,
+            role: 1,
+          })
+        ),
+        catchError(() => {
+          this.submitting.set(false);
+          return of(null);
+        })
+      )
+      .subscribe(result => {
+        if (result !== null) {
+          this.isCreating.set(false);
+          this.submitting.set(false);
+          this.loadBands(musicianId);
+        }
+      });
   }
 }

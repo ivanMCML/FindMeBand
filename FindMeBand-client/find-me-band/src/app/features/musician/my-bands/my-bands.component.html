@@ -357,6 +357,65 @@
     </div>
   }
 
+} @else if (s.isCreating()) {
+
+  <!-- ══ CREATE BAND FORM ══════════════════════════════ -->
+  <div class="create-form">
+    <div class="create-form-header">
+      <h2 class="create-form-title">Kreiraj novi bend</h2>
+      <p class="create-form-subtitle">Popuni osnovne informacije. Žanrove i lokacije možeš dodati nakon kreiranja.</p>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Naziv benda <span class="form-required">*</span></label>
+      <input
+        class="form-input"
+        type="text"
+        placeholder="npr. The Rolling Stones"
+        [value]="s.createName()"
+        (input)="s.createName.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Opis <span class="form-required">*</span></label>
+      <textarea
+        class="form-input form-textarea"
+        rows="4"
+        placeholder="Opiši bend — žanr, stil, tražite li nove članove..."
+        [value]="s.createDescription()"
+        (input)="s.createDescription.set($any($event.target).value)"
+      ></textarea>
+    </div>
+
+    @if (profile.profile().instruments.length > 0) {
+      <div class="form-field">
+        <label class="form-label">Tvoj instrument u bendu</label>
+        <select
+          class="form-input form-select"
+          [value]="s.createInstrumentId() ?? ''"
+          (change)="s.createInstrumentId.set($any($event.target).value ? +$any($event.target).value : null)"
+        >
+          <option value="">— odaberi instrument —</option>
+          @for (instr of profile.profile().instruments; track instr.id) {
+            <option [value]="instr.id">{{ instr.name }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="form-actions">
+      <button
+        class="form-submit-btn"
+        [disabled]="!s.createName().trim() || !s.createDescription().trim() || s.submitting()"
+        (click)="submitCreate()"
+      >
+        @if (s.submitting()) { Kreiranje... } @else { Kreiraj bend }
+      </button>
+      <button class="form-cancel-btn" (click)="s.cancelCreate()">Odustani</button>
+    </div>
+  </div>
+
 } @else {
 
   <!-- ══ EMPTY STATE ════════════════════════════════════ -->

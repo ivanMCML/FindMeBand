@@ -323,6 +323,30 @@
 .bands-panel-header {
   padding: 20px 16px 12px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.create-band-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  font-family: inherit;
+
+  &:hover {
+    background: var(--color-primary);
+    color: white;
+  }
 }
 
 .bands-list {
