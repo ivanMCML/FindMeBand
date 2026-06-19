@@ -209,15 +209,20 @@
               <div class="applications-list">
                 @for (app of event.applications; track app.id) {
                   <div class="application-row">
-                    <div class="app-avatar">
-                      {{ app.performerId }}
+                    <div class="app-avatar" [style.background]="app.applicantColor">
+                      {{ app.applicantInitials }}
                     </div>
                     <div class="app-info">
-                      <span class="app-performer">Izvođač #{{ app.performerId }}</span>
+                      <div class="app-performer-row">
+                        <span class="app-performer">{{ app.applicantName }}</span>
+                        <span class="app-type-badge" [class.app-type-badge--band]="app.applicantType === 'Band'">
+                          {{ app.applicantType === 'Band' ? 'Bend' : 'Muzičar' }}
+                        </span>
+                      </div>
                       @if (app.message) {
                         <p class="app-message">{{ app.message }}</p>
                       }
-                      <span class="app-date">{{ s.formatDate(app.createdAt) }}</span>
+                      <span class="app-date">{{ s.formatDate(app.appliedAt) }}</span>
                     </div>
                     <div class="app-status-area">
                       <span class="app-status-badge" [class]="'app-status--' + app.status.toLowerCase()">

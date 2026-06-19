@@ -27,6 +27,7 @@ export interface MusicianEvent {
   applicationCount: number;
   isApplied: boolean;
   myApplicationId: number | null;
+  myApplicationStatus: 'Pending' | 'Accepted' | 'Rejected' | null;
 }
 
 interface EventResponse {
@@ -53,6 +54,7 @@ interface EventResponse {
 interface MyApplicationResponse {
   id: number;
   eventId: number;
+  status: string;
 }
 
 interface MusicianResponse {
@@ -140,12 +142,12 @@ export class EventService {
           this.http.get<MyApplicationResponse[]>(`${API}/eventapplication/performer/${pid}`)
             .pipe(catchError(() => of([])))
             .subscribe(myApps => {
-              const appliedMap = new Map(myApps.map(a => [a.eventId, a.id]));
+              const appliedMap = new Map(myApps.map(a => [a.eventId, { id: a.id, status: a.status }]));
               this.events.set(events.map(e => this.toEvent(e, appliedMap)));
               this.loading.set(false);
             });
         } else {
-          this.events.set(events.map(e => this.toEvent(e, new Map())));
+          this.events.set(events.map(e => this.toEvent(e, new Map<number, { id: number; status: string }>())));
           this.loading.set(false);
         }
       },
@@ -168,7 +170,7 @@ export class EventService {
       next: (res) => {
         this.events.update(evts =>
           evts.map(e => e.id === eventId
-            ? { ...e, isApplied: true, myApplicationId: res.id, applicationCount: e.applicationCount + 1 }
+            ? { ...e, isApplied: true, myApplicationId: res.id, myApplicationStatus: 'Pending', applicationCount: e.applicationCount + 1 }
             : e
           )
         );
@@ -182,7 +184,7 @@ export class EventService {
         next: () => {
           this.events.update(evts =>
             evts.map(e => e.id === eventId
-              ? { ...e, isApplied: false, myApplicationId: null, applicationCount: Math.max(0, e.applicationCount - 1) }
+              ? { ...e, isApplied: false, myApplicationId: null, myApplicationStatus: null, applicationCount: Math.max(0, e.applicationCount - 1) }
               : e
             )
           );
@@ -220,7 +222,15 @@ export class EventService {
     return status;
   }
 
-  private toEvent(e: EventResponse, appliedMap: Map<number, number>): MusicianEvent {
+  myAppStatusLabel(status: string | null): string {
+    if (status === 'Pending') return 'Na čekanju';
+    if (status === 'Accepted') return 'Prihvaćeno';
+    if (status === 'Rejected') return 'Odbijeno';
+    return '';
+  }
+
+  private toEvent(e: EventResponse, appliedMap: Map<number, { id: number; status: string }>): MusicianEvent {
+    const myApp = appliedMap.get(e.id) ?? null;
     return {
       id: e.id,
       organizerId: e.organizerId,
@@ -241,8 +251,9 @@ export class EventService {
       preferredPerformerType: e.preferredPerformerType,
       minReviewRequired: e.minReviewRequired,
       applicationCount: e.applicationCount,
-      isApplied: appliedMap.has(e.id),
-      myApplicationId: appliedMap.get(e.id) ?? null,
+      isApplied: myApp !== null,
+      myApplicationId: myApp?.id ?? null,
+      myApplicationStatus: (myApp?.status ?? null) as 'Pending' | 'Accepted' | 'Rejected' | null,
     };
   }
 }

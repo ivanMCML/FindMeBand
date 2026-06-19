@@ -28,7 +28,11 @@ export interface OrgApplication {
   performerId: number;
   status: OrgAppStatus;
   message: string | null;
-  createdAt: string;
+  appliedAt: string;
+  applicantName: string;
+  applicantInitials: string;
+  applicantColor: string;
+  applicantType: 'Musician' | 'Band';
 }
 
 export interface OrgEvent {
@@ -80,7 +84,9 @@ interface ApplicationResponse {
   performerId: number;
   message: string | null;
   status: string;
-  createdAt: string;
+  appliedAt: string;
+  applicantName: string;
+  applicantType: string;
 }
 
 const API = environment.apiBaseUrl;
@@ -92,6 +98,17 @@ function profileColor(id: number): string {
 
 function toInitials(firstName: string, lastName: string): string {
   return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
+}
+
+function nameToInitials(name: string, type: string): string {
+  if (type === 'Band') {
+    const parts = name.trim().split(/\s+/);
+    return parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+  }
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
 }
 
 @Injectable({ providedIn: 'root' })
@@ -209,7 +226,11 @@ export class OrganizerService {
               performerId: a.performerId,
               status: a.status as OrgAppStatus,
               message: a.message ?? null,
-              createdAt: a.createdAt,
+              appliedAt: a.appliedAt,
+              applicantName: a.applicantName,
+              applicantInitials: nameToInitials(a.applicantName, a.applicantType),
+              applicantColor: profileColor(a.performerId),
+              applicantType: a.applicantType as 'Musician' | 'Band',
             })),
             applicationsLoaded: true,
           })

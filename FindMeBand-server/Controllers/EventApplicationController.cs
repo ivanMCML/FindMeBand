@@ -18,21 +18,45 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet("event/{eventId}")]
-        public async Task<ActionResult<IEnumerable<EventApplication>>> GetApplicationsByEvent(int eventId)
+        public async Task<ActionResult<IEnumerable<EventApplicationResponseDTO>>> GetApplicationsByEvent(int eventId)
         {
-            return await _context.EventsApplications
+            var apps = await _context.EventsApplications
                 .Where(a => a.EventId == eventId)
-                .Include(a => a.Performer)
+                .Include(a => a.Performer).ThenInclude(p => p.Musician)
+                .Include(a => a.Performer).ThenInclude(p => p.Band)
                 .ToListAsync();
+
+            return apps.Select(a => new EventApplicationResponseDTO
+            {
+                Id = a.Id,
+                EventId = a.EventId,
+                PerformerId = a.PerformerId,
+                Status = a.Status.ToString(),
+                Message = a.Message,
+                AppliedAt = a.AppliedAt,
+                ApplicantName = a.Performer.Musician != null
+                    ? $"{a.Performer.Musician.FirstName} {a.Performer.Musician.LastName}"
+                    : (a.Performer.Band?.Name ?? "Nepoznat"),
+                ApplicantType = a.Performer.Musician != null ? "Musician" : "Band",
+            }).ToList();
         }
 
         [HttpGet("performer/{performerId}")]
-        public async Task<ActionResult<IEnumerable<EventApplication>>> GetApplicationsByPerformer(int performerId)
+        public async Task<ActionResult<IEnumerable<object>>> GetApplicationsByPerformer(int performerId)
         {
-            return await _context.EventsApplications
+            var apps = await _context.EventsApplications
                 .Where(a => a.PerformerId == performerId)
-                .Include(a => a.Event)
                 .ToListAsync();
+
+            return apps.Select(a => (object)new
+            {
+                a.Id,
+                a.EventId,
+                a.PerformerId,
+                Status = a.Status.ToString(),
+                a.Message,
+                a.AppliedAt,
+            }).ToList();
         }
 
         [HttpGet("{id}")]
