@@ -53,6 +53,7 @@ namespace FindMeBand_server.DTOs
     public class BandMembershipDTO
     {
         public int BandId { get; set; }
+        public int? BandPerformerId { get; set; }
         public string BandName { get; set; } = null!;
         public string Role { get; set; } = null!;
         public DateTime JoinedDate { get; set; }

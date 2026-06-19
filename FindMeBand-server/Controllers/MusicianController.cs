@@ -70,6 +70,7 @@ namespace FindMeBand_server.Controllers
             Bands = m.BandMemberships.Select(bm => new BandMembershipDTO
             {
                 BandId = bm.BandId,
+                BandPerformerId = bm.Band.PerformerId,
                 BandName = bm.Band.Name,
                 Role = bm.Role.ToString(),
                 JoinedDate = bm.JoinedDate,

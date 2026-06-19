@@ -1,9 +1,23 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, of } from 'rxjs';
+import { Observable, catchError, forkJoin, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { EventFilterService } from './event-filter.service';
+
+export interface BandOption {
+  bandId: number;
+  bandName: string;
+  bandPerformerId: number;
+}
+
+export interface BandEventApplication {
+  bandId: number;
+  bandName: string;
+  bandPerformerId: number;
+  applicationId: number;
+  status: 'Pending' | 'Accepted' | 'Rejected';
+}
 
 export interface MusicianEvent {
   id: number;
@@ -28,6 +42,7 @@ export interface MusicianEvent {
   isApplied: boolean;
   myApplicationId: number | null;
   myApplicationStatus: 'Pending' | 'Accepted' | 'Rejected' | null;
+  bandApplications: BandEventApplication[];
 }
 
 interface EventResponse {
@@ -57,8 +72,16 @@ interface MyApplicationResponse {
   status: string;
 }
 
+interface MusicianBandInResponse {
+  bandId: number;
+  bandPerformerId: number | null;
+  bandName: string;
+  role: string;
+}
+
 interface MusicianResponse {
   performerId: number | null;
+  bands: MusicianBandInResponse[];
 }
 
 const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
@@ -82,6 +105,7 @@ export class EventService {
   readonly events = signal<MusicianEvent[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly bandOptions = signal<BandOption[]>([]);
 
   private readonly _performerId = signal<number | null>(null);
   readonly performerId = this._performerId.asReadonly();
@@ -119,6 +143,7 @@ export class EventService {
       } else {
         this.events.set([]);
         this._performerId.set(null);
+        this.bandOptions.set([]);
       }
     });
   }
@@ -138,18 +163,51 @@ export class EventService {
         const pid = musician?.performerId ?? null;
         this._performerId.set(pid);
 
+        const adminBands = (musician?.bands ?? [])
+          .filter(b => b.role === 'Admin' && b.bandPerformerId !== null)
+          .map(b => ({ bandId: b.bandId, bandName: b.bandName, bandPerformerId: b.bandPerformerId! }));
+        this.bandOptions.set(adminBands);
+
+        const appRequests: Record<string, Observable<MyApplicationResponse[]>> = {};
         if (pid !== null) {
-          this.http.get<MyApplicationResponse[]>(`${API}/eventapplication/performer/${pid}`)
-            .pipe(catchError(() => of([])))
-            .subscribe(myApps => {
-              const appliedMap = new Map(myApps.map(a => [a.eventId, { id: a.id, status: a.status }]));
-              this.events.set(events.map(e => this.toEvent(e, appliedMap)));
-              this.loading.set(false);
-            });
-        } else {
-          this.events.set(events.map(e => this.toEvent(e, new Map<number, { id: number; status: string }>())));
-          this.loading.set(false);
+          appRequests['personal'] = this.http
+            .get<MyApplicationResponse[]>(`${API}/eventapplication/performer/${pid}`)
+            .pipe(catchError(() => of([])));
         }
+        for (const band of adminBands) {
+          appRequests[`band_${band.bandPerformerId}`] = this.http
+            .get<MyApplicationResponse[]>(`${API}/eventapplication/performer/${band.bandPerformerId}`)
+            .pipe(catchError(() => of([])));
+        }
+
+        if (Object.keys(appRequests).length === 0) {
+          this.events.set(events.map(e => this.toEvent(e, new Map(), new Map())));
+          this.loading.set(false);
+          return;
+        }
+
+        forkJoin(appRequests).subscribe(results => {
+          const personalApps: MyApplicationResponse[] = pid !== null ? (results['personal'] ?? []) : [];
+          const appliedMap = new Map(personalApps.map(a => [a.eventId, { id: a.id, status: a.status }]));
+
+          const bandAppsMap = new Map<number, BandEventApplication[]>();
+          for (const band of adminBands) {
+            const bandApps: MyApplicationResponse[] = results[`band_${band.bandPerformerId}`] ?? [];
+            for (const app of bandApps) {
+              if (!bandAppsMap.has(app.eventId)) bandAppsMap.set(app.eventId, []);
+              bandAppsMap.get(app.eventId)!.push({
+                bandId: band.bandId,
+                bandName: band.bandName,
+                bandPerformerId: band.bandPerformerId,
+                applicationId: app.id,
+                status: app.status as 'Pending' | 'Accepted' | 'Rejected',
+              });
+            }
+          }
+
+          this.events.set(events.map(e => this.toEvent(e, appliedMap, bandAppsMap)));
+          this.loading.set(false);
+        });
       },
       error: () => {
         this.error.set('Greška pri učitavanju događaja.');
@@ -158,22 +216,38 @@ export class EventService {
     });
   }
 
-  applyToEvent(eventId: number): void {
-    const pid = this._performerId();
-    if (pid === null) return;
-
+  applyToEvent(eventId: number, performerId: number): void {
     this.http.post<{ id: number; eventId: number }>(`${API}/eventapplication`, {
       eventId,
-      performerId: pid,
+      performerId,
       message: null,
     }).subscribe({
       next: (res) => {
-        this.events.update(evts =>
-          evts.map(e => e.id === eventId
-            ? { ...e, isApplied: true, myApplicationId: res.id, myApplicationStatus: 'Pending', applicationCount: e.applicationCount + 1 }
-            : e
-          )
-        );
+        if (performerId === this._performerId()) {
+          this.events.update(evts =>
+            evts.map(e => e.id === eventId
+              ? { ...e, isApplied: true, myApplicationId: res.id, myApplicationStatus: 'Pending', applicationCount: e.applicationCount + 1 }
+              : e
+            )
+          );
+        } else {
+          const band = this.bandOptions().find(b => b.bandPerformerId === performerId);
+          if (band) {
+            const newApp: BandEventApplication = {
+              bandId: band.bandId,
+              bandName: band.bandName,
+              bandPerformerId: band.bandPerformerId,
+              applicationId: res.id,
+              status: 'Pending',
+            };
+            this.events.update(evts =>
+              evts.map(e => e.id === eventId
+                ? { ...e, bandApplications: [...e.bandApplications, newApp], applicationCount: e.applicationCount + 1 }
+                : e
+              )
+            );
+          }
+        }
       }
     });
   }
@@ -187,6 +261,24 @@ export class EventService {
               ? { ...e, isApplied: false, myApplicationId: null, myApplicationStatus: null, applicationCount: Math.max(0, e.applicationCount - 1) }
               : e
             )
+          );
+        }
+      });
+  }
+
+  withdrawBandApplication(eventId: number, applicationId: number): void {
+    this.http.delete(`${API}/eventapplication/${applicationId}`)
+      .subscribe({
+        next: () => {
+          this.events.update(evts =>
+            evts.map(e => {
+              if (e.id !== eventId) return e;
+              return {
+                ...e,
+                bandApplications: e.bandApplications.filter(a => a.applicationId !== applicationId),
+                applicationCount: Math.max(0, e.applicationCount - 1),
+              };
+            })
           );
         }
       });
@@ -229,7 +321,11 @@ export class EventService {
     return '';
   }
 
-  private toEvent(e: EventResponse, appliedMap: Map<number, { id: number; status: string }>): MusicianEvent {
+  private toEvent(
+    e: EventResponse,
+    appliedMap: Map<number, { id: number; status: string }>,
+    bandAppsMap: Map<number, BandEventApplication[]>
+  ): MusicianEvent {
     const myApp = appliedMap.get(e.id) ?? null;
     return {
       id: e.id,
@@ -254,6 +350,7 @@ export class EventService {
       isApplied: myApp !== null,
       myApplicationId: myApp?.id ?? null,
       myApplicationStatus: (myApp?.status ?? null) as 'Pending' | 'Accepted' | 'Rejected' | null,
+      bandApplications: bandAppsMap.get(e.id) ?? [],
     };
   }
 }

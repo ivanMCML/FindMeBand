@@ -85,49 +85,115 @@
                 </span>
               }
             </div>
-            <div class="card-actions">
-              <span class="app-count">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                {{ event.applicationCount }}
-              </span>
 
-              @if (event.isApplied) {
-                <span class="my-app-status" [class]="'my-app-status--' + (event.myApplicationStatus ?? 'pending').toLowerCase()">
-                  {{ service.myAppStatusLabel(event.myApplicationStatus) }}
+            <!-- Actions: personal apply + band picker -->
+            <div class="card-actions-col">
+              <div class="card-actions">
+                <span class="app-count">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  {{ event.applicationCount }}
                 </span>
-                @if (event.myApplicationStatus === 'Pending' || event.myApplicationStatus === null) {
-                  <button
-                    class="apply-btn apply-btn--applied"
-                    (click)="service.withdrawApplication(event.id, event.myApplicationId!)"
-                    title="Klikni za povlačenje prijave"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                      stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    Prijavljen/a
+
+                @if (event.isApplied) {
+                  <span class="my-app-status" [class]="'my-app-status--' + (event.myApplicationStatus ?? 'pending').toLowerCase()">
+                    {{ service.myAppStatusLabel(event.myApplicationStatus) }}
+                  </span>
+                  @if (event.myApplicationStatus === 'Pending' || event.myApplicationStatus === null) {
+                    <button
+                      class="apply-btn apply-btn--applied"
+                      (click)="service.withdrawApplication(event.id, event.myApplicationId!)"
+                      title="Klikni za povlačenje prijave"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      Prijavljen/a
+                    </button>
+                  }
+                } @else if (event.status !== 'Open') {
+                  <button class="apply-btn apply-btn--closed" disabled>
+                    Zatvoreno
                   </button>
+                } @else if (!showPicker()) {
+                  <!-- No bands — direct apply as musician -->
+                  <button
+                    class="apply-btn"
+                    [disabled]="!hasApplyOptions()"
+                    (click)="service.applyToEvent(event.id, service.performerId()!)"
+                  >
+                    Prijavi se
+                  </button>
+                } @else {
+                  <!-- Has bands — show dropdown picker -->
+                  <div class="apply-picker-wrapper">
+                    <button class="apply-btn apply-btn--picker" (click)="togglePicker(event.id)">
+                      Prijavi se
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                    @if (activePickerId() === event.id) {
+                      <div class="apply-picker">
+                        @if (service.performerId() !== null) {
+                          <button class="picker-option" (click)="pickApply(event.id, service.performerId()!)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                              <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Kao muzičar
+                          </button>
+                        }
+                        @for (band of service.bandOptions(); track band.bandId) {
+                          <button class="picker-option" (click)="pickApply(event.id, band.bandPerformerId)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                              <circle cx="9" cy="7" r="4"/>
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Kao {{ band.bandName }}
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
                 }
-              } @else if (event.status !== 'Open') {
-                <button class="apply-btn apply-btn--closed" disabled>
-                  Zatvoreno
-                </button>
-              } @else {
-                <button
-                  class="apply-btn"
-                  [disabled]="service.performerId() === null"
-                  (click)="service.applyToEvent(event.id)"
-                >
-                  Prijavi se
-                </button>
+              </div>
+
+              <!-- Band applications -->
+              @if (event.bandApplications.length > 0) {
+                <div class="band-apps">
+                  @for (bApp of event.bandApplications; track bApp.bandId) {
+                    <div class="band-app-row">
+                      <span class="band-app-name">{{ bApp.bandName }}</span>
+                      <span class="my-app-status" [class]="'my-app-status--' + bApp.status.toLowerCase()">
+                        {{ service.myAppStatusLabel(bApp.status) }}
+                      </span>
+                      @if (bApp.status === 'Pending') {
+                        <button
+                          class="band-app-withdraw"
+                          (click)="service.withdrawBandApplication(event.id, bApp.applicationId)"
+                          title="Povuci prijavu benda"
+                        >
+                          Povuci
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
               }
             </div>
+
           </div>
 
         </article>
