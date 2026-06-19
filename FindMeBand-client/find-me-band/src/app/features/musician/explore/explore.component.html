@@ -1,0 +1,218 @@
+<div class="explore">
+
+  <!-- ══ HEADER ════════════════════════════════════════════ -->
+  <div class="explore-header">
+    <h1 class="explore-title">Istraži</h1>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        class="search-input"
+        type="text"
+        [placeholder]="s.activeTab() === 'musicians' ? 'Pretraži muzičare...' : 'Pretraži bendove...'"
+        [value]="s.searchQuery()"
+        (input)="s.searchQuery.set($any($event.target).value)"
+      />
+      @if (s.searchQuery()) {
+        <button class="search-clear" (click)="s.searchQuery.set('')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ══ TABS ══════════════════════════════════════════════ -->
+  <div class="tab-bar">
+    <button class="tab" [class.tab--active]="s.activeTab() === 'musicians'" (click)="s.setTab('musicians')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      Muzičari
+    </button>
+    <button class="tab" [class.tab--active]="s.activeTab() === 'bands'" (click)="s.setTab('bands')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Bendovi
+    </button>
+  </div>
+
+  <!-- ══ FILTERS ════════════════════════════════════════════ -->
+  <div class="filters">
+    <select class="filter-select" [value]="s.selectedGenre()" (change)="onGenreChange($event)">
+      <option value="">Svi žanrovi</option>
+      @for (g of s.genres(); track g.id) {
+        <option [value]="g.name">{{ g.name }}</option>
+      }
+    </select>
+
+    @if (s.activeTab() === 'musicians') {
+      <select class="filter-select" [value]="s.selectedInstrument()" (change)="onInstrumentChange($event)">
+        <option value="">Svi instrumenti</option>
+        @for (i of s.instruments(); track i.id) {
+          <option [value]="i.name">{{ i.name }}</option>
+        }
+      </select>
+    }
+
+    @if (s.searchQuery() || s.selectedGenre() || s.selectedInstrument()) {
+      <button class="filter-clear-btn" (click)="s.clearFilters()">
+        Poništi filtere
+      </button>
+    }
+
+    <span class="results-count">
+      @if (s.activeTab() === 'musicians') {
+        {{ s.filteredMusicians().length }} muzičara
+      } @else {
+        {{ s.filteredBands().length }} bendova
+      }
+    </span>
+  </div>
+
+  <!-- ══ CONTENT ════════════════════════════════════════════ -->
+  @if (s.loading()) {
+    <div class="explore-loading">
+      <div class="explore-spinner"></div>
+      <p>Učitavanje...</p>
+    </div>
+  } @else {
+
+    <!-- Musicians grid -->
+    @if (s.activeTab() === 'musicians') {
+      @if (s.filteredMusicians().length === 0) {
+        <div class="explore-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <p>Nema muzičara koji odgovaraju filteru.</p>
+        </div>
+      } @else {
+        <div class="cards-grid">
+          @for (m of s.filteredMusicians(); track m.id) {
+            <a class="card" [routerLink]="['/musician/m', m.id]">
+              <div class="card-avatar card-avatar--circle" [style.background]="m.color">
+                {{ m.initials }}
+              </div>
+              <div class="card-body">
+                <div class="card-name">{{ m.firstName }} {{ m.lastName }}</div>
+                <div class="card-sub">&#64;{{ m.userName }}</div>
+
+                @if (m.averageRating > 0) {
+                  <div class="card-rating">
+                    <div class="card-stars">
+                      @for (star of stars(m.averageRating); track $index) {
+                        <svg class="star" [class.star--full]="star.full" [class.star--half]="star.half"
+                          viewBox="0 0 24 24" width="12" height="12">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      }
+                    </div>
+                    <span class="card-rating-val">{{ m.averageRating.toFixed(1) }}</span>
+                    <span class="card-review-count">({{ m.numberOfReviews }})</span>
+                  </div>
+                }
+
+                @if (m.genres.length > 0) {
+                  <div class="card-chips">
+                    @for (g of m.genres.slice(0, 3); track g.id) {
+                      <span class="chip chip--genre">{{ g.name }}</span>
+                    }
+                  </div>
+                }
+
+                @if (m.instruments.length > 0) {
+                  <div class="card-chips">
+                    @for (i of m.instruments.slice(0, 3); track i.id) {
+                      <span class="chip chip--instrument">{{ i.name }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+
+    <!-- Bands grid -->
+    @if (s.activeTab() === 'bands') {
+      @if (s.filteredBands().length === 0) {
+        <div class="explore-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <p>Nema bendova koji odgovaraju filteru.</p>
+        </div>
+      } @else {
+        <div class="cards-grid">
+          @for (b of s.filteredBands(); track b.id) {
+            <a class="card" [routerLink]="['/musician/b', b.id]">
+              <div class="card-avatar card-avatar--square" [style.background]="b.color">
+                {{ b.initials }}
+              </div>
+              <div class="card-body">
+                <div class="card-name">{{ b.name }}</div>
+                <div class="card-sub">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  {{ b.memberCount }} {{ b.memberCount === 1 ? 'član' : 'članova' }}
+                </div>
+
+                @if (b.averageRating > 0) {
+                  <div class="card-rating">
+                    <div class="card-stars">
+                      @for (star of stars(b.averageRating); track $index) {
+                        <svg class="star" [class.star--full]="star.full" [class.star--half]="star.half"
+                          viewBox="0 0 24 24" width="12" height="12">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      }
+                    </div>
+                    <span class="card-rating-val">{{ b.averageRating.toFixed(1) }}</span>
+                    <span class="card-review-count">({{ b.numberOfReviews }})</span>
+                  </div>
+                }
+
+                @if (b.genres.length > 0) {
+                  <div class="card-chips">
+                    @for (g of b.genres.slice(0, 3); track g.id) {
+                      <span class="chip chip--genre">{{ g.name }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            </a>
+          }
+        </div>
+      }
+    }
+
+  }
+</div>

@@ -22,6 +22,7 @@ namespace FindMeBand_server.Controllers
         {
             var musicians = await _context.Musicians
                 .Include(m => m.Performer)
+                    .ThenInclude(p => p!.PlaysGenres).ThenInclude(pg => pg.Genre)
                 .Include(m => m.PlayedInstruments).ThenInclude(pi => pi.Instrument)
                 .ToListAsync();
 

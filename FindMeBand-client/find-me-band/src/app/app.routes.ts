@@ -27,6 +27,11 @@ export const routes: Routes = [
           import('./features/musician/home/home.component').then(m => m.HomeComponent)
       },
       {
+        path: 'explore',
+        loadComponent: () =>
+          import('./features/musician/explore/explore.component').then(m => m.ExploreComponent)
+      },
+      {
         path: 'opportunities',
         loadComponent: () =>
           import('./features/musician/opportunities/opportunities.component').then(
