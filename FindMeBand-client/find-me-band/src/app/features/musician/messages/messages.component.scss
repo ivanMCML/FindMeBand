@@ -1,4 +1,213 @@
 :host {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── Two-column layout ─────────────────────────────────
+
+.messages-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: 100%;
+  overflow: hidden;
+}
+
+// ── Left panel: conversation list ─────────────────────
+
+.conv-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+// ── Search ────────────────────────────────────────────
+
+.conv-search-wrap {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 7px 12px;
+  transition: border-color var(--transition);
+
+  &:focus-within {
+    border-color: var(--color-primary);
+  }
+}
+
+.search-icon {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 13px;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--color-text);
+  font-family: inherit;
+
+  &::placeholder { color: var(--color-text-tertiary); }
+}
+
+.search-clear {
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 50%;
+  transition: color var(--transition);
+
+  &:hover { color: var(--color-text); }
+}
+
+// ── Conversation list ─────────────────────────────────
+
+.conv-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conv-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+
+  &:hover {
+    background: var(--color-bg);
+  }
+
+  &--active {
+    background: var(--color-primary-light);
+
+    .conv-name { color: var(--color-primary-text); }
+    &:hover { background: var(--color-primary-light); }
+  }
+}
+
+.conv-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.conv-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.conv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.conv-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-time {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.conv-preview {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-own-label {
+  color: var(--color-text-tertiary);
+}
+
+.unread-badge {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
+
+// ── Suggestions header ────────────────────────────────
+
+.suggestions-header {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-tertiary);
+  padding: 10px 14px 4px;
+}
+
+// ── Empty conv state ──────────────────────────────────
+
+.conv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--color-text-secondary);
+
+  svg { color: var(--color-text-tertiary); }
+
+  p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+// ── Right panel: chat area ────────────────────────────
+
+.chat-panel {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -6,21 +215,21 @@
   background: var(--color-bg);
 }
 
-// ── Chat header ──────────────────────────────────────
+// ── Chat header ───────────────────────────────────────
 
 .chat-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 14px 20px;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .chat-avatar {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -30,13 +239,13 @@
   color: white;
   flex-shrink: 0;
 
-  &--band { border-radius: 10px; }
+  &--band { border-radius: 9px; }
 }
 
 .chat-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 
   .chat-name {
     font-weight: 600;
@@ -50,7 +259,7 @@
   }
 }
 
-// ── Messages scroll area ─────────────────────────────
+// ── Messages scroll area ──────────────────────────────
 
 .messages-scroll {
   flex: 1;
@@ -184,7 +393,7 @@
   }
 }
 
-// ── Input area ───────────────────────────────────────
+// ── Input area ────────────────────────────────────────
 
 .input-area {
   display: flex;
@@ -235,7 +444,7 @@
   }
 }
 
-// ── No conversation selected ─────────────────────────
+// ── No conversation selected ──────────────────────────
 
 .chat-empty-state {
   display: flex;
