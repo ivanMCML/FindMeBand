@@ -264,6 +264,19 @@
         </div>
 
         <form class="create-form" (ngSubmit)="submitCreate()" #f="ngForm">
+          <!-- Author picker (only if user admins at least one band) -->
+          @if (service.bandOptions().length > 0) {
+            <div class="form-group">
+              <label class="form-label">Objavi kao</label>
+              <select class="form-select" [(ngModel)]="createFormData.authorPerformerId" name="authorPerformerId">
+                <option [ngValue]="null">Moje ime</option>
+                @for (band of service.bandOptions(); track band.bandId) {
+                  <option [ngValue]="band.bandPerformerId">{{ band.bandName }}</option>
+                }
+              </select>
+            </div>
+          }
+
           <!-- Type -->
           <div class="form-group">
             <label class="form-label">Vrsta prilike</label>

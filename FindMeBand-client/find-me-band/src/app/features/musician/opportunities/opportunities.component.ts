@@ -20,6 +20,7 @@ export class OpportunitiesComponent {
     description: '',
     genreId: 0,
     instrumentId: 0,
+    authorPerformerId: null as number | null,
   };
 
   readonly typeLabels: Record<string, string> = {
@@ -57,11 +58,12 @@ export class OpportunitiesComponent {
       this.createFormData.description,
       this.createFormData.genreId || null,
       this.createFormData.instrumentId || null,
+      this.createFormData.authorPerformerId,
       () => {
         this.createSuccess.set(true);
         setTimeout(() => {
           this.createSuccess.set(false);
-          this.createFormData = { type: 'SeekingMusician', description: '', genreId: 0, instrumentId: 0 };
+          this.createFormData = { type: 'SeekingMusician', description: '', genreId: 0, instrumentId: 0, authorPerformerId: null };
           this.activeTab.set('explore');
         }, 1800);
       }

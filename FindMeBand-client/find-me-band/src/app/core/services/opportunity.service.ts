@@ -330,6 +330,7 @@ export class OpportunityService {
     description: string,
     genreId: number | null,
     instrumentId: number | null,
+    authorPerformerId: number | null,
     onSuccess: () => void
   ): void {
     const user = this.auth.currentUser();
@@ -353,6 +354,11 @@ export class OpportunityService {
         error: () => this.submitting.set(false)
       });
     };
+
+    if (authorPerformerId !== null) {
+      doCreate(authorPerformerId);
+      return;
+    }
 
     const pid = this._performerId();
     if (pid !== null) {
