@@ -434,18 +434,20 @@
         <div class="members-list">
           @for (member of band.members; track member.id) {
             <div class="member-card">
-              <div class="member-avatar" [style.background]="member.color">
-                {{ member.initials }}
-              </div>
-              <div class="member-info">
-                <div class="member-name-row">
-                  <span class="member-name">{{ member.name }}</span>
-                  @if (member.role === 'Admin') {
-                    <span class="member-admin-badge">Admin</span>
-                  }
+              <a class="member-profile-link" [routerLink]="['/musician/m', member.musicianId]">
+                <div class="member-avatar" [style.background]="member.color">
+                  {{ member.initials }}
                 </div>
-                <span class="member-username">&#64;{{ member.username }}</span>
-              </div>
+                <div class="member-info">
+                  <div class="member-name-row">
+                    <span class="member-name">{{ member.name }}</span>
+                    @if (member.role === 'Admin') {
+                      <span class="member-admin-badge">Admin</span>
+                    }
+                  </div>
+                  <span class="member-username">&#64;{{ member.username }}</span>
+                </div>
+              </a>
               <div class="member-instrument-col">
                 <span class="instrument-badge">{{ member.instrument || '—' }}</span>
                 <span class="member-since">od {{ s.formatDate(member.joinedDate) }}</span>

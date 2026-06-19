@@ -549,8 +549,8 @@
         <h4 class="section-title">@if (searchTerm()) { Musikanti } @else { Predloženi musikanti }</h4>
         @for (item of filteredMusicians(); track item.id) {
           <div class="result-item">
-            <div class="result-avatar" [style.background]="item.color">{{ item.initials }}</div>
-            <div class="result-info">
+            <div class="result-avatar" [style.background]="item.color" style="cursor:pointer" (click)="navigateToProfile(item)">{{ item.initials }}</div>
+            <div class="result-info" style="cursor:pointer" (click)="navigateToProfile(item)">
               <span class="result-name">{{ item.name }}</span>
               <span class="result-sub">{{ item.subtitle }}</span>
             </div>
@@ -569,8 +569,8 @@
         <h4 class="section-title">@if (searchTerm()) { Bendovi } @else { Popularni bendovi }</h4>
         @for (item of filteredBands(); track item.id) {
           <div class="result-item">
-            <div class="result-avatar result-avatar--band" [style.background]="item.color">{{ item.initials }}</div>
-            <div class="result-info">
+            <div class="result-avatar result-avatar--band" [style.background]="item.color" style="cursor:pointer" (click)="navigateToProfile(item)">{{ item.initials }}</div>
+            <div class="result-info" style="cursor:pointer" (click)="navigateToProfile(item)">
               <span class="result-name">{{ item.name }}</span>
               <span class="result-sub">{{ item.subtitle }}</span>
             </div>

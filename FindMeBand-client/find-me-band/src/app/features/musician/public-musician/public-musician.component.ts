@@ -1,0 +1,50 @@
+import { Component, computed, inject, DestroyRef, OnInit } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PublicProfileService } from '../../../core/services/public-profile.service';
+import { FollowService } from '../../../core/services/follow.service';
+import { AuthService } from '../../../core/services/auth.service';
+
+@Component({
+  selector: 'app-public-musician',
+  standalone: true,
+  imports: [RouterLink],
+  templateUrl: './public-musician.component.html',
+  styleUrl: './public-musician.component.scss',
+})
+export class PublicMusicianComponent implements OnInit {
+  readonly s = inject(PublicProfileService);
+  readonly followSvc = inject(FollowService);
+  private auth = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
+
+  readonly followId = computed(() => {
+    const m = this.s.musician();
+    return m ? this.followSvc.followIdFor('musician', m.id) : null;
+  });
+
+  get isMe(): boolean {
+    return this.auth.currentUser()?.profileId === this.s.musician()?.id;
+  }
+
+  ngOnInit(): void {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      const id = Number(params.get('id'));
+      if (id) this.s.loadMusician(id);
+    });
+  }
+
+  toggleFollow(): void {
+    const musician = this.s.musician();
+    if (!musician) return;
+    const fid = this.followId();
+    if (fid !== null) {
+      this.followSvc.unfollowById(fid, 'musician', musician.id);
+      this.s.musician.update(m => m ? { ...m, followersCount: Math.max(0, m.followersCount - 1) } : m);
+    } else {
+      this.followSvc.followById('musician', musician.id);
+      this.s.musician.update(m => m ? { ...m, followersCount: m.followersCount + 1 } : m);
+    }
+  }
+}

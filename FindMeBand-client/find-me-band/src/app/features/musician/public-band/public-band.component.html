@@ -1,0 +1,221 @@
+@if (s.loading()) {
+  <div class="pub-loading">
+    <div class="pub-spinner"></div>
+    <p>Učitavanje profila...</p>
+  </div>
+} @else if (s.band(); as b) {
+
+  <!-- ══ BAND HEADER ══════════════════════════════════════ -->
+  <div class="pub-header">
+    <div class="pub-hero">
+      <div class="pub-avatar" [style.background]="b.color">{{ b.initials }}</div>
+      <div class="pub-hero-info">
+        <div class="pub-name-row">
+          <h1 class="pub-name">{{ b.name }}</h1>
+          <button
+            class="pub-follow-btn"
+            [class.pub-follow-btn--following]="followId() !== null"
+            (click)="toggleFollow()"
+          >
+            {{ followId() !== null ? 'Pratiš' : 'Prati' }}
+          </button>
+        </div>
+        @if (b.genres.length > 0) {
+          <div class="pub-band-tags">
+            @for (genre of b.genres; track genre.id) {
+              <span class="pub-genre-tag">{{ genre.name }}</span>
+            }
+            @for (loc of b.locations; track loc.id) {
+              <span class="pub-location-tag">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="10" height="10">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ loc.name }}
+              </span>
+            }
+          </div>
+        }
+        @if (b.description) {
+          <p class="pub-bio">{{ b.description }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="pub-stats">
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ b.followersCount }}</span>
+        <span class="pub-stat-label">Pratilaca</span>
+      </div>
+      <div class="pub-stat-divider"></div>
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ b.members.length }}</span>
+        <span class="pub-stat-label">Članova</span>
+      </div>
+      <div class="pub-stat-divider"></div>
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ b.averageRating > 0 ? b.averageRating.toFixed(1) : '—' }}</span>
+        <span class="pub-stat-label">Ocjena</span>
+      </div>
+      <div class="pub-stat-divider"></div>
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ b.numberOfReviews }}</span>
+        <span class="pub-stat-label">Recenzija</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB BAR ══════════════════════════════════════════ -->
+  <div class="pub-tab-bar">
+    <button class="pub-tab" [class.pub-tab--active]="s.activeTab() === 'overview'" (click)="s.setTab('overview')">
+      Pregled
+    </button>
+    <button class="pub-tab" [class.pub-tab--active]="s.activeTab() === 'posts'" (click)="s.setTab('posts')">
+      Objave
+      <span class="pub-tab-count">{{ s.posts().length }}</span>
+    </button>
+    <button class="pub-tab" [class.pub-tab--active]="s.activeTab() === 'reviews'" (click)="s.setTab('reviews')">
+      Recenzije
+      <span class="pub-tab-count">{{ b.numberOfReviews }}</span>
+    </button>
+  </div>
+
+  <!-- ══ OVERVIEW TAB ══════════════════════════════════════ -->
+  @if (s.activeTab() === 'overview') {
+    <div class="pub-tab-content">
+      <div class="pub-overview-grid">
+
+        @if (b.description) {
+          <div class="pub-info-card pub-info-card--full">
+            <h3 class="pub-card-heading">O bendu</h3>
+            <p class="pub-description-text">{{ b.description }}</p>
+          </div>
+        }
+
+        <div class="pub-info-card pub-info-card--full">
+          <h3 class="pub-card-heading">Postava</h3>
+          <div class="pub-members-list">
+            @for (member of b.members; track member.id) {
+              <a class="pub-member-item" [routerLink]="['/musician/m', member.musicianId]">
+                <div class="pub-member-avatar" [style.background]="member.color">{{ member.initials }}</div>
+                <div class="pub-member-info">
+                  <span class="pub-member-name">{{ member.name }}</span>
+                  <span class="pub-member-sub">
+                    @if (member.instrument) { {{ member.instrument }} · }
+                    {{ member.role === 'Admin' ? 'Admin' : 'Član' }}
+                  </span>
+                </div>
+                @if (member.role === 'Admin') {
+                  <span class="pub-admin-badge">Admin</span>
+                }
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14"
+                  class="pub-member-arrow">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </a>
+            }
+            @if (b.members.length === 0) {
+              <p class="pub-empty-hint">Nema članova.</p>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ══ POSTS TAB ════════════════════════════════════════ -->
+  @if (s.activeTab() === 'posts') {
+    <div class="pub-tab-content">
+      @if (s.posts().length > 0) {
+        <div class="pub-posts-feed">
+          @for (post of s.posts(); track post.id) {
+            <article class="pub-post-card">
+              <div class="pub-post-header">
+                <div class="pub-post-avatar" [style.background]="b.color">{{ b.initials }}</div>
+                <div class="pub-post-author-info">
+                  <span class="pub-post-author">{{ b.name }}</span>
+                  <span class="pub-post-meta">{{ s.formatDate(post.createdAt) }}</span>
+                </div>
+              </div>
+              <p class="pub-post-content">{{ post.content }}</p>
+              <div class="pub-post-actions">
+                <button
+                  class="pub-post-action"
+                  [class.pub-post-action--liked]="post.isLiked"
+                  (click)="s.togglePostLike(post.id)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  {{ post.likes }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="pub-tab-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <p>Bend još nije objavio ništa</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══ REVIEWS TAB ══════════════════════════════════════ -->
+  @if (s.activeTab() === 'reviews') {
+    <div class="pub-tab-content">
+      @if (s.reviews().length > 0) {
+        <div class="pub-reviews-list">
+          @for (review of s.reviews(); track review.id) {
+            <div class="pub-review-card">
+              <div class="pub-review-header">
+                <div class="pub-review-avatar" [style.background]="review.reviewerColor">
+                  {{ review.reviewerInitials }}
+                </div>
+                <div class="pub-review-meta">
+                  <span class="pub-review-name">{{ review.reviewerName }}</span>
+                  <span class="pub-review-date">{{ s.formatDate(review.createdAt) }}</span>
+                </div>
+                <div class="pub-review-stars">
+                  @for (star of s.starsArray(review.rating); track $index) {
+                    <svg class="pub-star"
+                      [class.pub-star--full]="star.full"
+                      [class.pub-star--half]="star.half"
+                      viewBox="0 0 24 24" width="14" height="14">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                </div>
+              </div>
+              @if (review.comment) {
+                <p class="pub-review-comment">{{ review.comment }}</p>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="pub-tab-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <p>Još nema recenzija</p>
+        </div>
+      }
+    </div>
+  }
+
+} @else {
+  <div class="pub-not-found">
+    <p>Bend nije pronađen.</p>
+  </div>
+}

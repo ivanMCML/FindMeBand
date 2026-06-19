@@ -89,6 +89,14 @@ export class RightSidebarComponent {
     this.follow.toggleFollow(item);
   }
 
+  navigateToProfile(item: SearchResult): void {
+    if (item.type === 'musician') {
+      this.router.navigate(['/musician/m', item.id]);
+    } else if (item.type === 'band') {
+      this.router.navigate(['/musician/b', item.id]);
+    }
+  }
+
   // ── My Bands ───────────────────────────────────────
   readonly myBands = inject(MyBandsService);
 

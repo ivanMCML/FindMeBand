@@ -1,0 +1,221 @@
+@if (s.loading()) {
+  <div class="pub-loading">
+    <div class="pub-spinner"></div>
+    <p>Učitavanje profila...</p>
+  </div>
+} @else if (s.musician(); as m) {
+
+  <!-- ══ PROFILE HEADER ════════════════════════════════════ -->
+  <div class="pub-header">
+    <div class="pub-hero">
+      <div class="pub-avatar" [style.background]="m.color">{{ m.initials }}</div>
+      <div class="pub-hero-info">
+        <div class="pub-name-row">
+          <h1 class="pub-name">{{ m.firstName }} {{ m.lastName }}</h1>
+          @if (!isMe) {
+            <button
+              class="pub-follow-btn"
+              [class.pub-follow-btn--following]="followId() !== null"
+              (click)="toggleFollow()"
+            >
+              {{ followId() !== null ? 'Pratiš' : 'Prati' }}
+            </button>
+          }
+        </div>
+        <span class="pub-username">&#64;{{ m.userName }}</span>
+        @if (m.description) {
+          <p class="pub-bio">{{ m.description }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="pub-stats">
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ m.followersCount }}</span>
+        <span class="pub-stat-label">Pratilaca</span>
+      </div>
+      <div class="pub-stat-divider"></div>
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ m.followingCount }}</span>
+        <span class="pub-stat-label">Pratim</span>
+      </div>
+      <div class="pub-stat-divider"></div>
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ m.averageRating > 0 ? m.averageRating.toFixed(1) : '—' }}</span>
+        <span class="pub-stat-label">Ocjena</span>
+      </div>
+      <div class="pub-stat-divider"></div>
+      <div class="pub-stat">
+        <span class="pub-stat-value">{{ m.numberOfReviews }}</span>
+        <span class="pub-stat-label">Recenzija</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB BAR ═══════════════════════════════════════════ -->
+  <div class="pub-tab-bar">
+    <button class="pub-tab" [class.pub-tab--active]="s.activeTab() === 'overview'" (click)="s.setTab('overview')">
+      Pregled
+    </button>
+    <button class="pub-tab" [class.pub-tab--active]="s.activeTab() === 'posts'" (click)="s.setTab('posts')">
+      Objave
+      <span class="pub-tab-count">{{ s.posts().length }}</span>
+    </button>
+    <button class="pub-tab" [class.pub-tab--active]="s.activeTab() === 'reviews'" (click)="s.setTab('reviews')">
+      Recenzije
+      <span class="pub-tab-count">{{ m.numberOfReviews }}</span>
+    </button>
+  </div>
+
+  <!-- ══ OVERVIEW TAB ═══════════════════════════════════════ -->
+  @if (s.activeTab() === 'overview') {
+    <div class="pub-tab-content">
+      <div class="pub-overview-grid">
+
+        @if (m.instruments.length > 0) {
+          <div class="pub-info-card">
+            <h3 class="pub-card-heading">Instrumenti</h3>
+            <div class="pub-chips">
+              @for (instr of m.instruments; track instr.id) {
+                <span class="pub-chip pub-chip--instrument">{{ instr.name }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        @if (m.genres.length > 0) {
+          <div class="pub-info-card">
+            <h3 class="pub-card-heading">Žanrovi</h3>
+            <div class="pub-chips">
+              @for (genre of m.genres; track genre.id) {
+                <span class="pub-chip pub-chip--genre">{{ genre.name }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        @if (m.bands.length > 0) {
+          <div class="pub-info-card pub-info-card--full">
+            <h3 class="pub-card-heading">Bendovi</h3>
+            <div class="pub-bands-list">
+              @for (band of m.bands; track band.id) {
+                <a class="pub-band-item" [routerLink]="['/musician/b', band.id]">
+                  <div class="pub-band-avatar" [style.background]="band.color">{{ band.initials }}</div>
+                  <div class="pub-band-info">
+                    <span class="pub-band-name">{{ band.name }}</span>
+                    <span class="pub-band-role">{{ band.role === 'Admin' ? 'Admin' : 'Član' }}</span>
+                  </div>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14"
+                    class="pub-band-arrow">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </a>
+              }
+            </div>
+          </div>
+        }
+
+        @if (m.instruments.length === 0 && m.genres.length === 0 && m.bands.length === 0) {
+          <div class="pub-empty-state">
+            <p>Ovaj korisnik još nije popunio profil.</p>
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+
+  <!-- ══ POSTS TAB ══════════════════════════════════════════ -->
+  @if (s.activeTab() === 'posts') {
+    <div class="pub-tab-content">
+      @if (s.posts().length > 0) {
+        <div class="pub-posts-feed">
+          @for (post of s.posts(); track post.id) {
+            <article class="pub-post-card">
+              <div class="pub-post-header">
+                <div class="pub-post-avatar" [style.background]="m.color">{{ m.initials }}</div>
+                <div class="pub-post-author-info">
+                  <span class="pub-post-author">{{ m.firstName }} {{ m.lastName }}</span>
+                  <span class="pub-post-meta">&#64;{{ m.userName }} · {{ s.formatDate(post.createdAt) }}</span>
+                </div>
+              </div>
+              <p class="pub-post-content">{{ post.content }}</p>
+              <div class="pub-post-actions">
+                <button
+                  class="pub-post-action"
+                  [class.pub-post-action--liked]="post.isLiked"
+                  (click)="s.togglePostLike(post.id)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  {{ post.likes }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="pub-tab-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <p>Korisnik još nije objavio ništa</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══ REVIEWS TAB ════════════════════════════════════════ -->
+  @if (s.activeTab() === 'reviews') {
+    <div class="pub-tab-content">
+      @if (s.reviews().length > 0) {
+        <div class="pub-reviews-list">
+          @for (review of s.reviews(); track review.id) {
+            <div class="pub-review-card">
+              <div class="pub-review-header">
+                <div class="pub-review-avatar" [style.background]="review.reviewerColor">
+                  {{ review.reviewerInitials }}
+                </div>
+                <div class="pub-review-meta">
+                  <span class="pub-review-name">{{ review.reviewerName }}</span>
+                  <span class="pub-review-date">{{ s.formatDate(review.createdAt) }}</span>
+                </div>
+                <div class="pub-review-stars">
+                  @for (star of s.starsArray(review.rating); track $index) {
+                    <svg class="pub-star"
+                      [class.pub-star--full]="star.full"
+                      [class.pub-star--half]="star.half"
+                      viewBox="0 0 24 24" width="14" height="14">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  }
+                </div>
+              </div>
+              @if (review.comment) {
+                <p class="pub-review-comment">{{ review.comment }}</p>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="pub-tab-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <p>Još nema recenzija</p>
+        </div>
+      }
+    </div>
+  }
+
+} @else {
+  <div class="pub-not-found">
+    <p>Profil nije pronađen.</p>
+  </div>
+}

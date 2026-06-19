@@ -58,6 +58,20 @@ export const routes: Routes = [
           import('./features/musician/my-profile/my-profile.component').then(
             m => m.MyProfileComponent
           )
+      },
+      {
+        path: 'm/:id',
+        loadComponent: () =>
+          import('./features/musician/public-musician/public-musician.component').then(
+            m => m.PublicMusicianComponent
+          )
+      },
+      {
+        path: 'b/:id',
+        loadComponent: () =>
+          import('./features/musician/public-band/public-band.component').then(
+            m => m.PublicBandComponent
+          )
       }
     ]
   },

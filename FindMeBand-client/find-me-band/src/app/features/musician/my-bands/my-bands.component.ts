@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { SlicePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MyBandsService } from '../../../core/services/my-bands.service';
 import { MyProfileService } from '../../../core/services/my-profile.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -7,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-my-bands',
   standalone: true,
-  imports: [SlicePipe],
+  imports: [SlicePipe, RouterLink],
   templateUrl: './my-bands.component.html',
   styleUrl: './my-bands.component.scss'
 })

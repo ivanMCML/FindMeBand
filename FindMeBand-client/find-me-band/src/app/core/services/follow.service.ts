@@ -114,6 +114,25 @@ export class FollowService {
     });
   }
 
+  followIdFor(type: 'musician' | 'band', id: number): number | null {
+    const key = type === 'band' ? `b${id}` : `p${id}`;
+    return this.followMap()[key] ?? null;
+  }
+
+  followById(type: 'musician' | 'band', id: number): void {
+    this.follow({
+      id, name: '', username: '', initials: '', color: '', subtitle: '', followId: null,
+      type: type === 'band' ? 'band' : 'musician',
+    });
+  }
+
+  unfollowById(followId: number, type: 'musician' | 'band', id: number): void {
+    this.unfollow(followId, {
+      id, name: '', username: '', initials: '', color: '', subtitle: '', followId: null,
+      type: type === 'band' ? 'band' : 'musician',
+    });
+  }
+
   toggleFollow(item: SearchResult): void {
     if (item.followId !== null) {
       this.unfollow(item.followId, item);
