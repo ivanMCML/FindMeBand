@@ -43,6 +43,48 @@
   margin-bottom: 16px;
 }
 
+.composer-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.composer-as-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.composer-as-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.as-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  transition: all var(--transition);
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  &--active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+  }
+}
+
 .composer-input {
   width: 100%;
   border: 1px solid var(--color-border);

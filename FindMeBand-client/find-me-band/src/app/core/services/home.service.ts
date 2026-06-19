@@ -4,6 +4,11 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
+export interface BandOption {
+  bandId: number;
+  bandName: string;
+}
+
 export interface FeedPost {
   id: number;
   profileId: number;
@@ -18,6 +23,17 @@ export interface FeedPost {
   timestamp: string;
   likes: number;
   isLiked: boolean;
+}
+
+interface MusicianBandInResponse {
+  bandId: number;
+  bandName: string;
+  role: string;
+}
+
+interface MusicianResponse {
+  performerId: number | null;
+  bands: MusicianBandInResponse[];
 }
 
 interface PostResponse {
@@ -72,6 +88,7 @@ export class HomeService {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly submittingPost = signal(false);
+  readonly bandOptions = signal<BandOption[]>([]);
 
   readonly currentPosts = computed(() =>
     this.activeTab() === 'following' ? this.followingPosts() : this.explorePosts()
@@ -85,6 +102,7 @@ export class HomeService {
       } else {
         this.followingPosts.set([]);
         this.explorePosts.set([]);
+        this.bandOptions.set([]);
       }
     });
   }
@@ -100,10 +118,16 @@ export class HomeService {
       explore: this.http.get<PostResponse[]>(`${API}/post?profileId=${user.profileId}`),
       following: this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}`)
         .pipe(catchError(() => of([]))),
+      musician: this.http.get<MusicianResponse>(`${API}/musician/${user.profileId}`)
+        .pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ explore, following }) => {
+      next: ({ explore, following, musician }) => {
         this.explorePosts.set(explore.map(p => this.toPost(p)));
         this.followingPosts.set(following.map(p => this.toPost(p)));
+        const adminBands = (musician?.bands ?? [])
+          .filter(b => b.role === 'Admin')
+          .map(b => ({ bandId: b.bandId, bandName: b.bandName }));
+        this.bandOptions.set(adminBands);
         this.loading.set(false);
       },
       error: () => {
@@ -159,7 +183,7 @@ export class HomeService {
       });
   }
 
-  createPost(content: string, onSuccess: () => void): void {
+  createPost(content: string, bandId: number | null, onSuccess: () => void): void {
     const user = this.auth.currentUser();
     if (!user || !content.trim()) return;
 
@@ -167,6 +191,7 @@ export class HomeService {
 
     this.http.post<PostResponse>(`${API}/post`, {
       profileId: user.profileId,
+      bandId: bandId ?? null,
       content: content.trim(),
       media: [],
     }).subscribe({

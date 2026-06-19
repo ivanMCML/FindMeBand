@@ -19,9 +19,29 @@
 
   <!-- Post Composer -->
   <div class="composer">
+    @if (service.bandOptions().length > 0) {
+      <div class="composer-header">
+        <span class="composer-as-label">Objavi kao</span>
+        <div class="composer-as-pills">
+          <button
+            class="as-pill"
+            [class.as-pill--active]="selectedBandId() === null"
+            (click)="selectedBandId.set(null)"
+          >Ja</button>
+          @for (band of service.bandOptions(); track band.bandId) {
+            <button
+              class="as-pill"
+              [class.as-pill--active]="selectedBandId() === band.bandId"
+              (click)="selectedBandId.set(band.bandId)"
+            >{{ band.bandName }}</button>
+          }
+        </div>
+      </div>
+    }
     <textarea
       class="composer-input"
-      [(ngModel)]="newPostContent"
+      [value]="newPostContent()"
+      (input)="newPostContent.set($any($event.target).value)"
       placeholder="Što se novo dešava? Podijeli s muzičarima..."
       rows="3"
     ></textarea>

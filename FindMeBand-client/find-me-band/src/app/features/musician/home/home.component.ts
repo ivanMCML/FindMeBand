@@ -1,11 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { HomeService } from '../../../core/services/home.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [FormsModule],
+  imports: [],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -13,9 +12,10 @@ export class HomeComponent {
   readonly service = inject(HomeService);
 
   newPostContent = signal('');
+  selectedBandId = signal<number | null>(null);
 
   submitPost(): void {
-    this.service.createPost(this.newPostContent(), () => {
+    this.service.createPost(this.newPostContent(), this.selectedBandId(), () => {
       this.newPostContent.set('');
     });
   }
