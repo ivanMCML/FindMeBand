@@ -1,4 +1,4 @@
-import { Component, computed, inject, DestroyRef, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, DestroyRef, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicProfileService } from '../../../core/services/public-profile.service';
@@ -19,9 +19,17 @@ export class PublicMusicianComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
 
+  readonly hoverRating = signal(0);
+
   readonly followId = computed(() => {
     const m = this.s.musician();
     return m ? this.followSvc.followIdFor('musician', m.id) : null;
+  });
+
+  readonly hasReviewed = computed(() => {
+    const myId = this.auth.currentUser()?.profileId;
+    if (!myId) return false;
+    return this.s.reviews().some(r => r.reviewerId === myId);
   });
 
   get isMe(): boolean {
@@ -46,5 +54,10 @@ export class PublicMusicianComponent implements OnInit {
       this.followSvc.followById('musician', musician.id);
       this.s.musician.update(m => m ? { ...m, followersCount: m.followersCount + 1 } : m);
     }
+  }
+
+  submitReview(): void {
+    const performerId = this.s.musician()?.performerId;
+    if (performerId) this.s.submitReview(performerId);
   }
 }

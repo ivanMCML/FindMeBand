@@ -1,4 +1,4 @@
-import { Component, computed, inject, DestroyRef, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, DestroyRef, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicProfileService } from '../../../core/services/public-profile.service';
@@ -19,14 +19,18 @@ export class PublicBandComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
 
+  readonly hoverRating = signal(0);
+
   readonly followId = computed(() => {
     const b = this.s.band();
     return b ? this.followSvc.followIdFor('band', b.id) : null;
   });
 
-  get myMusicianId(): number | undefined {
-    return this.auth.currentUser()?.profileId;
-  }
+  readonly hasReviewed = computed(() => {
+    const myId = this.auth.currentUser()?.profileId;
+    if (!myId) return false;
+    return this.s.reviews().some(r => r.reviewerId === myId);
+  });
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -46,5 +50,10 @@ export class PublicBandComponent implements OnInit {
       this.followSvc.followById('band', band.id);
       this.s.band.update(b => b ? { ...b, followersCount: b.followersCount + 1 } : b);
     }
+  }
+
+  submitReview(): void {
+    const performerId = this.s.band()?.performerId;
+    if (performerId) this.s.submitReview(performerId);
   }
 }

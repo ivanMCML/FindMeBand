@@ -73,6 +73,7 @@ export interface PublicPost {
 
 export interface PublicReview {
   id: number;
+  reviewerId: number | null;
   rating: number;
   comment: string;
   createdAt: string;
@@ -155,12 +156,20 @@ export class PublicProfileService {
   readonly activeTab = signal<PublicProfileTab>('overview');
   readonly loading = signal(false);
 
+  readonly showReviewForm = signal(false);
+  readonly reviewRating = signal(0);
+  readonly reviewComment = signal('');
+  readonly reviewSubmitting = signal(false);
+
   loadMusician(musicianId: number): void {
     this.musician.set(null);
     this.band.set(null);
     this.posts.set([]);
     this.reviews.set([]);
     this.activeTab.set('overview');
+    this.showReviewForm.set(false);
+    this.reviewRating.set(0);
+    this.reviewComment.set('');
     this.loading.set(true);
 
     const myId = this.auth.currentUser()?.profileId;
@@ -225,6 +234,9 @@ export class PublicProfileService {
     this.posts.set([]);
     this.reviews.set([]);
     this.activeTab.set('overview');
+    this.showReviewForm.set(false);
+    this.reviewRating.set(0);
+    this.reviewComment.set('');
     this.loading.set(true);
 
     const myId = this.auth.currentUser()?.profileId;
@@ -289,6 +301,7 @@ export class PublicProfileService {
       .subscribe(reviews => {
         this.reviews.set(reviews.map(r => ({
           id: r.id,
+          reviewerId: r.reviewerId ?? null,
           rating: r.rating,
           comment: r.comment ?? '',
           createdAt: r.createdAt,
@@ -301,6 +314,58 @@ export class PublicProfileService {
           reviewerColor: profileColor(r.reviewerId ?? 0),
         })));
       });
+  }
+
+  openReviewForm(): void {
+    this.reviewRating.set(0);
+    this.reviewComment.set('');
+    this.showReviewForm.set(true);
+  }
+
+  closeReviewForm(): void {
+    this.showReviewForm.set(false);
+  }
+
+  submitReview(performerId: number): void {
+    const myId = this.auth.currentUser()?.profileId;
+    const rating = this.reviewRating();
+    const comment = this.reviewComment().trim();
+    if (!myId || rating < 1 || !comment) return;
+
+    this.reviewSubmitting.set(true);
+
+    this.http.post<ReviewResponse>(`${API}/review`, {
+      reviewerId: myId,
+      performerId,
+      rating,
+      comment,
+    }).subscribe({
+      next: (r) => {
+        const user = this.auth.currentUser();
+        const newReview: PublicReview = {
+          id: r.id,
+          reviewerId: r.reviewerId ?? null,
+          rating: r.rating,
+          comment: r.comment ?? '',
+          createdAt: r.createdAt,
+          reviewerName: r.reviewerFirstName && r.reviewerLastName
+            ? `${r.reviewerFirstName} ${r.reviewerLastName}`
+            : r.reviewerUserName ?? 'Eu',
+          reviewerInitials: r.reviewerFirstName && r.reviewerLastName
+            ? initials(r.reviewerFirstName, r.reviewerLastName)
+            : initials(user?.firstName ?? '?', user?.lastName ?? '?'),
+          reviewerColor: profileColor(myId),
+        };
+        this.reviews.update(list => [newReview, ...list]);
+        this.musician.update(m => m ? { ...m, numberOfReviews: m.numberOfReviews + 1 } : m);
+        this.band.update(b => b ? { ...b, numberOfReviews: b.numberOfReviews + 1 } : b);
+        this.showReviewForm.set(false);
+        this.reviewRating.set(0);
+        this.reviewComment.set('');
+        this.reviewSubmitting.set(false);
+      },
+      error: () => this.reviewSubmitting.set(false),
+    });
   }
 
   setTab(tab: PublicProfileTab): void {

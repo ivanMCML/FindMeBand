@@ -173,6 +173,64 @@
   <!-- ══ REVIEWS TAB ══════════════════════════════════════ -->
   @if (s.activeTab() === 'reviews') {
     <div class="pub-tab-content">
+
+      <!-- Write review button -->
+      @if (b.performerId && !hasReviewed() && !s.showReviewForm()) {
+        <button class="pub-write-review-btn" (click)="s.openReviewForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          Napiši recenziju
+        </button>
+      }
+
+      <!-- Review form -->
+      @if (s.showReviewForm()) {
+        <div class="pub-review-form">
+          <h3 class="pub-review-form-title">Tvoja recenzija</h3>
+
+          <div class="pub-star-picker">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <button
+                class="pub-star-pick-btn"
+                [class.pub-star-pick-btn--active]="i <= (hoverRating() || s.reviewRating())"
+                (mouseenter)="hoverRating.set(i)"
+                (mouseleave)="hoverRating.set(0)"
+                (click)="s.reviewRating.set(i)"
+                [title]="i + ' zvjezdica'"
+              >
+                <svg viewBox="0 0 24 24" width="28" height="28">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+              </button>
+            }
+            @if (s.reviewRating() > 0) {
+              <span class="pub-star-label">{{ s.reviewRating() }}/5</span>
+            }
+          </div>
+
+          <textarea
+            class="pub-review-textarea"
+            rows="4"
+            placeholder="Opiši svoje iskustvo s bendom..."
+            [value]="s.reviewComment()"
+            (input)="s.reviewComment.set($any($event.target).value)"
+          ></textarea>
+
+          <div class="pub-review-form-actions">
+            <button
+              class="pub-review-submit-btn"
+              [disabled]="s.reviewRating() < 1 || !s.reviewComment().trim() || s.reviewSubmitting()"
+              (click)="submitReview()"
+            >
+              @if (s.reviewSubmitting()) { Slanje... } @else { Objavi recenziju }
+            </button>
+            <button class="pub-review-cancel-btn" (click)="s.closeReviewForm()">Odustani</button>
+          </div>
+        </div>
+      }
+
       @if (s.reviews().length > 0) {
         <div class="pub-reviews-list">
           @for (review of s.reviews(); track review.id) {
@@ -202,7 +260,7 @@
             </div>
           }
         </div>
-      } @else {
+      } @else if (!s.showReviewForm()) {
         <div class="pub-tab-empty">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
             stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
