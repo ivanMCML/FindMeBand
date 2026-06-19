@@ -42,6 +42,8 @@ namespace FindMeBand_server.Data
         public DbSet<Conversation> Conversations { get; set; } = null!;
         public DbSet<DirectMessage> DirectMessages { get; set; } = null!;
 
+        public DbSet<Notification> Notifications { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -374,6 +376,22 @@ namespace FindMeBand_server.Data
                 .HasOne(m => m.Sender)
                 .WithMany()
                 .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Notification -> Recipient (Profile) ---
+            // NoAction: izbjegavamo višestruke kaskadne putanje od Profile
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Recipient)
+                .WithMany()
+                .HasForeignKey(n => n.RecipientProfileId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // --- Notification -> Actor (Profile) ---
+            // NoAction: isto, drugi FK koji pokazuje na Profile
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Actor)
+                .WithMany()
+                .HasForeignKey(n => n.ActorProfileId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

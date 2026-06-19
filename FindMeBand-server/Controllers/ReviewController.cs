@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
 using FindMeBand_server.Models;
 using FindMeBand_server.DTOs;
+using FindMeBand_server.Enums;
 
 namespace FindMeBand_server.Controllers
 {
@@ -67,11 +68,42 @@ namespace FindMeBand_server.Controllers
 
             _context.Reviews.Add(review);
 
-            var performer = await _context.Performers.FindAsync(dto.PerformerId);
-            performer!.NumberOfReviews++;
+            var performer = await _context.Performers
+                .Include(p => p.Musician)
+                .Include(p => p.Band).ThenInclude(b => b.Members).ThenInclude(m => m.Musician)
+                .FirstAsync(p => p.Id == dto.PerformerId);
+
+            performer.NumberOfReviews++;
             performer.AverageRating =
                 (performer.AverageRating * (performer.NumberOfReviews - 1) + dto.Rating)
                 / performer.NumberOfReviews;
+
+            var reviewer = await _context.Profiles.FindAsync(dto.ReviewerId);
+            var reviewerName = reviewer != null ? $"{reviewer.FirstName} {reviewer.LastName}" : "Neko";
+
+            if (performer.Musician != null)
+            {
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientProfileId = performer.Musician.Id,
+                    ActorProfileId = dto.ReviewerId,
+                    Type = NotificationType.NewReview,
+                    Message = $"{reviewerName} vam ostavio/la recenziju ({dto.Rating}/5).",
+                });
+            }
+            else if (performer.Band != null)
+            {
+                foreach (var admin in performer.Band.Members.Where(m => m.Role == BandMemberRole.Admin))
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        RecipientProfileId = admin.Musician.Id,
+                        ActorProfileId = dto.ReviewerId,
+                        Type = NotificationType.NewReview,
+                        Message = $"{reviewerName} ostavio/la recenziju za bend \"{performer.Band.Name}\" ({dto.Rating}/5).",
+                    });
+                }
+            }
 
             await _context.SaveChangesAsync();
 

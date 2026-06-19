@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
 using FindMeBand_server.Models;
 using FindMeBand_server.DTOs;
+using FindMeBand_server.Enums;
 
 namespace FindMeBand_server.Controllers
 {
@@ -99,6 +100,19 @@ namespace FindMeBand_server.Controllers
             };
 
             _context.Follows.Add(follow);
+
+            if (dto.FolloweeProfileId != null)
+            {
+                var follower = await _context.Profiles.FindAsync(dto.FollowerId);
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientProfileId = dto.FolloweeProfileId.Value,
+                    ActorProfileId = dto.FollowerId,
+                    Type = NotificationType.NewFollower,
+                    Message = $"{follower!.FirstName} {follower.LastName} vas počeo/la pratiti.",
+                });
+            }
+
             await _context.SaveChangesAsync();
 
             var created = await _context.Follows

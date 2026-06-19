@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using FindMeBand_server.Data;
 using FindMeBand_server.Models;
 using FindMeBand_server.DTOs;
+using FindMeBand_server.Enums;
 
 namespace FindMeBand_server.Controllers
 {
@@ -98,6 +99,25 @@ namespace FindMeBand_server.Controllers
             };
 
             _context.EventsApplications.Add(application);
+
+            var eventEntity = await _context.Events.FindAsync(dto.EventId);
+            var performer = await _context.Performers
+                .Include(p => p.Musician)
+                .Include(p => p.Band)
+                .FirstAsync(p => p.Id == dto.PerformerId);
+            var applicantName = performer.Musician != null
+                ? $"{performer.Musician.FirstName} {performer.Musician.LastName}"
+                : performer.Band?.Name ?? "Nepoznat";
+
+            _context.Notifications.Add(new Notification
+            {
+                RecipientProfileId = eventEntity!.OrganizerId,
+                ActorProfileId = performer.Musician?.Id,
+                Type = NotificationType.NewApplication,
+                Message = $"{applicantName} se prijavio/la na vaš event \"{eventEntity.Title}\".",
+                EventId = dto.EventId,
+            });
+
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetApplication), new { id = application.Id }, application);
@@ -107,11 +127,51 @@ namespace FindMeBand_server.Controllers
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, UpdateEventApplicationStatusDTO dto)
         {
-            var application = await _context.EventsApplications.FindAsync(id);
+            var application = await _context.EventsApplications
+                .Include(a => a.Event)
+                .Include(a => a.Performer).ThenInclude(p => p.Musician)
+                .Include(a => a.Performer).ThenInclude(p => p.Band).ThenInclude(b => b.Members).ThenInclude(m => m.Musician)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
             if (application == null)
                 return NotFound();
 
             application.Status = dto.Status;
+
+            var accepted = dto.Status == ApplicationStatus.Accepted;
+            var notifType = accepted ? NotificationType.ApplicationAccepted : NotificationType.ApplicationRejected;
+
+            if (application.Performer.Musician != null)
+            {
+                var msg = accepted
+                    ? $"Vaša prijava na event \"{application.Event.Title}\" je prihvaćena!"
+                    : $"Vaša prijava na event \"{application.Event.Title}\" je odbijena.";
+                _context.Notifications.Add(new Notification
+                {
+                    RecipientProfileId = application.Performer.Musician.Id,
+                    Type = notifType,
+                    Message = msg,
+                    EventId = application.EventId,
+                });
+            }
+            else if (application.Performer.Band != null)
+            {
+                var bandName = application.Performer.Band.Name;
+                var msg = accepted
+                    ? $"Prijava benda \"{bandName}\" na event \"{application.Event.Title}\" je prihvaćena!"
+                    : $"Prijava benda \"{bandName}\" na event \"{application.Event.Title}\" je odbijena.";
+                foreach (var admin in application.Performer.Band.Members.Where(m => m.Role == BandMemberRole.Admin))
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        RecipientProfileId = admin.Musician.Id,
+                        Type = notifType,
+                        Message = msg,
+                        EventId = application.EventId,
+                    });
+                }
+            }
+
             await _context.SaveChangesAsync();
             return NoContent();
         }

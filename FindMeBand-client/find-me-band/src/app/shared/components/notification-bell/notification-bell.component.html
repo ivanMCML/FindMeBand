@@ -1,0 +1,106 @@
+<div class="nb-wrap">
+  <!-- Bell button -->
+  <button class="nb-btn" (click)="onBellClick($event)" [class.nb-btn--active]="s.isOpen()" title="Notifikacije">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+    @if (s.unreadCount() > 0) {
+      <span class="nb-badge">{{ s.unreadCount() > 9 ? '9+' : s.unreadCount() }}</span>
+    }
+  </button>
+
+  <!-- Dropdown panel -->
+  @if (s.isOpen()) {
+    <div class="nb-panel" (click)="onPanelClick($event)">
+
+      <div class="nb-panel-header">
+        <span class="nb-panel-title">Notifikacije</span>
+        @if (s.unreadCount() > 0) {
+          <button class="nb-read-all-btn" (click)="s.markAllRead()">
+            Označi sve kao pročitano
+          </button>
+        }
+      </div>
+
+      <div class="nb-list">
+        @if (s.notifications().length === 0) {
+          <div class="nb-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <p>Nema notifikacija</p>
+          </div>
+        }
+
+        @for (n of s.notifications(); track n.id) {
+          <div
+            class="nb-item"
+            [class.nb-item--unread]="!n.isRead"
+            (click)="onNotificationClick(n.id, n.isRead)"
+          >
+            <div class="nb-item-icon" [class]="'nb-item-icon--' + notifIcon(n.type)">
+              @switch (notifIcon(n.type)) {
+                @case ('follow') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                  </svg>
+                }
+                @case ('apply') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                }
+                @case ('accept') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                }
+                @case ('reject') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                }
+                @case ('review') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                }
+                @default {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                }
+              }
+            </div>
+            <div class="nb-item-body">
+              <p class="nb-item-msg">{{ n.message }}</p>
+              <span class="nb-item-time">{{ s.formatDate(n.createdAt) }}</span>
+            </div>
+            @if (!n.isRead) {
+              <div class="nb-item-dot"></div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</div>
