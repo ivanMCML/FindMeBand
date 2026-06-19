@@ -40,6 +40,7 @@ namespace FindMeBand_server.DTOs
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
+        public int? PlaysGenreId { get; set; }
     }
 
     public class InstrumentSummaryDTO

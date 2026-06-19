@@ -60,7 +60,8 @@ namespace FindMeBand_server.Controllers
             Genres = b.Performer?.PlaysGenres.Select(pg => new GenreSummaryDTO
             {
                 Id = pg.Genre.Id,
-                Name = pg.Genre.Name
+                Name = pg.Genre.Name,
+                PlaysGenreId = pg.Id
             }).ToList() ?? new(),
             Locations = b.Performer?.Locations.Select(l => new LocationSummaryDTO
             {
