@@ -1,6 +1,6 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, of } from 'rxjs';
+import { Observable, catchError, forkJoin, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { OpportunityFilterService } from './opportunity-filter.service';
@@ -21,6 +21,25 @@ export interface Opportunity {
   createdAt: string;
   isApplied: boolean;
   myApplicationId: number | null;
+  myApplicationStatus: 'Pending' | 'Accepted' | 'Rejected' | null;
+}
+
+export interface OppApplication {
+  id: number;
+  performerId: number;
+  status: 'Pending' | 'Accepted' | 'Rejected';
+  message: string | null;
+  appliedAt: string;
+  applicantName: string;
+  applicantInitials: string;
+  applicantColor: string;
+  applicantType: 'Musician' | 'Band';
+}
+
+export interface BandOption {
+  bandId: number;
+  bandName: string;
+  bandPerformerId: number;
 }
 
 export interface OpportunityGenreOption {
@@ -51,10 +70,30 @@ interface OpportunityResponse {
 interface MyApplicationResponse {
   id: number;
   opportunityId: number;
+  status: string;
+}
+
+interface MusicianBandInResponse {
+  bandId: number;
+  bandPerformerId: number | null;
+  bandName: string;
+  role: string;
 }
 
 interface MusicianResponse {
   performerId: number | null;
+  bands: MusicianBandInResponse[];
+}
+
+interface OppAppRaw {
+  id: number;
+  opportunityId: number;
+  applicantId: number;
+  status: string;
+  message: string | null;
+  appliedAt: string;
+  applicantName: string;
+  applicantType: 'Musician' | 'Band';
 }
 
 const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
@@ -65,6 +104,17 @@ function authorColor(id: number): string {
 
 function toInitials(name: string): string {
   return name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function nameToInitials(name: string, type: string): string {
+  if (type === 'Band') {
+    const parts = name.trim().split(/\s+/);
+    return parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+  }
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
 }
 
 const API = environment.apiBaseUrl;
@@ -81,9 +131,20 @@ export class OpportunityService {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly submitting = signal(false);
+  readonly authoredApplications = signal<Map<number, OppApplication[]>>(new Map());
+  readonly authoredAppLoading = signal(false);
+  readonly bandOptions = signal<BandOption[]>([]);
 
   private readonly _performerId = signal<number | null>(null);
   readonly performerId = this._performerId.asReadonly();
+
+  readonly myOpportunities = computed(() => {
+    const pid = this._performerId();
+    const bandPids = new Set(this.bandOptions().map(b => b.bandPerformerId));
+    return this.opportunities().filter(o =>
+      (pid !== null && o.authorId === pid) || bandPids.has(o.authorId)
+    );
+  });
 
   readonly filteredOpportunities = computed(() => {
     const type = this.filterService.type();
@@ -115,6 +176,7 @@ export class OpportunityService {
       } else {
         this.opportunities.set([]);
         this._performerId.set(null);
+        this.bandOptions.set([]);
       }
     });
   }
@@ -139,18 +201,48 @@ export class OpportunityService {
         const pid = musician?.performerId ?? null;
         this._performerId.set(pid);
 
+        const adminBands = (musician?.bands ?? [])
+          .filter(b => b.role === 'Admin' && b.bandPerformerId !== null)
+          .map(b => ({ bandId: b.bandId, bandName: b.bandName, bandPerformerId: b.bandPerformerId! }));
+        this.bandOptions.set(adminBands);
+
+        const appRequests: Record<string, Observable<MyApplicationResponse[]>> = {};
         if (pid !== null) {
-          this.http.get<MyApplicationResponse[]>(`${API}/opportunityapplication/performer/${pid}`)
-            .pipe(catchError(() => of([])))
-            .subscribe(myApps => {
-              const appliedMap = new Map(myApps.map(a => [a.opportunityId, a.id]));
-              this.opportunities.set(opportunities.map(o => this.toOpportunity(o, appliedMap)));
-              this.loading.set(false);
-            });
-        } else {
+          appRequests['personal'] = this.http
+            .get<MyApplicationResponse[]>(`${API}/opportunityapplication/performer/${pid}`)
+            .pipe(catchError(() => of([])));
+        }
+        for (const band of adminBands) {
+          appRequests[`band_${band.bandPerformerId}`] = this.http
+            .get<MyApplicationResponse[]>(`${API}/opportunityapplication/performer/${band.bandPerformerId}`)
+            .pipe(catchError(() => of([])));
+        }
+
+        if (Object.keys(appRequests).length === 0) {
           this.opportunities.set(opportunities.map(o => this.toOpportunity(o, new Map())));
           this.loading.set(false);
+          return;
         }
+
+        forkJoin(appRequests).subscribe(results => {
+          const appliedMap = new Map<number, { id: number; status: string }>();
+
+          if (pid !== null) {
+            const personal: MyApplicationResponse[] = results['personal'] ?? [];
+            for (const a of personal) appliedMap.set(a.opportunityId, { id: a.id, status: a.status });
+          }
+          for (const band of adminBands) {
+            const bandApps: MyApplicationResponse[] = results[`band_${band.bandPerformerId}`] ?? [];
+            for (const a of bandApps) {
+              if (!appliedMap.has(a.opportunityId)) {
+                appliedMap.set(a.opportunityId, { id: a.id, status: a.status });
+              }
+            }
+          }
+
+          this.opportunities.set(opportunities.map(o => this.toOpportunity(o, appliedMap)));
+          this.loading.set(false);
+        });
       },
       error: () => {
         this.error.set('Greška pri učitavanju oglasa.');
@@ -159,11 +251,34 @@ export class OpportunityService {
     });
   }
 
-  applyToOpportunity(opportunityId: number): void {
-    const pid = this._performerId();
+  loadAuthoredApplications(): void {
+    const authored = this.myOpportunities();
+    this.authoredApplications.set(new Map());
+    if (authored.length === 0) return;
+
+    this.authoredAppLoading.set(true);
+    const requests: Record<string, Observable<OppAppRaw[]>> = {};
+    for (const opp of authored) {
+      requests[String(opp.id)] = this.http
+        .get<OppAppRaw[]>(`${API}/opportunityapplication/opportunity/${opp.id}`)
+        .pipe(catchError(() => of([])));
+    }
+
+    forkJoin(requests).subscribe(results => {
+      const map = new Map<number, OppApplication[]>();
+      for (const [key, apps] of Object.entries(results)) {
+        map.set(Number(key), apps.map(a => this.toOppApplication(a)));
+      }
+      this.authoredApplications.set(map);
+      this.authoredAppLoading.set(false);
+    });
+  }
+
+  applyToOpportunity(opportunityId: number, performerId?: number): void {
+    const pid = performerId ?? this._performerId();
     if (pid === null) return;
 
-    this.http.post<{ id: number; opportunityId: number }>(`${API}/opportunityapplication`, {
+    this.http.post<{ id: number; opportunityId: number; status: string }>(`${API}/opportunityapplication`, {
       opportunityId,
       applicantId: pid,
       message: null,
@@ -171,7 +286,7 @@ export class OpportunityService {
       next: (res) => {
         this.opportunities.update(opps =>
           opps.map(o => o.id === opportunityId
-            ? { ...o, isApplied: true, myApplicationId: res.id, applicationCount: o.applicationCount + 1 }
+            ? { ...o, isApplied: true, myApplicationId: res.id, myApplicationStatus: 'Pending', applicationCount: o.applicationCount + 1 }
             : o
           )
         );
@@ -185,10 +300,27 @@ export class OpportunityService {
         next: () => {
           this.opportunities.update(opps =>
             opps.map(o => o.id === opportunityId
-              ? { ...o, isApplied: false, myApplicationId: null, applicationCount: Math.max(0, o.applicationCount - 1) }
+              ? { ...o, isApplied: false, myApplicationId: null, myApplicationStatus: null, applicationCount: Math.max(0, o.applicationCount - 1) }
               : o
             )
           );
+        }
+      });
+  }
+
+  updateOppApplicationStatus(appId: number, oppId: number, status: 'Accepted' | 'Rejected'): void {
+    const statusValue = status === 'Accepted' ? 1 : 2;
+    this.http.patch(`${API}/opportunityapplication/${appId}/status`, { status: statusValue })
+      .subscribe({
+        next: () => {
+          this.authoredApplications.update(map => {
+            const updated = new Map(map);
+            const apps = (updated.get(oppId) ?? []).map(a =>
+              a.id === appId ? { ...a, status } : a
+            );
+            updated.set(oppId, apps);
+            return updated;
+          });
         }
       });
   }
@@ -247,8 +379,25 @@ export class OpportunityService {
     return `${diff}d`;
   }
 
-  private toOpportunity(o: OpportunityResponse, appliedMap: Map<number, number>): Opportunity {
+  private toOppApplication(a: OppAppRaw): OppApplication {
+    const name = a.applicantName ?? 'Nepoznat';
+    const type = a.applicantType ?? 'Musician';
+    return {
+      id: a.id,
+      performerId: a.applicantId,
+      status: a.status as 'Pending' | 'Accepted' | 'Rejected',
+      message: a.message ?? null,
+      appliedAt: a.appliedAt,
+      applicantName: name,
+      applicantInitials: nameToInitials(name, type),
+      applicantColor: PALETTE[Math.abs(a.applicantId) % PALETTE.length],
+      applicantType: type,
+    };
+  }
+
+  private toOpportunity(o: OpportunityResponse, appliedMap: Map<number, { id: number; status: string }>): Opportunity {
     const name = o.authorName ?? 'Nepoznat';
+    const app = appliedMap.get(o.id) ?? null;
     return {
       id: o.id,
       authorId: o.authorId,
@@ -263,8 +412,9 @@ export class OpportunityService {
       instrument: o.instrument,
       applicationCount: o.applicationCount,
       createdAt: o.createdAt,
-      isApplied: appliedMap.has(o.id),
-      myApplicationId: appliedMap.get(o.id) ?? null,
+      isApplied: app !== null,
+      myApplicationId: app?.id ?? null,
+      myApplicationStatus: (app?.status ?? null) as 'Pending' | 'Accepted' | 'Rejected' | null,
     };
   }
 }

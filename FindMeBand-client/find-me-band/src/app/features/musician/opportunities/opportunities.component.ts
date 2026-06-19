@@ -12,7 +12,7 @@ import { OpportunityService } from '../../../core/services/opportunity.service';
 export class OpportunitiesComponent {
   readonly service = inject(OpportunityService);
 
-  activeTab = signal<'explore' | 'create'>('explore');
+  activeTab = signal<'explore' | 'create' | 'mine'>('explore');
   createSuccess = signal(false);
 
   createFormData = {
@@ -34,8 +34,21 @@ export class OpportunitiesComponent {
     SeekingCollaboration: '#059669'
   };
 
+  readonly appStatusLabels: Record<string, string> = {
+    Pending: 'Na čekanju',
+    Accepted: 'Prihvaćeno',
+    Rejected: 'Odbijeno',
+  };
+
   get filteredOpportunities() {
     return this.service.filteredOpportunities;
+  }
+
+  setTab(tab: 'explore' | 'create' | 'mine'): void {
+    this.activeTab.set(tab);
+    if (tab === 'mine') {
+      this.service.loadAuthoredApplications();
+    }
   }
 
   submitCreate(): void {

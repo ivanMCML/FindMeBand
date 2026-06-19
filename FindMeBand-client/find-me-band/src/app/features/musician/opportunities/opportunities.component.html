@@ -1,14 +1,22 @@
 <div class="opportunities">
   <!-- Tab Bar -->
   <div class="tab-bar">
-    <button class="tab" [class.tab--active]="activeTab() === 'explore'" (click)="activeTab.set('explore')">
+    <button class="tab" [class.tab--active]="activeTab() === 'explore'" (click)="setTab('explore')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       Explore
     </button>
-    <button class="tab" [class.tab--active]="activeTab() === 'create'" (click)="activeTab.set('create')">
+    <button class="tab" [class.tab--active]="activeTab() === 'mine'" (click)="setTab('mine')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      Moji oglasi
+    </button>
+    <button class="tab" [class.tab--active]="activeTab() === 'create'" (click)="setTab('create')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -92,17 +100,22 @@
                     {{ opp.applicationCount }}
                   </span>
                   @if (opp.isApplied) {
-                    <button
-                      class="apply-btn apply-btn--applied"
-                      (click)="service.withdrawApplication(opp.id, opp.myApplicationId!)"
-                      title="Klikni za povlačenje prijave"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                      Prijavljen/a
-                    </button>
+                    <span class="my-app-status" [class]="'my-app-status--' + (opp.myApplicationStatus ?? 'pending').toLowerCase()">
+                      {{ appStatusLabels[opp.myApplicationStatus ?? 'Pending'] }}
+                    </span>
+                    @if (opp.myApplicationStatus === 'Pending' || opp.myApplicationStatus === null) {
+                      <button
+                        class="apply-btn apply-btn--applied"
+                        (click)="service.withdrawApplication(opp.id, opp.myApplicationId!)"
+                        title="Klikni za povlačenje prijave"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                          stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Prijavljen/a
+                      </button>
+                    }
                   } @else {
                     <button
                       class="apply-btn"
@@ -125,6 +138,106 @@
               </svg>
               <p>Nema oglasa koji odgovaraju odabranim filtrima.</p>
             </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── MOJE PRILIKE TAB ── -->
+  @if (activeTab() === 'mine') {
+    <div class="mine">
+      @if (service.myOpportunities().length === 0) {
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <p>Nisi još objavio/la nijedan oglas.</p>
+        </div>
+      } @else if (service.authoredAppLoading()) {
+        <div class="empty-state">
+          <p>Učitavanje prijava...</p>
+        </div>
+      } @else {
+        <div class="mine-list">
+          @for (opp of service.myOpportunities(); track opp.id) {
+            @let apps = service.authoredApplications().get(opp.id) ?? [];
+            <article class="mine-card">
+              <!-- Opportunity header -->
+              <div class="mine-card-top">
+                <span
+                  class="type-badge"
+                  [style.background]="typeColors[opp.type] + '18'"
+                  [style.color]="typeColors[opp.type]"
+                >
+                  {{ typeLabels[opp.type] }}
+                </span>
+                <div class="mine-meta">
+                  <span class="mine-count">{{ apps.length }} {{ apps.length === 1 ? 'prijava' : 'prijava' }}</span>
+                  <span class="card-date">{{ service.formatDate(opp.createdAt) }}</span>
+                </div>
+              </div>
+
+              <p class="mine-desc">{{ opp.description }}</p>
+
+              @if (opp.genre || opp.instrument) {
+                <div class="tag-row" style="margin-bottom: 14px">
+                  @if (opp.genre) {
+                    <span class="tag tag--genre">{{ opp.genre.name }}</span>
+                  }
+                  @if (opp.instrument) {
+                    <span class="tag tag--instrument">{{ opp.instrument.name }}</span>
+                  }
+                </div>
+              }
+
+              <!-- Applications list -->
+              @if (apps.length === 0) {
+                <p class="mine-no-apps">Još nema prijava.</p>
+              } @else {
+                <div class="mine-apps">
+                  @for (app of apps; track app.id) {
+                    <div class="mine-app-row">
+                      <div
+                        class="applicant-avatar"
+                        [class.applicant-avatar--band]="app.applicantType === 'Band'"
+                        [style.background]="app.applicantColor"
+                      >
+                        {{ app.applicantInitials }}
+                      </div>
+                      <div class="applicant-info">
+                        <span class="applicant-name">{{ app.applicantName }}</span>
+                        <span class="applicant-type">
+                          {{ app.applicantType === 'Musician' ? 'Muzičar' : 'Bend' }}
+                        </span>
+                      </div>
+                      <div class="app-action-group">
+                        @if (app.status === 'Pending') {
+                          <button
+                            class="action-btn action-btn--accept"
+                            (click)="service.updateOppApplicationStatus(app.id, opp.id, 'Accepted')"
+                          >
+                            Prihvati
+                          </button>
+                          <button
+                            class="action-btn action-btn--reject"
+                            (click)="service.updateOppApplicationStatus(app.id, opp.id, 'Rejected')"
+                          >
+                            Odbij
+                          </button>
+                        } @else {
+                          <span class="app-status-badge" [class]="'app-status-badge--' + app.status.toLowerCase()">
+                            {{ appStatusLabels[app.status] }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </article>
           }
         </div>
       }
