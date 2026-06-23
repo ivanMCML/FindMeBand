@@ -9,6 +9,12 @@ export interface BandOption {
   bandName: string;
 }
 
+export interface FeedPostMedia {
+  id: number;
+  url: string;
+  type: string;
+}
+
 export interface FeedPost {
   id: number;
   profileId: number;
@@ -16,6 +22,7 @@ export interface FeedPost {
   authorUserName: string;
   authorInitials: string;
   authorColor: string;
+  authorAvatarUrl: string | null;
   authorType: 'musician' | 'band';
   bandId: number | null;
   content: string;
@@ -23,6 +30,7 @@ export interface FeedPost {
   timestamp: string;
   likes: number;
   isLiked: boolean;
+  media: FeedPostMedia[];
 }
 
 interface MusicianBandInResponse {
@@ -42,10 +50,13 @@ interface PostResponse {
   authorFirstName: string;
   authorLastName: string;
   authorUserName: string;
+  authorAvatarUrl?: string;
   bandId: number | null;
   bandName: string | null;
+  bandAvatarUrl?: string;
   content: string;
   createdAt: string;
+  media: { id: number; url: string; type: string }[];
   likesCount: number;
   isLiked: boolean;
 }
@@ -226,7 +237,7 @@ export class HomeService {
     }
   }
 
-  createPost(content: string, bandId: number | null, onSuccess: () => void): void {
+  createPost(content: string, bandId: number | null, imageUrls: string[], onSuccess: () => void): void {
     const user = this.auth.currentUser();
     if (!user || !content.trim()) return;
 
@@ -236,7 +247,7 @@ export class HomeService {
       profileId: user.profileId,
       bandId: bandId ?? null,
       content: content.trim(),
-      media: [],
+      media: imageUrls.map(url => ({ url, type: 0 })),
     }).subscribe({
       next: (created) => {
         const newPost = this.toPost(created);
@@ -249,11 +260,19 @@ export class HomeService {
     });
   }
 
+  uploadPostImage(file: File, onSuccess: (url: string) => void): void {
+    const formData = new FormData();
+    formData.append('file', file);
+    this.http.post<{ url: string }>(`${API}/upload/post-image`, formData)
+      .subscribe({ next: ({ url }) => onSuccess(url) });
+  }
+
   private toPost(p: PostResponse): FeedPost {
     const isBandPost = p.bandId !== null;
     const displayName = isBandPost ? (p.bandName ?? 'Bend') : `${p.authorFirstName} ${p.authorLastName}`;
     const displayUserName = isBandPost ? (p.bandName ?? '') : p.authorUserName;
     const colorId = isBandPost ? (p.bandId ?? p.profileId) : p.profileId;
+    const avatarUrl = isBandPost ? (p.bandAvatarUrl ?? null) : (p.authorAvatarUrl ?? null);
 
     return {
       id: p.id,
@@ -262,6 +281,7 @@ export class HomeService {
       authorUserName: displayUserName,
       authorInitials: toInitials(displayName),
       authorColor: authorColor(colorId),
+      authorAvatarUrl: avatarUrl,
       authorType: isBandPost ? 'band' : 'musician',
       bandId: p.bandId,
       content: p.content,
@@ -269,6 +289,7 @@ export class HomeService {
       timestamp: relativeTime(p.createdAt),
       likes: p.likesCount,
       isLiked: p.isLiked,
+      media: (p.media ?? []).map(m => ({ id: m.id, url: m.url, type: m.type })),
     };
   }
 }

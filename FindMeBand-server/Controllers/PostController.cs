@@ -190,8 +190,10 @@ namespace FindMeBand_server.Controllers
             AuthorFirstName = p.Profile.FirstName,
             AuthorLastName = p.Profile.LastName,
             AuthorUserName = p.Profile.UserName,
+            AuthorAvatarUrl = p.Profile.AvatarUrl,
             BandId = p.BandId,
             BandName = p.Band?.Name,
+            BandAvatarUrl = p.Band?.AvatarUrl,
             Content = p.Content,
             CreatedAt = p.CreatedAt,
             Media = p.Media.Select(m => new PostMediaResponseDTO

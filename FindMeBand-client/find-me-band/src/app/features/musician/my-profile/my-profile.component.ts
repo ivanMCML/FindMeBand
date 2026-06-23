@@ -10,4 +10,8 @@ import { MyProfileService } from '../../../core/services/my-profile.service';
 })
 export class MyProfileComponent {
   readonly s = inject(MyProfileService);
+
+  onAvatarChange(file: File | undefined): void {
+    if (file) this.s.uploadAvatar(file);
+  }
 }

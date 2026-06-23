@@ -10,6 +10,7 @@ namespace FindMeBand_server.DTOs
     {
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string? AvatarUrl { get; set; }
     }
 
     public class BandResponseDTO
@@ -17,6 +18,7 @@ namespace FindMeBand_server.DTOs
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string? AvatarUrl { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public int? PerformerId { get; set; }

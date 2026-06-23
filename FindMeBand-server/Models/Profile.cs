@@ -9,6 +9,7 @@
         public string LastName { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string? AvatarUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public List<Post> Posts { get; set; } = new List<Post>();
         public List<Review> GivenReviews { get; set; } = new List<Review>();

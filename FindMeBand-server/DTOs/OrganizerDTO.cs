@@ -15,5 +15,6 @@ namespace FindMeBand_server.DTOs
         public string LastName { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string? AvatarUrl { get; set; }
     }
 }

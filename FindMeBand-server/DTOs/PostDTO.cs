@@ -28,8 +28,10 @@ namespace FindMeBand_server.DTOs
         public string AuthorFirstName { get; set; } = null!;
         public string AuthorLastName { get; set; } = null!;
         public string AuthorUserName { get; set; } = null!;
+        public string? AuthorAvatarUrl { get; set; }
         public int? BandId { get; set; }
         public string? BandName { get; set; }
+        public string? BandAvatarUrl { get; set; }
         public string Content { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public List<PostMediaResponseDTO> Media { get; set; } = new();

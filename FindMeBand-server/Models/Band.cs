@@ -9,6 +9,7 @@
 
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
+        public string? AvatarUrl { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         

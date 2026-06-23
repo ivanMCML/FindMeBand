@@ -53,6 +53,7 @@ namespace FindMeBand_server.Controllers
             Id = b.Id,
             Name = b.Name,
             Description = b.Description,
+            AvatarUrl = b.AvatarUrl,
             CreatedAt = b.CreatedAt,
             PerformerId = b.PerformerId,
             AverageRating = b.Performer?.AverageRating,
@@ -123,6 +124,8 @@ namespace FindMeBand_server.Controllers
 
             band.Name = dto.Name;
             band.Description = dto.Description;
+            if (dto.AvatarUrl != null)
+                band.AvatarUrl = dto.AvatarUrl;
 
             await _context.SaveChangesAsync();
             return NoContent();

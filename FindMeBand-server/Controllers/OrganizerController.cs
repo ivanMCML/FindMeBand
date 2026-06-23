@@ -69,6 +69,8 @@ namespace FindMeBand_server.Controllers
             organizer.LastName = dto.LastName;
             organizer.UserName = dto.UserName;
             organizer.Description = dto.Description;
+            if (dto.AvatarUrl != null)
+                organizer.AvatarUrl = dto.AvatarUrl;
 
             await _context.SaveChangesAsync();
             return NoContent();

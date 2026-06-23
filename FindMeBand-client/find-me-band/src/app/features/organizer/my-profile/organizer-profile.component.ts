@@ -10,4 +10,8 @@ import { OrganizerService } from '../../../core/services/organizer.service';
 })
 export class OrganizerProfileComponent {
   readonly s = inject(OrganizerService);
+
+  onAvatarChange(file: File | undefined): void {
+    if (file) this.s.uploadAvatar(file);
+  }
 }

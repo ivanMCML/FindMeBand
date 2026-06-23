@@ -11,6 +11,7 @@ export interface OrganizerData {
   lastName: string;
   userName: string;
   description: string;
+  avatarUrl: string | null;
   initials: string;
   color: string;
 }
@@ -61,6 +62,7 @@ interface OrganizerResponse {
   lastName: string;
   userName: string;
   description: string;
+  avatarUrl?: string;
 }
 
 interface EventResponse {
@@ -124,6 +126,7 @@ export class OrganizerService {
 
   // Profile editing
   readonly isEditing = signal(false);
+  readonly uploadingAvatar = signal(false);
   readonly editFirstName = signal('');
   readonly editLastName = signal('');
   readonly editDescription = signal('');
@@ -172,6 +175,7 @@ export class OrganizerService {
           lastName: org.lastName,
           userName: org.userName,
           description: org.description,
+          avatarUrl: org.avatarUrl ?? null,
           initials: toInitials(org.firstName, org.lastName),
           color: profileColor(org.id),
         });
@@ -401,7 +405,7 @@ export class OrganizerService {
     if (!firstName || !lastName) return;
 
     this.http.put(`${API}/organizer/${org.id}`, {
-      firstName, lastName, userName: org.userName, description
+      firstName, lastName, userName: org.userName, description, avatarUrl: org.avatarUrl
     }).subscribe({
       next: () => {
         this.organizer.update(o => o ? {
@@ -411,6 +415,32 @@ export class OrganizerService {
         this.isEditing.set(false);
       }
     });
+  }
+
+  uploadAvatar(file: File): void {
+    const org = this.organizer();
+    if (!org) return;
+
+    this.uploadingAvatar.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.http.post<{ url: string }>(`${API}/upload/avatar`, formData)
+      .subscribe({
+        next: ({ url }) => {
+          this.http.put(`${API}/organizer/${org.id}`, {
+            firstName: org.firstName, lastName: org.lastName,
+            userName: org.userName, description: org.description, avatarUrl: url
+          }).subscribe({
+            next: () => {
+              this.organizer.update(o => o ? { ...o, avatarUrl: url } : null);
+              this.uploadingAvatar.set(false);
+            },
+            error: () => this.uploadingAvatar.set(false)
+          });
+        },
+        error: () => this.uploadingAvatar.set(false)
+      });
   }
 
   private loadGenres(): void {

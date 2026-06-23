@@ -45,6 +45,7 @@ export interface MyProfileData {
   lastName: string;
   userName: string;
   description: string;
+  avatarUrl: string | null;
   initials: string;
   color: string;
   createdAt: string;
@@ -73,6 +74,7 @@ interface MusicianResponse {
   lastName: string;
   userName: string;
   description: string;
+  avatarUrl?: string;
   createdAt: string;
   performerId?: number;
   averageRating?: number;
@@ -126,13 +128,14 @@ export class MyProfileService {
 
   readonly profile = signal<MyProfileData>({
     id: 0, firstName: '', lastName: '', userName: '', description: '',
-    initials: '', color: '', createdAt: '', followersCount: 0, followingCount: 0,
+    avatarUrl: null, initials: '', color: '', createdAt: '', followersCount: 0, followingCount: 0,
     averageRating: 0, numberOfReviews: 0, instruments: [], genres: [], bands: []
   });
 
   readonly activeTab = signal<ProfileTab>('overview');
   readonly isEditing = signal(false);
   readonly loading = signal(false);
+  readonly uploadingAvatar = signal(false);
 
   readonly editFirstName = signal('');
   readonly editLastName = signal('');
@@ -168,6 +171,7 @@ export class MyProfileService {
           lastName: musician.lastName,
           userName: musician.userName,
           description: musician.description,
+          avatarUrl: musician.avatarUrl ?? null,
           initials: initials(musician.firstName, musician.lastName),
           color: profileColor(musician.id),
           createdAt: musician.createdAt,
@@ -238,7 +242,7 @@ export class MyProfileService {
   private resetProfile(): void {
     this.profile.set({
       id: 0, firstName: '', lastName: '', userName: '', description: '',
-      initials: '', color: '', createdAt: '', followersCount: 0, followingCount: 0,
+      avatarUrl: null, initials: '', color: '', createdAt: '', followersCount: 0, followingCount: 0,
       averageRating: 0, numberOfReviews: 0, instruments: [], genres: [], bands: []
     });
     this.reviews.set([]);
@@ -269,8 +273,9 @@ export class MyProfileService {
 
     const id = this.profile().id;
     const userName = this.profile().userName;
+    const avatarUrl = this.profile().avatarUrl;
 
-    this.http.put(`${API}/musician/${id}`, { firstName, lastName, userName, description })
+    this.http.put(`${API}/musician/${id}`, { firstName, lastName, userName, description, avatarUrl })
       .subscribe({
         next: () => {
           this.profile.update(p => ({
@@ -279,6 +284,34 @@ export class MyProfileService {
           }));
           this.isEditing.set(false);
         }
+      });
+  }
+
+  uploadAvatar(file: File): void {
+    const id = this.profile().id;
+    if (!id) return;
+
+    this.uploadingAvatar.set(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.http.post<{ url: string }>(`${API}/upload/avatar`, formData)
+      .subscribe({
+        next: ({ url }) => {
+          const userName = this.profile().userName;
+          const firstName = this.profile().firstName;
+          const lastName = this.profile().lastName;
+          const description = this.profile().description;
+          this.http.put(`${API}/musician/${id}`, { firstName, lastName, userName, description, avatarUrl: url })
+            .subscribe({
+              next: () => {
+                this.profile.update(p => ({ ...p, avatarUrl: url }));
+                this.uploadingAvatar.set(false);
+              },
+              error: () => this.uploadingAvatar.set(false)
+            });
+        },
+        error: () => this.uploadingAvatar.set(false)
       });
   }
 
