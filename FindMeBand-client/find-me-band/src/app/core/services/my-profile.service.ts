@@ -315,6 +315,12 @@ export class MyProfileService {
       });
   }
 
+  deletePost(postId: number): void {
+    this.http.delete(`${API}/post/${postId}`).subscribe({
+      next: () => this.posts.update(posts => posts.filter(p => p.id !== postId))
+    });
+  }
+
   togglePostLike(postId: number): void {
     const user = this.auth.currentUser();
     if (!user) return;

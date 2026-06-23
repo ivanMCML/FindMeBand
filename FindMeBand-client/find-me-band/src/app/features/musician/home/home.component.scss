@@ -279,6 +279,24 @@
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 14px;
+
+  .author-info {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.post-delete-btn {
+  color: var(--color-text-tertiary);
+  padding: 4px;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition);
+  flex-shrink: 0;
+
+  &:hover {
+    color: #dc2626;
+    background: #fee2e2;
+  }
 }
 
 .avatar {

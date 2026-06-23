@@ -102,6 +102,7 @@ export class HomeService {
   readonly submittingPost = signal(false);
   readonly bandOptions = signal<BandOption[]>([]);
   readonly loadingMore = signal(false);
+  readonly myProfileId = computed(() => this.auth.currentUser()?.profileId ?? null);
 
   private readonly _explorePage = signal(1);
   private readonly _followingPage = signal(1);
@@ -257,6 +258,15 @@ export class HomeService {
         onSuccess();
       },
       error: () => this.submittingPost.set(false)
+    });
+  }
+
+  deletePost(postId: number): void {
+    this.http.delete(`${API}/post/${postId}`).subscribe({
+      next: () => {
+        this.followingPosts.update(posts => posts.filter(p => p.id !== postId));
+        this.explorePosts.update(posts => posts.filter(p => p.id !== postId));
+      }
     });
   }
 
