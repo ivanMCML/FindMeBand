@@ -18,7 +18,9 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OpportunityResponseDTO>>> GetOpportunities()
+        public async Task<ActionResult<IEnumerable<OpportunityResponseDTO>>> GetOpportunities(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var opportunities = await _context.Opportunities
                 .Include(o => o.Instrument)
@@ -26,6 +28,9 @@ namespace FindMeBand_server.Controllers
                 .Include(o => o.Applications)
                 .Include(o => o.Author).ThenInclude(p => p.Musician)
                 .Include(o => o.Author).ThenInclude(p => p.Band)
+                .OrderByDescending(o => o.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(opportunities.Select(ToResponseDTO));

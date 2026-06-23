@@ -126,6 +126,14 @@
         </article>
       }
 
+      @if (service.currentHasMore()) {
+        <div class="load-more">
+          <button class="load-more-btn" [disabled]="service.loadingMore()" (click)="service.loadMore()">
+            @if (service.loadingMore()) { Učitavam... } @else { Učitaj više }
+          </button>
+        </div>
+      }
+
       @if (service.currentPosts().length === 0) {
         <div class="empty-state">
           @if (service.activeTab() === 'following') {

@@ -76,6 +76,7 @@ function relativeTime(dateStr: string): string {
 }
 
 const API = environment.apiBaseUrl;
+const PAGE_SIZE = 20;
 
 @Injectable({ providedIn: 'root' })
 export class HomeService {
@@ -89,9 +90,19 @@ export class HomeService {
   readonly error = signal<string | null>(null);
   readonly submittingPost = signal(false);
   readonly bandOptions = signal<BandOption[]>([]);
+  readonly loadingMore = signal(false);
+
+  private readonly _explorePage = signal(1);
+  private readonly _followingPage = signal(1);
+  readonly exploreHasMore = signal(false);
+  readonly followingHasMore = signal(false);
 
   readonly currentPosts = computed(() =>
     this.activeTab() === 'following' ? this.followingPosts() : this.explorePosts()
+  );
+
+  readonly currentHasMore = computed(() =>
+    this.activeTab() === 'following' ? this.followingHasMore() : this.exploreHasMore()
   );
 
   constructor() {
@@ -115,8 +126,8 @@ export class HomeService {
     this.error.set(null);
 
     forkJoin({
-      explore: this.http.get<PostResponse[]>(`${API}/post?profileId=${user.profileId}`),
-      following: this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}`)
+      explore: this.http.get<PostResponse[]>(`${API}/post?profileId=${user.profileId}&pageSize=${PAGE_SIZE}`),
+      following: this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}&pageSize=${PAGE_SIZE}`)
         .pipe(catchError(() => of([]))),
       musician: this.http.get<MusicianResponse>(`${API}/musician/${user.profileId}`)
         .pipe(catchError(() => of(null))),
@@ -124,6 +135,10 @@ export class HomeService {
       next: ({ explore, following, musician }) => {
         this.explorePosts.set(explore.map(p => this.toPost(p)));
         this.followingPosts.set(following.map(p => this.toPost(p)));
+        this._explorePage.set(1);
+        this._followingPage.set(1);
+        this.exploreHasMore.set(explore.length === PAGE_SIZE);
+        this.followingHasMore.set(following.length === PAGE_SIZE);
         const adminBands = (musician?.bands ?? [])
           .filter(b => b.role === 'Admin')
           .map(b => ({ bandId: b.bandId, bandName: b.bandName }));
@@ -181,6 +196,34 @@ export class HomeService {
           this.explorePosts.update(sync);
         }
       });
+  }
+
+  loadMore(): void {
+    const user = this.auth.currentUser();
+    if (!user || this.loadingMore()) return;
+    this.loadingMore.set(true);
+
+    if (this.activeTab() === 'explore') {
+      const nextPage = this._explorePage() + 1;
+      this.http.get<PostResponse[]>(`${API}/post?profileId=${user.profileId}&page=${nextPage}&pageSize=${PAGE_SIZE}`)
+        .pipe(catchError(() => of([])))
+        .subscribe(posts => {
+          this.explorePosts.update(existing => [...existing, ...posts.map(p => this.toPost(p))]);
+          this._explorePage.set(nextPage);
+          this.exploreHasMore.set(posts.length === PAGE_SIZE);
+          this.loadingMore.set(false);
+        });
+    } else {
+      const nextPage = this._followingPage() + 1;
+      this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}?page=${nextPage}&pageSize=${PAGE_SIZE}`)
+        .pipe(catchError(() => of([])))
+        .subscribe(posts => {
+          this.followingPosts.update(existing => [...existing, ...posts.map(p => this.toPost(p))]);
+          this._followingPage.set(nextPage);
+          this.followingHasMore.set(posts.length === PAGE_SIZE);
+          this.loadingMore.set(false);
+        });
+    }
   }
 
   createPost(content: string, bandId: number | null, onSuccess: () => void): void {

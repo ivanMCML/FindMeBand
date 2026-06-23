@@ -18,7 +18,10 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetAllPosts([FromQuery] int? profileId = null)
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetAllPosts(
+            [FromQuery] int? profileId = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var posts = await _context.Posts
                 .Include(p => p.Profile)
@@ -26,13 +29,18 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
                 .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(posts.Select(p => ToResponseDTO(p, profileId)));
         }
 
         [HttpGet("feed/{profileId}")]
-        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetFeed(int profileId)
+        public async Task<ActionResult<IEnumerable<PostResponseDTO>>> GetFeed(
+            int profileId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var follows = await _context.Follows
                 .Where(f => f.FollowerId == profileId)
@@ -58,6 +66,8 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
                 .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(posts.Select(p => ToResponseDTO(p, profileId)));

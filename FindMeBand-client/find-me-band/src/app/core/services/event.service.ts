@@ -95,6 +95,7 @@ function toInitials(first: string, last: string): string {
 }
 
 const API = environment.apiBaseUrl;
+const PAGE_SIZE = 20;
 
 @Injectable({ providedIn: 'root' })
 export class EventService {
@@ -106,9 +107,14 @@ export class EventService {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly bandOptions = signal<BandOption[]>([]);
+  readonly hasMore = signal(false);
+  readonly loadingMore = signal(false);
 
   private readonly _performerId = signal<number | null>(null);
   readonly performerId = this._performerId.asReadonly();
+  private readonly _page = signal(1);
+  private _appliedMap = new Map<number, { id: number; status: string }>();
+  private _bandAppsMap = new Map<number, BandEventApplication[]>();
 
   readonly filteredEvents = computed(() => {
     const status = this.filterService.status();
@@ -156,7 +162,7 @@ export class EventService {
     this.error.set(null);
 
     forkJoin({
-      events: this.http.get<EventResponse[]>(`${API}/event`),
+      events: this.http.get<EventResponse[]>(`${API}/event?pageSize=${PAGE_SIZE}`),
       musician: this.http.get<MusicianResponse>(`${API}/musician/${user.profileId}`).pipe(catchError(() => of(null))),
     }).subscribe({
       next: ({ events, musician }) => {
@@ -181,7 +187,11 @@ export class EventService {
         }
 
         if (Object.keys(appRequests).length === 0) {
+          this._appliedMap = new Map();
+          this._bandAppsMap = new Map();
           this.events.set(events.map(e => this.toEvent(e, new Map(), new Map())));
+          this._page.set(1);
+          this.hasMore.set(events.length === PAGE_SIZE);
           this.loading.set(false);
           return;
         }
@@ -205,7 +215,11 @@ export class EventService {
             }
           }
 
+          this._appliedMap = appliedMap;
+          this._bandAppsMap = bandAppsMap;
           this.events.set(events.map(e => this.toEvent(e, appliedMap, bandAppsMap)));
+          this._page.set(1);
+          this.hasMore.set(events.length === PAGE_SIZE);
           this.loading.set(false);
         });
       },
@@ -214,6 +228,23 @@ export class EventService {
         this.loading.set(false);
       }
     });
+  }
+
+  loadMore(): void {
+    if (this.loadingMore()) return;
+    const nextPage = this._page() + 1;
+    this.loadingMore.set(true);
+    this.http.get<EventResponse[]>(`${API}/event?page=${nextPage}&pageSize=${PAGE_SIZE}`)
+      .pipe(catchError(() => of([])))
+      .subscribe(newEvents => {
+        this.events.update(existing => [
+          ...existing,
+          ...newEvents.map(e => this.toEvent(e, this._appliedMap, this._bandAppsMap)),
+        ]);
+        this._page.set(nextPage);
+        this.hasMore.set(newEvents.length === PAGE_SIZE);
+        this.loadingMore.set(false);
+      });
   }
 
   applyToEvent(eventId: number, performerId: number): void {

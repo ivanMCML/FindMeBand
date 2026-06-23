@@ -118,6 +118,7 @@ function nameToInitials(name: string, type: string): string {
 }
 
 const API = environment.apiBaseUrl;
+const PAGE_SIZE = 20;
 
 @Injectable({ providedIn: 'root' })
 export class OpportunityService {
@@ -134,9 +135,13 @@ export class OpportunityService {
   readonly authoredApplications = signal<Map<number, OppApplication[]>>(new Map());
   readonly authoredAppLoading = signal(false);
   readonly bandOptions = signal<BandOption[]>([]);
+  readonly hasMore = signal(false);
+  readonly loadingMore = signal(false);
 
   private readonly _performerId = signal<number | null>(null);
   readonly performerId = this._performerId.asReadonly();
+  private readonly _page = signal(1);
+  private _appliedMap = new Map<number, { id: number; status: string }>();
 
   readonly myOpportunities = computed(() => {
     const pid = this._performerId();
@@ -189,7 +194,7 @@ export class OpportunityService {
     this.error.set(null);
 
     forkJoin({
-      opportunities: this.http.get<OpportunityResponse[]>(`${API}/opportunity`),
+      opportunities: this.http.get<OpportunityResponse[]>(`${API}/opportunity?pageSize=${PAGE_SIZE}`),
       genres: this.http.get<OpportunityGenreOption[]>(`${API}/genre`),
       instruments: this.http.get<OpportunityInstrumentOption[]>(`${API}/instrument`),
       musician: this.http.get<MusicianResponse>(`${API}/musician/${user.profileId}`).pipe(catchError(() => of(null))),
@@ -219,7 +224,10 @@ export class OpportunityService {
         }
 
         if (Object.keys(appRequests).length === 0) {
+          this._appliedMap = new Map();
           this.opportunities.set(opportunities.map(o => this.toOpportunity(o, new Map())));
+          this._page.set(1);
+          this.hasMore.set(opportunities.length === PAGE_SIZE);
           this.loading.set(false);
           return;
         }
@@ -240,7 +248,10 @@ export class OpportunityService {
             }
           }
 
+          this._appliedMap = appliedMap;
           this.opportunities.set(opportunities.map(o => this.toOpportunity(o, appliedMap)));
+          this._page.set(1);
+          this.hasMore.set(opportunities.length === PAGE_SIZE);
           this.loading.set(false);
         });
       },
@@ -272,6 +283,23 @@ export class OpportunityService {
       this.authoredApplications.set(map);
       this.authoredAppLoading.set(false);
     });
+  }
+
+  loadMore(): void {
+    if (this.loadingMore()) return;
+    const nextPage = this._page() + 1;
+    this.loadingMore.set(true);
+    this.http.get<OpportunityResponse[]>(`${API}/opportunity?page=${nextPage}&pageSize=${PAGE_SIZE}`)
+      .pipe(catchError(() => of([])))
+      .subscribe(opps => {
+        this.opportunities.update(existing => [
+          ...existing,
+          ...opps.map(o => this.toOpportunity(o, this._appliedMap)),
+        ]);
+        this._page.set(nextPage);
+        this.hasMore.set(opps.length === PAGE_SIZE);
+        this.loadingMore.set(false);
+      });
   }
 
   applyToOpportunity(opportunityId: number, performerId?: number): void {

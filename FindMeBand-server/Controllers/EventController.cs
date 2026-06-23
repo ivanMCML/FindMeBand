@@ -18,12 +18,17 @@ namespace FindMeBand_server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EventResponseDTO>>> GetEvents()
+        public async Task<ActionResult<IEnumerable<EventResponseDTO>>> GetEvents(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
         {
             var events = await _context.Events
                 .Include(e => e.Organizer)
                 .Include(e => e.Genre)
                 .Include(e => e.Applications)
+                .OrderByDescending(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(events.Select(ToResponseDTO));
