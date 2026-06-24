@@ -15,6 +15,20 @@ export interface FeedPostMedia {
   type: string;
 }
 
+export interface PostComment {
+  id: number;
+  postId: number;
+  profileId: number;
+  authorName: string;
+  authorUserName: string;
+  authorInitials: string;
+  authorColor: string;
+  authorAvatarUrl: string | null;
+  content: string;
+  createdAt: string;
+  timestamp: string;
+}
+
 export interface FeedPost {
   id: number;
   profileId: number;
@@ -31,6 +45,7 @@ export interface FeedPost {
   likes: number;
   isLiked: boolean;
   media: FeedPostMedia[];
+  commentsCount: number;
 }
 
 interface MusicianBandInResponse {
@@ -59,6 +74,19 @@ interface PostResponse {
   media: { id: number; url: string; type: string }[];
   likesCount: number;
   isLiked: boolean;
+  commentsCount: number;
+}
+
+interface CommentResponse {
+  id: number;
+  postId: number;
+  profileId: number;
+  authorFirstName: string;
+  authorLastName: string;
+  authorUserName: string;
+  authorAvatarUrl?: string;
+  content: string;
+  createdAt: string;
 }
 
 const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
@@ -103,6 +131,11 @@ export class HomeService {
   readonly bandOptions = signal<BandOption[]>([]);
   readonly loadingMore = signal(false);
   readonly myProfileId = computed(() => this.auth.currentUser()?.profileId ?? null);
+
+  readonly expandedPostIds = signal<Set<number>>(new Set());
+  readonly commentsMap = signal<Map<number, PostComment[]>>(new Map());
+  readonly loadingCommentsIds = signal<Set<number>>(new Set());
+  readonly submittingCommentIds = signal<Set<number>>(new Set());
 
   private readonly _explorePage = signal(1);
   private readonly _followingPage = signal(1);
@@ -261,6 +294,90 @@ export class HomeService {
     });
   }
 
+  toggleComments(postId: number): void {
+    const expanded = new Set(this.expandedPostIds());
+    if (expanded.has(postId)) {
+      expanded.delete(postId);
+      this.expandedPostIds.set(expanded);
+      return;
+    }
+    expanded.add(postId);
+    this.expandedPostIds.set(expanded);
+
+    if (this.commentsMap().has(postId)) return;
+    this.loadComments(postId);
+  }
+
+  loadComments(postId: number): void {
+    const loading = new Set(this.loadingCommentsIds());
+    loading.add(postId);
+    this.loadingCommentsIds.set(loading);
+
+    this.http.get<CommentResponse[]>(`${API}/postcomment/post/${postId}`)
+      .pipe(catchError(() => of([])))
+      .subscribe(comments => {
+        this.commentsMap.update(m => {
+          const next = new Map(m);
+          next.set(postId, comments.map(c => this.toComment(c)));
+          return next;
+        });
+        const l = new Set(this.loadingCommentsIds());
+        l.delete(postId);
+        this.loadingCommentsIds.set(l);
+      });
+  }
+
+  addComment(postId: number, content: string, onDone: () => void): void {
+    const user = this.auth.currentUser();
+    if (!user || !content.trim()) return;
+
+    const submitting = new Set(this.submittingCommentIds());
+    submitting.add(postId);
+    this.submittingCommentIds.set(submitting);
+
+    this.http.post<CommentResponse>(`${API}/postcomment`, {
+      postId, profileId: user.profileId, content: content.trim()
+    }).subscribe({
+      next: (created) => {
+        this.commentsMap.update(m => {
+          const next = new Map(m);
+          const existing = next.get(postId) ?? [];
+          next.set(postId, [...existing, this.toComment(created)]);
+          return next;
+        });
+        const inc = (posts: FeedPost[]) =>
+          posts.map(p => p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p);
+        this.followingPosts.update(inc);
+        this.explorePosts.update(inc);
+        const s = new Set(this.submittingCommentIds());
+        s.delete(postId);
+        this.submittingCommentIds.set(s);
+        onDone();
+      },
+      error: () => {
+        const s = new Set(this.submittingCommentIds());
+        s.delete(postId);
+        this.submittingCommentIds.set(s);
+      }
+    });
+  }
+
+  deleteComment(postId: number, commentId: number): void {
+    this.http.delete(`${API}/postcomment/${commentId}`).subscribe({
+      next: () => {
+        this.commentsMap.update(m => {
+          const next = new Map(m);
+          next.set(postId, (next.get(postId) ?? []).filter(c => c.id !== commentId));
+          return next;
+        });
+        const dec = (posts: FeedPost[]) =>
+          posts.map(p => p.id === postId ? { ...p, commentsCount: Math.max(0, p.commentsCount - 1) } : p);
+        this.followingPosts.update(dec);
+        this.explorePosts.update(dec);
+      }
+    });
+  }
+
   deletePost(postId: number): void {
     this.http.delete(`${API}/post/${postId}`).subscribe({
       next: () => {
@@ -300,6 +417,24 @@ export class HomeService {
       likes: p.likesCount,
       isLiked: p.isLiked,
       media: (p.media ?? []).map(m => ({ id: m.id, url: m.url, type: m.type })),
+      commentsCount: p.commentsCount ?? 0,
+    };
+  }
+
+  private toComment(c: CommentResponse): PostComment {
+    const name = `${c.authorFirstName} ${c.authorLastName}`;
+    return {
+      id: c.id,
+      postId: c.postId,
+      profileId: c.profileId,
+      authorName: name,
+      authorUserName: c.authorUserName,
+      authorInitials: toInitials(name),
+      authorColor: authorColor(c.profileId),
+      authorAvatarUrl: c.authorAvatarUrl ?? null,
+      content: c.content,
+      createdAt: c.createdAt,
+      timestamp: relativeTime(c.createdAt),
     };
   }
 }

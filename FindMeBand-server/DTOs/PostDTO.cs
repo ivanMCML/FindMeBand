@@ -37,6 +37,7 @@ namespace FindMeBand_server.DTOs
         public List<PostMediaResponseDTO> Media { get; set; } = new();
         public int LikesCount { get; set; }
         public bool IsLiked { get; set; }
+        public int CommentsCount { get; set; }
     }
 
     public class PostMediaResponseDTO

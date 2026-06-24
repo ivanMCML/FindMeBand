@@ -19,6 +19,7 @@ namespace FindMeBand_server.Data
         public DbSet<Post> Posts { get; set; } = null!;
         public DbSet<PostMedia> PostsMedia { get; set; } = null!;
         public DbSet<PostLike> PostLikes { get; set; } = null!;
+        public DbSet<PostComment> PostComments { get; set; } = null!;
 
         public DbSet<BandMember> BandMember { get; set; } = null!;
 
@@ -107,6 +108,22 @@ namespace FindMeBand_server.Data
             modelBuilder.Entity<PostLike>()
                 .HasIndex(pl => new { pl.PostId, pl.ProfileId })
                 .IsUnique();
+
+            // --- PostComment -> Post ---
+            // Cascade: komentari nemaju smisla bez posta
+            modelBuilder.Entity<PostComment>()
+                .HasOne(pc => pc.Post)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(pc => pc.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // --- PostComment -> Profile ---
+            // NoAction: izbjegavamo višestruke kaskadne putanje od Profile
+            modelBuilder.Entity<PostComment>()
+                .HasOne(pc => pc.Profile)
+                .WithMany()
+                .HasForeignKey(pc => pc.ProfileId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // --- PostMedia -> Post ---
             // Cascade: mediji nemaju smisla bez posta

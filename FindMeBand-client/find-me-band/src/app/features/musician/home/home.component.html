@@ -148,6 +148,68 @@
             </div>
           }
 
+          <!-- Comments Section -->
+          @if (service.expandedPostIds().has(post.id)) {
+            @let comments = service.commentsMap().get(post.id) ?? [];
+            @let loadingComments = service.loadingCommentsIds().has(post.id);
+            @let submittingComment = service.submittingCommentIds().has(post.id);
+            <div class="comments-section">
+              @if (loadingComments) {
+                <p class="comments-loading">Učitavam komentare...</p>
+              } @else {
+                @for (comment of comments; track comment.id) {
+                  <div class="comment">
+                    @if (comment.authorAvatarUrl) {
+                      <img class="comment-avatar comment-avatar--img"
+                        [src]="staticBase + comment.authorAvatarUrl" alt="{{ comment.authorName }}" />
+                    } @else {
+                      <div class="comment-avatar" [style.background]="comment.authorColor">
+                        {{ comment.authorInitials }}
+                      </div>
+                    }
+                    <div class="comment-body">
+                      <div class="comment-header">
+                        <span class="comment-author">{{ comment.authorName }}</span>
+                        <span class="comment-time">{{ comment.timestamp }}</span>
+                        @if (comment.profileId === service.myProfileId()) {
+                          <button class="comment-delete-btn"
+                            (click)="service.deleteComment(post.id, comment.id)" title="Obriši komentar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                              stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        }
+                      </div>
+                      <p class="comment-content">{{ comment.content }}</p>
+                    </div>
+                  </div>
+                }
+              }
+              <div class="comment-input-row">
+                <textarea
+                  class="comment-input"
+                  rows="1"
+                  placeholder="Napiši komentar..."
+                  [value]="commentInput(post.id)"
+                  (input)="setCommentInput(post.id, $any($event.target).value)"
+                  (keydown.enter)="$event.preventDefault(); submitComment(post.id)"
+                ></textarea>
+                <button
+                  class="comment-submit-btn"
+                  [disabled]="!commentInput(post.id).trim() || submittingComment"
+                  (click)="submitComment(post.id)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+
           <!-- Post Actions -->
           <div class="post-actions">
             <button
@@ -162,12 +224,16 @@
               <span>{{ post.likes }}</span>
             </button>
 
-            <button class="action-btn">
+            <button
+              class="action-btn"
+              [class.action-btn--active]="service.expandedPostIds().has(post.id)"
+              (click)="service.toggleComments(post.id)"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              <span>0</span>
+              <span>{{ post.commentsCount }}</span>
             </button>
 
             <button class="action-btn">

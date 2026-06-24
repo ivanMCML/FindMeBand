@@ -15,6 +15,7 @@ export class HomeComponent {
   selectedBandId = signal<number | null>(null);
   pendingImageUrls = signal<string[]>([]);
   uploadingImage = signal(false);
+  commentInputs = signal<Record<number, string>>({});
 
   readonly staticBase = 'http://localhost:5251';
 
@@ -35,6 +36,22 @@ export class HomeComponent {
     this.service.createPost(this.newPostContent(), this.selectedBandId(), this.pendingImageUrls(), () => {
       this.newPostContent.set('');
       this.pendingImageUrls.set([]);
+    });
+  }
+
+  commentInput(postId: number): string {
+    return this.commentInputs()[postId] ?? '';
+  }
+
+  setCommentInput(postId: number, value: string): void {
+    this.commentInputs.update(m => ({ ...m, [postId]: value }));
+  }
+
+  submitComment(postId: number): void {
+    const content = this.commentInput(postId);
+    if (!content.trim()) return;
+    this.service.addComment(postId, content, () => {
+      this.setCommentInput(postId, '');
     });
   }
 }

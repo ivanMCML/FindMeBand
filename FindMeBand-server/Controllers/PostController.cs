@@ -28,6 +28,7 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Band)
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
+                .Include(p => p.Comments)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -65,6 +66,7 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Band)
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
+                .Include(p => p.Comments)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -81,6 +83,7 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Profile)
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
+                .Include(p => p.Comments)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -96,6 +99,7 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Band)
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
+                .Include(p => p.Comments)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -110,6 +114,7 @@ namespace FindMeBand_server.Controllers
                 .Include(p => p.Band)
                 .Include(p => p.Media)
                 .Include(p => p.Likes)
+                .Include(p => p.Comments)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (post == null)
@@ -203,7 +208,8 @@ namespace FindMeBand_server.Controllers
                 Type = m.Type.ToString()
             }).ToList(),
             LikesCount = p.Likes.Count,
-            IsLiked = viewerProfileId.HasValue && p.Likes.Any(l => l.ProfileId == viewerProfileId.Value)
+            IsLiked = viewerProfileId.HasValue && p.Likes.Any(l => l.ProfileId == viewerProfileId.Value),
+            CommentsCount = p.Comments.Count
         };
     }
 }
