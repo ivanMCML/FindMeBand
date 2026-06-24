@@ -232,6 +232,13 @@
               </button>
             </div>
             <p class="post-content">{{ post.content }}</p>
+            @if (post.media.length > 0) {
+              <div class="post-media" [class.post-media--grid]="post.media.length > 1">
+                @for (m of post.media; track m.id) {
+                  <img class="post-media-img" [src]="'http://localhost:5251' + m.url" alt="Slika" loading="lazy" />
+                }
+              </div>
+            }
             <div class="post-actions">
               <button
                 class="post-action-btn"
@@ -249,7 +256,7 @@
                   stroke-linecap="round" stroke-linejoin="round" width="17" height="17">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
-                {{ post.comments }}
+                {{ post.commentsCount }}
               </button>
               <button class="post-action-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

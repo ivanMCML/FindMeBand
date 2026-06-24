@@ -58,13 +58,20 @@ export interface MyProfileData {
   bands: ProfileBandEntry[];
 }
 
+export interface ProfilePostMedia {
+  id: number;
+  url: string;
+  type: string;
+}
+
 export interface ProfilePost {
   id: number;
   content: string;
   createdAt: string;
   likes: number;
-  comments: number;
+  commentsCount: number;
   isLiked: boolean;
+  media: ProfilePostMedia[];
 }
 
 // Odgovori koje šalje backend
@@ -103,6 +110,8 @@ interface PostResponse {
   createdAt: string;
   likesCount: number;
   isLiked: boolean;
+  commentsCount: number;
+  media: { id: number; url: string; type: string }[];
 }
 
 interface FollowResponse {
@@ -233,8 +242,9 @@ export class MyProfileService {
           content: p.content,
           createdAt: p.createdAt,
           likes: p.likesCount,
-          comments: 0,
+          commentsCount: p.commentsCount ?? 0,
           isLiked: p.isLiked,
+          media: p.media ?? [],
         })));
       });
   }
