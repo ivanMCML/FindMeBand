@@ -69,6 +69,7 @@ export interface MyBand {
   name: string;
   initials: string;
   color: string;
+  avatarUrl: string | null;
   description: string;
   genres: BandGenre[];
   locations: BandLocation[];
@@ -99,6 +100,7 @@ interface BandResponse {
   id: number;
   name: string;
   description: string;
+  avatarUrl?: string;
   createdAt: string;
   performerId?: number;
   averageRating?: number;
@@ -183,6 +185,7 @@ export class MyBandsService {
   readonly editName = signal('');
   readonly editDescription = signal('');
   readonly editSubmitting = signal(false);
+  readonly uploadingAvatarBandId = signal<number | null>(null);
   readonly allGenres = signal<{ id: number; name: string }[]>([]);
   readonly addGenreId = signal<number | null>(null);
   readonly addLocationName = signal('');
@@ -295,6 +298,7 @@ export class MyBandsService {
             name: band.name,
             initials: toInitials(band.name),
             color: profileColor(band.id),
+            avatarUrl: band.avatarUrl ?? null,
             description: band.description,
             genres: band.genres.map(g => ({
               genreId: g.id,
@@ -473,8 +477,10 @@ export class MyBandsService {
     const description = this.editDescription().trim();
     if (!name || !description) return;
 
+    const avatarUrl = this.bands().find(b => b.id === bandId)?.avatarUrl ?? null;
+
     this.editSubmitting.set(true);
-    this.http.put(`${API}/band/${bandId}`, { name, description })
+    this.http.put(`${API}/band/${bandId}`, { name, description, avatarUrl })
       .pipe(catchError(() => { this.editSubmitting.set(false); return EMPTY; }))
       .subscribe(() => {
         this.editSubmitting.set(false);
@@ -482,6 +488,31 @@ export class MyBandsService {
           bands.map(b => b.id !== bandId ? b : { ...b, name, description })
         );
         this.mode.set('view');
+      });
+  }
+
+  uploadBandAvatar(bandId: number, file: File): void {
+    this.uploadingAvatarBandId.set(bandId);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.http.post<{ url: string }>(`${API}/upload/avatar`, formData)
+      .subscribe({
+        next: ({ url }) => {
+          const band = this.bands().find(b => b.id === bandId);
+          if (!band) { this.uploadingAvatarBandId.set(null); return; }
+          this.http.put(`${API}/band/${bandId}`, { name: band.name, description: band.description, avatarUrl: url })
+            .subscribe({
+              next: () => {
+                this.bands.update(bands =>
+                  bands.map(b => b.id !== bandId ? b : { ...b, avatarUrl: url })
+                );
+                this.uploadingAvatarBandId.set(null);
+              },
+              error: () => this.uploadingAvatarBandId.set(null)
+            });
+        },
+        error: () => this.uploadingAvatarBandId.set(null)
       });
   }
 

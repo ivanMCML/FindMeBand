@@ -18,6 +18,15 @@
   margin-bottom: 0;
 }
 
+.band-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+
+  &:hover .avatar-upload-overlay {
+    opacity: 1;
+  }
+}
+
 .band-avatar {
   width: 80px;
   height: 80px;
@@ -30,6 +39,43 @@
   color: white;
   flex-shrink: 0;
   box-shadow: var(--shadow-md);
+
+  &--img {
+    object-fit: cover;
+    background: var(--color-border);
+  }
+}
+
+.avatar-upload-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--transition);
+
+  &--loading {
+    opacity: 1;
+    cursor: default;
+  }
+}
+
+.avatar-upload-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .band-hero-info {
@@ -687,6 +733,11 @@
   font-size: 13px;
   color: white;
   flex-shrink: 0;
+
+  &--img {
+    object-fit: cover;
+    background: var(--color-border);
+  }
 }
 
 .post-author-info {
@@ -1216,6 +1267,11 @@
   font-size: 13px;
   color: white;
   flex-shrink: 0;
+
+  &--img {
+    object-fit: cover;
+    background: var(--color-border);
+  }
 }
 
 .post-create-band {

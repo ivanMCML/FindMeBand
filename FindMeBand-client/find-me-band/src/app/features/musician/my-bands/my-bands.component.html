@@ -250,7 +250,11 @@
 
       <div class="post-create-box">
         <div class="post-create-header">
-          <div class="post-create-avatar" [style.background]="band.color">{{ band.initials }}</div>
+          @if (band.avatarUrl) {
+            <img class="post-create-avatar post-create-avatar--img" [src]="staticBase + band.avatarUrl" alt="{{ band.name }}" />
+          } @else {
+            <div class="post-create-avatar" [style.background]="band.color">{{ band.initials }}</div>
+          }
           <div>
             <span class="post-create-band">{{ band.name }}</span>
             <span class="post-create-sub">Objava u ime benda</span>
@@ -286,8 +290,28 @@
     <!-- ── BAND HEADER ──────────────────────────────── -->
     <div class="band-header">
       <div class="band-hero">
-        <div class="band-avatar" [style.background]="band.color">
-          {{ band.initials }}
+        <div class="band-avatar-wrapper">
+          @if (band.avatarUrl) {
+            <img class="band-avatar band-avatar--img" [src]="staticBase + band.avatarUrl" alt="{{ band.name }}" />
+          } @else {
+            <div class="band-avatar" [style.background]="band.color">{{ band.initials }}</div>
+          }
+          @if (band.myRole === 'Admin') {
+            <label class="avatar-upload-overlay" [class.avatar-upload-overlay--loading]="s.uploadingAvatarBandId() === band.id" title="Promijeni avatar benda">
+              <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
+                [disabled]="s.uploadingAvatarBandId() !== null"
+                (change)="onAvatarSelected(band.id, $any($event.target).files[0])" />
+              @if (s.uploadingAvatarBandId() === band.id) {
+                <span class="avatar-upload-spinner"></span>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              }
+            </label>
+          }
         </div>
         <div class="band-hero-info">
           <div class="band-name-row">
@@ -590,7 +614,11 @@
           @for (post of band.posts; track post.id) {
             <article class="post-card">
               <div class="post-header">
-                <div class="post-avatar" [style.background]="band.color">{{ band.initials }}</div>
+                @if (band.avatarUrl) {
+                  <img class="post-avatar post-avatar--img" [src]="staticBase + band.avatarUrl" alt="{{ band.name }}" />
+                } @else {
+                  <div class="post-avatar" [style.background]="band.color">{{ band.initials }}</div>
+                }
                 <div class="post-author-info">
                   <span class="post-author-name">{{ band.name }}</span>
                   <span class="post-author-meta">&#64;{{ s.toUsername(band.name) }} · {{ s.formatDate(post.createdAt) }}</span>

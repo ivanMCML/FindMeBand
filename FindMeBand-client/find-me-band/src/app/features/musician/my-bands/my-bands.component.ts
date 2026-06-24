@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { MyBandsService } from '../../../core/services/my-bands.service';
 import { MyProfileService } from '../../../core/services/my-profile.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-my-bands',
@@ -17,8 +18,14 @@ export class MyBandsComponent {
   readonly profile = inject(MyProfileService);
   private auth = inject(AuthService);
 
+  readonly staticBase = environment.apiBaseUrl.replace('/api', '');
+
   get currentMusicianId(): number | undefined {
     return this.auth.currentUser()?.profileId;
+  }
+
+  onAvatarSelected(bandId: number, file: File | null): void {
+    if (file) this.s.uploadBandAvatar(bandId, file);
   }
 
   submitCreate(): void {
