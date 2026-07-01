@@ -63,6 +63,15 @@ namespace FindMeBand_server.Controllers
             _context.Profiles.Add(profile);
             await _context.SaveChangesAsync();
 
+            if (profile is Musician newMusician)
+            {
+                var performer = new Performer();
+                _context.Performers.Add(performer);
+                await _context.SaveChangesAsync();
+                newMusician.PerformerId = performer.Id;
+                await _context.SaveChangesAsync();
+            }
+
             var role = profile is Organizer ? "Organizer" : "Musician";
             var token = GenerateToken(user, profile, role);
 

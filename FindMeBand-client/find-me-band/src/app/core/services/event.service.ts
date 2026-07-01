@@ -247,7 +247,10 @@ export class EventService {
       });
   }
 
+  readonly applyError = signal<string | null>(null);
+
   applyToEvent(eventId: number, performerId: number): void {
+    this.applyError.set(null);
     this.http.post<{ id: number; eventId: number }>(`${API}/eventapplication`, {
       eventId,
       performerId,
@@ -279,6 +282,10 @@ export class EventService {
             );
           }
         }
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? err?.error ?? 'Greška pri prijavi na događaj.';
+        this.applyError.set(typeof msg === 'string' ? msg : 'Greška pri prijavi na događaj.');
       }
     });
   }
