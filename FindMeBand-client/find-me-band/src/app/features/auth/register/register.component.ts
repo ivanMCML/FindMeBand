@@ -43,7 +43,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="form-group">
             <label for="password">Lozinka</label>
             <input id="password" type="password" [(ngModel)]="password" name="password"
-                   required placeholder="Min. 6 znakova" />
+                   required placeholder="Min. 6 znakova, mora sadržavati broj" />
           </div>
           <div class="form-group">
             <label>Uloga</label>
@@ -228,7 +228,7 @@ export class RegisterComponent {
 
   private parseError(err: any): string {
     if (typeof err.error === 'string') return err.error;
-    if (Array.isArray(err.error)) return err.error.map((e: any) => e.description).join(', ');
+    if (Array.isArray(err.error)) return err.error.map((e: any) => typeof e === 'string' ? e : (e.description ?? '')).join(' ');
     return 'Registracija nije uspjela. Provjeri podatke i pokušaj ponovo.';
   }
 }
