@@ -167,11 +167,9 @@ export class MessagesService {
       return;
     }
 
-    // Create conversation on backend with a greeting
     this.http.post<ConversationResponse>(`${API}/conversation`, {
       senderId: user.profileId,
       recipientId: contact.id,
-      content: 'Hej! 👋',
     }).subscribe({
       next: (res) => {
         const conv = this.toConversation(res);

@@ -86,15 +86,17 @@ namespace FindMeBand_server.Controllers
 
             if (existing != null)
             {
-                // Add the message to the existing conversation
-                var existingMsg = new DirectMessage
+                if (!string.IsNullOrWhiteSpace(dto.Content))
                 {
-                    ConversationId = existing.Id,
-                    SenderId = dto.SenderId,
-                    Content = dto.Content
-                };
-                _context.DirectMessages.Add(existingMsg);
-                await _context.SaveChangesAsync();
+                    var existingMsg = new DirectMessage
+                    {
+                        ConversationId = existing.Id,
+                        SenderId = dto.SenderId,
+                        Content = dto.Content
+                    };
+                    _context.DirectMessages.Add(existingMsg);
+                    await _context.SaveChangesAsync();
+                }
 
                 var msgs = await _context.DirectMessages
                     .Where(m => m.ConversationId == existing.Id)
@@ -116,15 +118,17 @@ namespace FindMeBand_server.Controllers
             _context.Conversations.Add(conversation);
             await _context.SaveChangesAsync();
 
-            var message = new DirectMessage
+            if (!string.IsNullOrWhiteSpace(dto.Content))
             {
-                ConversationId = conversation.Id,
-                SenderId = dto.SenderId,
-                Content = dto.Content
-            };
-
-            _context.DirectMessages.Add(message);
-            await _context.SaveChangesAsync();
+                var message = new DirectMessage
+                {
+                    ConversationId = conversation.Id,
+                    SenderId = dto.SenderId,
+                    Content = dto.Content
+                };
+                _context.DirectMessages.Add(message);
+                await _context.SaveChangesAsync();
+            }
 
             var created = await _context.Conversations
                 .Include(c => c.Profile1)
