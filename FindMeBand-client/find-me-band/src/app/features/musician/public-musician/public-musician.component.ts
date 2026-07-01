@@ -1,9 +1,10 @@
 import { Component, computed, inject, signal, DestroyRef, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicProfileService } from '../../../core/services/public-profile.service';
 import { FollowService } from '../../../core/services/follow.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { MessagesService } from '../../../core/services/messages.service';
 
 @Component({
   selector: 'app-public-musician',
@@ -16,6 +17,8 @@ export class PublicMusicianComponent implements OnInit {
   readonly s = inject(PublicProfileService);
   readonly followSvc = inject(FollowService);
   private auth = inject(AuthService);
+  private msg = inject(MessagesService);
+  private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
 
@@ -54,6 +57,21 @@ export class PublicMusicianComponent implements OnInit {
       this.followSvc.followById('musician', musician.id);
       this.s.musician.update(m => m ? { ...m, followersCount: m.followersCount + 1 } : m);
     }
+  }
+
+  startChat(): void {
+    const m = this.s.musician();
+    if (!m) return;
+    this.msg.startConversation({
+      id: m.id,
+      name: `${m.firstName} ${m.lastName}`,
+      username: m.userName,
+      initials: m.initials,
+      color: m.color,
+      type: 'musician',
+      subtitle: m.description ?? '',
+    });
+    this.router.navigate(['/musician/messages']);
   }
 
   submitReview(): void {

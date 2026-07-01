@@ -94,6 +94,27 @@
   }
 }
 
+.pub-msg-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: var(--color-primary, #7c3aed);
+    color: var(--color-primary, #7c3aed);
+    background: var(--color-primary-light, #ede9fe);
+  }
+}
+
 .pub-username {
   font-size: 13px;
   color: var(--color-text-secondary, #6b7280);

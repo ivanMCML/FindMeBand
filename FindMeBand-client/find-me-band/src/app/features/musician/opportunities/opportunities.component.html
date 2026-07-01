@@ -62,15 +62,16 @@
 
               <!-- Poster -->
               <div class="poster-row">
-                <div
+                <a
                   class="poster-avatar"
                   [class.poster-avatar--band]="opp.authorType === 'band'"
                   [style.background]="opp.authorColor"
+                  [routerLink]="opp.authorType === 'band' ? ['/musician/b', opp.authorProfileId] : ['/musician/m', opp.authorProfileId]"
                 >
                   {{ opp.authorInitials }}
-                </div>
+                </a>
                 <div class="poster-info">
-                  <span class="poster-name">{{ opp.authorName }}</span>
+                  <a class="poster-name" [routerLink]="opp.authorType === 'band' ? ['/musician/b', opp.authorProfileId] : ['/musician/m', opp.authorProfileId]">{{ opp.authorName }}</a>
                   <span class="poster-username">&#64;{{ opp.authorUserName }}</span>
                 </div>
               </div>

@@ -135,29 +135,34 @@ namespace FindMeBand_server.Controllers
             string authorUserName;
             string authorType;
 
+            int authorProfileId;
             if (o.Author.Band != null)
             {
                 authorName = o.Author.Band.Name;
                 authorUserName = o.Author.Band.Name;
                 authorType = "band";
+                authorProfileId = o.Author.Band.Id;
             }
             else if (o.Author.Musician != null)
             {
                 authorName = $"{o.Author.Musician.FirstName} {o.Author.Musician.LastName}";
                 authorUserName = o.Author.Musician.UserName;
                 authorType = "musician";
+                authorProfileId = o.Author.Musician.Id;
             }
             else
             {
                 authorName = "Nepoznat";
                 authorUserName = "";
                 authorType = "musician";
+                authorProfileId = 0;
             }
 
             return new OpportunityResponseDTO
             {
                 Id = o.Id,
                 AuthorId = o.AuthorId,
+                AuthorProfileId = authorProfileId,
                 AuthorName = authorName,
                 AuthorUserName = authorUserName,
                 AuthorType = authorType,

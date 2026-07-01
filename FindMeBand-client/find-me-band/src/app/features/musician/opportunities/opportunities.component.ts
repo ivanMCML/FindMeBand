@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { OpportunityService } from '../../../core/services/opportunity.service';
 
 @Component({
   selector: 'app-opportunities',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './opportunities.component.html',
   styleUrl: './opportunities.component.scss'
 })

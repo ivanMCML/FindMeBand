@@ -101,25 +101,29 @@
         <article class="post-card">
           <!-- Post Header -->
           <div class="post-header">
+            @let profileLink = post.authorType === 'band' ? ['/musician/b', post.bandId] : ['/musician/m', post.profileId];
             @if (post.authorAvatarUrl) {
-              <img
-                class="avatar avatar--img"
-                [class.avatar--band]="post.authorType === 'band'"
-                [src]="staticBase + post.authorAvatarUrl"
-                alt="{{ post.authorName }}"
-              />
+              <a [routerLink]="profileLink">
+                <img
+                  class="avatar avatar--img"
+                  [class.avatar--band]="post.authorType === 'band'"
+                  [src]="staticBase + post.authorAvatarUrl"
+                  alt="{{ post.authorName }}"
+                />
+              </a>
             } @else {
-              <div
+              <a
                 class="avatar"
                 [class.avatar--band]="post.authorType === 'band'"
                 [style.background]="post.authorColor"
+                [routerLink]="profileLink"
               >
                 {{ post.authorInitials }}
-              </div>
+              </a>
             }
             <div class="author-info">
               <div class="author-top">
-                <span class="author-name">{{ post.authorName }}</span>
+                <a class="author-name" [routerLink]="profileLink">{{ post.authorName }}</a>
               </div>
               <span class="author-meta">&#64;{{ post.authorUserName }} · {{ post.timestamp }}</span>
             </div>

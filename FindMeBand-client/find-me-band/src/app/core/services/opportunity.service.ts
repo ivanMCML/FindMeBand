@@ -8,6 +8,7 @@ import { OpportunityFilterService } from './opportunity-filter.service';
 export interface Opportunity {
   id: number;
   authorId: number;
+  authorProfileId: number;
   authorName: string;
   authorUserName: string;
   authorType: 'musician' | 'band';
@@ -56,6 +57,7 @@ export interface OpportunityInstrumentOption {
 interface OpportunityResponse {
   id: number;
   authorId: number;
+  authorProfileId: number;
   authorName: string | null;
   authorUserName: string | null;
   authorType: string;
@@ -435,6 +437,7 @@ export class OpportunityService {
     return {
       id: o.id,
       authorId: o.authorId,
+      authorProfileId: o.authorProfileId,
       authorName: name,
       authorUserName: o.authorUserName ?? '',
       authorType: o.authorType === 'band' ? 'band' : 'musician',

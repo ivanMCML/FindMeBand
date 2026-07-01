@@ -23,6 +23,7 @@ namespace FindMeBand_server.DTOs
     {
         public int Id { get; set; }
         public int AuthorId { get; set; }
+        public int AuthorProfileId { get; set; }
         public string? AuthorName { get; set; }
         public string? AuthorUserName { get; set; }
         public string AuthorType { get; set; } = "musician";

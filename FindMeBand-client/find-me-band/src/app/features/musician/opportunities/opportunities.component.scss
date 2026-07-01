@@ -143,6 +143,10 @@
   font-size: 12px;
   color: white;
   flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  &:hover { opacity: 0.85; }
 
   &--band {
     border-radius: 8px;
@@ -158,6 +162,8 @@
     font-weight: 600;
     font-size: 14px;
     color: var(--color-text);
+    text-decoration: none;
+    &:hover { color: var(--color-primary-text); }
   }
 
   .poster-username {
