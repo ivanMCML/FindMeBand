@@ -172,7 +172,7 @@ export class HomeService {
 
     forkJoin({
       explore: this.http.get<PostResponse[]>(`${API}/post?profileId=${user.profileId}&pageSize=${PAGE_SIZE}`),
-      following: this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}&pageSize=${PAGE_SIZE}`)
+      following: this.http.get<PostResponse[]>(`${API}/post/feed/${user.profileId}?pageSize=${PAGE_SIZE}`)
         .pipe(catchError(() => of([]))),
       musician: this.http.get<MusicianResponse>(`${API}/musician/${user.profileId}`)
         .pipe(catchError(() => of(null))),
