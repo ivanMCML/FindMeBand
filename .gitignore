@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Lokalni arhiv klijenta — ne ide u repozitorij
+FindMeBand-client.zip
