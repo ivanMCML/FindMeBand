@@ -141,12 +141,15 @@
   gap: 1px;
 }
 
+/* Ikona se crta ispunom u `currentColor`, pa se stanje zvjezdice
+   zadaje bojom, a ne izravnim `fill`-om. */
 .star {
-  fill: #d1d5db;
-  stroke: none;
+  color: #d1d5db;
 
-  &--full { fill: #f59e0b; }
-  &--half { fill: url(#half); }
+  &--full { color: #f59e0b; }
+  /* Polovična ocjena — blijeđi ton; raniji gradijent nikad nije bio
+     definiran pa se uopće nije iscrtavao. */
+  &--half { color: #fcd34d; }
 }
 
 .rating-val {

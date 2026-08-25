@@ -4,6 +4,7 @@ import { forkJoin, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { avatarColor, initialsFrom } from '../utils/avatar.util';
+import { ToastService } from './toast.service';
 
 export interface SearchResult {
   id: number;
@@ -56,6 +57,7 @@ const API = environment.apiBaseUrl;
 export class FollowService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   readonly searchTerm = signal('');
 
@@ -152,6 +154,7 @@ export class FollowService {
         const key = item.type === 'band' ? `b${item.id}` : `p${item.id}`;
         this.followMap.update(map => ({ ...map, [key]: res.id }));
       },
+      error: () => this.toast.error('Praćenje nije spremljeno.'),
     });
   }
 
@@ -165,6 +168,7 @@ export class FollowService {
           return next;
         });
       },
+      error: () => this.toast.error('Prestanak praćenja nije spremljen.'),
     });
   }
 

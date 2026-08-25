@@ -218,7 +218,10 @@
                 </div>
                 <div class="pub-review-stars">
                   @for (star of s.starsArray(review.rating); track $index) {
-                    <app-icon name="star" [size]="14" />
+                    <app-icon name="star" [size]="14" [filled]="true"
+                      class="pub-star"
+                      [class.pub-star--full]="star.full"
+                      [class.pub-star--half]="star.half" />
                   }
                 </div>
               </div>

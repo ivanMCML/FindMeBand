@@ -8,6 +8,7 @@ import { PostResponse, toFeedPost } from '../utils/post.mapper';
 import { AuthService } from './auth.service';
 import { PostInteractionService } from './post-interaction.service';
 import { avatarColor, initialsFrom } from '../utils/avatar.util';
+import { ToastService } from './toast.service';
 
 export type ProfileTab = 'overview' | 'posts' | 'reviews';
 
@@ -112,6 +113,7 @@ const initials = initialsFrom;
 export class MyProfileService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   readonly profile = signal<MyProfileData>({
     id: 0, firstName: '', lastName: '', userName: '', description: '',
@@ -289,11 +291,18 @@ export class MyProfileService {
               next: () => {
                 this.profile.update(p => ({ ...p, avatarUrl: url }));
                 this.uploadingAvatar.set(false);
+                this.toast.success('Profilna slika je promijenjena.');
               },
-              error: () => this.uploadingAvatar.set(false)
+              error: () => {
+                this.uploadingAvatar.set(false);
+                this.toast.error('Profilna slika nije spremljena.');
+              }
             });
         },
-        error: () => this.uploadingAvatar.set(false)
+        error: () => {
+          this.uploadingAvatar.set(false);
+          this.toast.error('Slika nije prenesena.');
+        }
       });
   }
 

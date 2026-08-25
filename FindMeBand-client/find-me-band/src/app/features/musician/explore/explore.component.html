@@ -6,7 +6,7 @@
 
     <!-- Search -->
     <div class="search-wrap">
-      <app-icon name="search" [size]="16" />
+      <app-icon name="search" [size]="16" class="search-icon" />
       <input
         class="search-input"
         type="text"
@@ -97,7 +97,10 @@
                   <div class="card-rating">
                     <div class="card-stars">
                       @for (star of stars(m.averageRating); track $index) {
-                        <app-icon name="star" [size]="12" />
+                        <app-icon name="star" [size]="12" [filled]="true"
+                          class="star"
+                          [class.star--full]="star.full"
+                          [class.star--half]="star.half" />
                       }
                     </div>
                     <span class="card-rating-val">{{ m.averageRating.toFixed(1) }}</span>
@@ -152,7 +155,10 @@
                   <div class="card-rating">
                     <div class="card-stars">
                       @for (star of stars(b.averageRating); track $index) {
-                        <app-icon name="star" [size]="12" />
+                        <app-icon name="star" [size]="12" [filled]="true"
+                          class="star"
+                          [class.star--full]="star.full"
+                          [class.star--half]="star.half" />
                       }
                     </div>
                     <span class="card-rating-val">{{ b.averageRating.toFixed(1) }}</span>

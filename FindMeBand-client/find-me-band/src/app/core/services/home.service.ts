@@ -6,6 +6,7 @@ import { BandOption, FeedPost } from '../models/feed.model';
 import { PostResponse, toFeedPost } from '../utils/post.mapper';
 import { AuthService } from './auth.service';
 import { PostInteractionService } from './post-interaction.service';
+import { ToastService } from './toast.service';
 
 // Modeli su preseljeni u `core/models/feed.model.ts` jer ih dijele i druge
 // značajke; ponovni izvoz čuva postojeće uvoze iz ovog servisa.
@@ -35,6 +36,7 @@ const PAGE_SIZE = 20;
 export class HomeService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
   readonly interactions = inject(PostInteractionService);
 
   readonly activeTab = signal<'following' | 'explore'>('following');
@@ -174,15 +176,19 @@ export class HomeService {
           this.submittingPost.set(false);
           onSuccess();
         },
-        error: () => this.submittingPost.set(false),
+        error: () => {
+          this.submittingPost.set(false);
+          this.toast.error('Objava nije spremljena. Pokušaj ponovno.');
+        },
       });
   }
 
   uploadPostImage(file: File, onSuccess: (url: string) => void): void {
     const formData = new FormData();
     formData.append('file', file);
-    this.http
-      .post<{ url: string }>(`${API}/upload/post-image`, formData)
-      .subscribe({ next: ({ url }) => onSuccess(url) });
+    this.http.post<{ url: string }>(`${API}/upload/post-image`, formData).subscribe({
+      next: ({ url }) => onSuccess(url),
+      error: () => this.toast.error('Slika nije prenesena.'),
+    });
   }
 }

@@ -1,3 +1,5 @@
+// Ton oznake stoji na host elementu, pa se cilja kroz `:host()`.
+
 :host {
   display: inline-flex;
   align-items: center;
@@ -10,62 +12,62 @@
   white-space: nowrap;
 }
 
-.badge--neutral {
+:host(.badge--neutral) {
   background: var(--color-bg);
   color: var(--color-text-secondary);
-
-  &.badge--solid {
-    background: var(--color-text-secondary);
-    color: var(--color-text-inverse);
-  }
 }
 
-.badge--primary {
+:host(.badge--neutral.badge--solid) {
+  background: var(--color-text-secondary);
+  color: var(--color-text-inverse);
+}
+
+:host(.badge--primary) {
   background: var(--color-primary-light);
   color: var(--color-primary-text);
-
-  &.badge--solid {
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-  }
 }
 
-.badge--success {
+:host(.badge--primary.badge--solid) {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+:host(.badge--success) {
   background: var(--color-success-light);
   color: var(--color-success-text);
-
-  &.badge--solid {
-    background: var(--color-success);
-    color: var(--color-text-inverse);
-  }
 }
 
-.badge--danger {
+:host(.badge--success.badge--solid) {
+  background: var(--color-success);
+  color: var(--color-text-inverse);
+}
+
+:host(.badge--danger) {
   background: var(--color-danger-light);
   color: var(--color-danger-text);
-
-  &.badge--solid {
-    background: var(--color-danger);
-    color: var(--color-text-inverse);
-  }
 }
 
-.badge--warning {
+:host(.badge--danger.badge--solid) {
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+}
+
+:host(.badge--warning) {
   background: var(--color-warning-light);
   color: var(--color-warning-text);
-
-  &.badge--solid {
-    background: var(--color-warning);
-    color: var(--color-text-inverse);
-  }
 }
 
-.badge--info {
+:host(.badge--warning.badge--solid) {
+  background: var(--color-warning);
+  color: var(--color-text-inverse);
+}
+
+:host(.badge--info) {
   background: var(--color-info-light);
   color: var(--color-info-text);
+}
 
-  &.badge--solid {
-    background: var(--color-info);
-    color: var(--color-text-inverse);
-  }
+:host(.badge--info.badge--solid) {
+  background: var(--color-info);
+  color: var(--color-text-inverse);
 }

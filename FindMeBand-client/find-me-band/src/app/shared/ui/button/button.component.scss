@@ -2,7 +2,9 @@
   display: inline-flex;
 }
 
-:host([fullwidth]) {
+/* Signal ulazi ne odražavaju se kao HTML atributi, pa `fullWidth`
+   stiže kao klasa koju komponenta sama postavlja na host */
+:host(.btn-host--full) {
   display: flex;
   width: 100%;
 }

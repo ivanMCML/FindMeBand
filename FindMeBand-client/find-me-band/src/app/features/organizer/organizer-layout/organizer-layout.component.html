@@ -1,7 +1,12 @@
 <div class="organizer-layout">
   <app-left-sidebar />
-  <main class="main-content">
-    <router-outlet />
-  </main>
-  <app-right-sidebar />
+
+  <!-- Sadržaj i kontekstna traka dijele jedan stupac; na širokim zaslonima
+       stoje jedno uz drugo, na užima se traka spušta ispod sadržaja -->
+  <div class="content-area">
+    <main class="main-content">
+      <router-outlet />
+    </main>
+    <app-right-sidebar />
+  </div>
 </div>

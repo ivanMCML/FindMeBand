@@ -1,0 +1,59 @@
+// ══════════════════════════════════════════════════════════════
+// Prijelomne točke
+//
+// Vrijednosti su SCSS varijable, a ne CSS custom properties, jer
+// `@media` upiti ne mogu čitati `var()`.
+//
+// Koriste se preko `@use 'breakpoints' as bp;` — putanja radi
+// zahvaljujući `stylePreprocessorOptions.includePaths` u angular.json.
+// ══════════════════════════════════════════════════════════════
+
+// Ispod ove širine desni stupac (kontekstna traka) više ne stane
+$wide: 1200px;
+
+// Ispod ove širine lijeva navigacija se svodi na same ikone
+$desktop: 960px;
+
+// Ispod ove širine navigacija seli na dno zaslona
+$tablet: 720px;
+
+// Uski telefoni
+$phone: 480px;
+
+/// Primjenjuje pravila ispod zadane širine.
+///
+/// ```scss
+/// @include bp.below(bp.$tablet) { display: none; }
+/// ```
+@mixin below($width) {
+  @media (max-width: #{$width - 0.02px}) {
+    @content;
+  }
+}
+
+/// Primjenjuje pravila od zadane širine naviše.
+@mixin from($width) {
+  @media (min-width: $width) {
+    @content;
+  }
+}
+
+/// Primjenjuje pravila samo unutar raspona [$min, $max).
+///
+/// Potrebno kad se dva oblika istog elementa isključuju — `below()` blokovi
+/// se preklapaju, pa bi uži zaslon naslijedio pravila šireg.
+@mixin between($min, $max) {
+  @media (min-width: $min) and (max-width: #{$max - 0.02px}) {
+    @content;
+  }
+}
+
+/// Uređaji kojima je dodir primarni način unosa.
+///
+/// Razlikuje se od širine zaslona: tablet u vodoravnom položaju je
+/// širok, ali i dalje treba veće dodirne mete.
+@mixin touch {
+  @media (hover: none) and (pointer: coarse) {
+    @content;
+  }
+}

@@ -1,15 +1,66 @@
+@use 'breakpoints' as bp;
+
 .musician-layout {
   display: grid;
-  grid-template-columns: var(--left-sidebar-width) 1fr var(--right-sidebar-width);
+  grid-template-columns: var(--left-sidebar-width) 1fr;
   height: 100vh;
   overflow: hidden;
+
+  /* Navigacija se svodi na same ikone */
+  @include bp.below(bp.$desktop) {
+    grid-template-columns: var(--left-sidebar-rail) 1fr;
+  }
+
+  /* Navigacija seli na dno; sadržaj mora ostati prvi redak unatoč
+     tome što je u dokumentu zapisan poslije navigacije */
+  @include bp.below(bp.$tablet) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+
+    .content-area {
+      grid-row: 1;
+    }
+
+    app-left-sidebar {
+      grid-row: 2;
+      /* Element mreže bez ovoga ne smije biti uži od svojeg sadržaja */
+      min-width: 0;
+      overflow: hidden;
+    }
+  }
+}
+
+/* ── Sadržaj + kontekstna traka ──────────────────────────── */
+
+.content-area {
+  display: grid;
+  grid-template-columns: 1fr var(--right-sidebar-width);
+  overflow: hidden;
+  min-width: 0;
+
+  /* Ispod ove širine traka ne stane pokraj sadržaja, pa se spušta
+     ispod njega i njih dvoje skrolaju zajedno */
+  @include bp.below(bp.$wide) {
+    display: block;
+    overflow-y: auto;
+  }
 }
 
 .main-content {
   overflow-y: auto;
   background: var(--color-bg);
+  min-width: 0;
 
   &--messages {
     overflow: hidden;
+  }
+
+  @include bp.below(bp.$wide) {
+    /* Vanjski spremnik sad vodi skrol */
+    overflow: visible;
+
+    &--messages {
+      overflow: visible;
+    }
   }
 }

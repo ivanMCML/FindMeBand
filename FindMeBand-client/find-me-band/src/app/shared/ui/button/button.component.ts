@@ -42,6 +42,9 @@ export type ButtonShape = 'rounded' | 'pill' | 'circle';
     </button>
   `,
   styleUrl: './button.component.scss',
+  host: {
+    '[class.btn-host--full]': 'fullWidth()',
+  },
 })
 export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');

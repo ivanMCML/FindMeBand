@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .load-more {
   display: flex;
   justify-content: center;
@@ -593,4 +595,12 @@
 
   &--accepted { background: #dcfce7; color: #166534; }
   &--rejected { background: #fee2e2; color: #991b1b; }
+}
+
+// ── Responzivno ───────────────────────────────────────────
+
+@include bp.below(bp.$tablet) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }

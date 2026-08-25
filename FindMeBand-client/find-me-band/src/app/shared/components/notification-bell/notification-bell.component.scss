@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .nb-wrap {
   position: relative;
 }
@@ -44,7 +46,7 @@
 
 .nb-panel {
   position: fixed;
-  left: 268px;
+  left: calc(var(--left-sidebar-width) + var(--space-2));
   bottom: 70px;
   width: 340px;
   max-height: 480px;
@@ -56,6 +58,20 @@
   flex-direction: column;
   overflow: hidden;
   z-index: var(--z-dropdown);
+
+  /* Uz suženu navigaciju panel kreće od njezina desnog ruba */
+  @include bp.between(bp.$tablet, bp.$desktop) {
+    left: calc(var(--left-sidebar-rail) + var(--space-2));
+  }
+
+  /* Navigacija je na dnu — panel se rasteže preko zaslona iznad nje */
+  @include bp.below(bp.$tablet) {
+    left: var(--space-3);
+    right: var(--space-3);
+    width: auto;
+    bottom: calc(var(--bottom-nav-height) + var(--space-2));
+    max-height: 60vh;
+  }
 }
 
 .nb-panel-header {

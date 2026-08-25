@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   height: 100%;
@@ -469,5 +471,22 @@
     font-size: 14px;
     line-height: 1.65;
     max-width: 280px;
+  }
+}
+
+// ── Responzivno ───────────────────────────────────────────
+
+@include bp.below(bp.$desktop) {
+  .messages-layout {
+    grid-template-columns: 260px 1fr;
+  }
+}
+
+@include bp.below(bp.$tablet) {
+  // Popis razgovora i otvoreni razgovor ne stanu jedan uz drugi;
+  // popis ide iznad, a razgovor ispod njega
+  .messages-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
 }

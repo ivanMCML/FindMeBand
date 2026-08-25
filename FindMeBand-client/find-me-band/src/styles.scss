@@ -133,9 +133,12 @@
 
   /* ── Layout ────────────────────────────────────────────── */
   --left-sidebar-width: 260px;
+  /* Suženi oblik lijeve navigacije — same ikone, bez natpisa */
+  --left-sidebar-rail: 76px;
   --right-sidebar-width: 320px;
   --content-max-width: 680px;
   --header-height: 60px;
+  --bottom-nav-height: 60px;
 
   /* ── Kompatibilnost sa starijim nazivima ───────────────── */
   --border-radius-sm: var(--radius-sm);

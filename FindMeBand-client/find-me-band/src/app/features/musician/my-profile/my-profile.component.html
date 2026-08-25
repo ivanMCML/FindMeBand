@@ -85,7 +85,7 @@
       </div>
       <div class="profile-stat-divider"></div>
       <div class="profile-stat">
-        <span class="profile-stat-value">{{ s.profile().averageRating }}</span>
+        <span class="profile-stat-value">{{ s.profile().averageRating.toFixed(1) }}</span>
         <span class="profile-stat-label">Ocjena</span>
       </div>
       <div class="profile-stat-divider"></div>
@@ -228,10 +228,13 @@
 
       @if (s.reviews().length > 0) {
         <div class="rating-summary">
-          <div class="rating-big-number">{{ s.profile().averageRating }}</div>
+          <div class="rating-big-number">{{ s.profile().averageRating.toFixed(1) }}</div>
           <div class="rating-big-stars">
             @for (star of s.starsArray(s.profile().averageRating); track $index) {
-              <app-icon name="star" [size]="22" />
+              <app-icon name="star" [size]="22" [filled]="true"
+                class="star"
+                [class.star--full]="star.full"
+                [class.star--half]="star.half" />
             }
           </div>
           <div class="rating-big-label">{{ s.reviews().length }} recenzija</div>
@@ -256,7 +259,10 @@
                 </div>
                 <div class="review-stars">
                   @for (star of s.starsArray(review.rating); track $index) {
-                    <app-icon name="star" [size]="14" />
+                    <app-icon name="star" [size]="14" [filled]="true"
+                      class="star"
+                      [class.star--full]="star.full"
+                      [class.star--half]="star.half" />
                   }
                 </div>
               </div>

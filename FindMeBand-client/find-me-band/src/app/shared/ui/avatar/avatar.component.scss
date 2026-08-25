@@ -1,3 +1,6 @@
+// Veličina i oblik stoje na host elementu, pa idu kroz `:host()`;
+// unutarnji `.avatar` samo popunjava taj okvir.
+
 :host {
   display: inline-flex;
   flex-shrink: 0;
@@ -24,31 +27,31 @@
 
 /* ── Veličine ──────────────────────────────────────────── */
 
-.avatar-host--xs {
+:host(.avatar-host--xs) {
   width: 24px;
   height: 24px;
   font-size: 9px;
 }
 
-.avatar-host--sm {
+:host(.avatar-host--sm) {
   width: 32px;
   height: 32px;
   font-size: var(--text-xs);
 }
 
-.avatar-host--md {
+:host(.avatar-host--md) {
   width: 44px;
   height: 44px;
   font-size: var(--text-base);
 }
 
-.avatar-host--lg {
+:host(.avatar-host--lg) {
   width: 64px;
   height: 64px;
   font-size: var(--text-xl);
 }
 
-.avatar-host--xl {
+:host(.avatar-host--xl) {
   width: 96px;
   height: 96px;
   font-size: var(--text-3xl);
@@ -56,16 +59,16 @@
 
 /* ── Oblici ────────────────────────────────────────────── */
 
-.avatar-host--circle {
+:host(.avatar-host--circle) {
   border-radius: var(--radius-full);
 }
 
 /* Bendovi se razlikuju od pojedinaca zaobljenim kvadratom */
-.avatar-host--square {
+:host(.avatar-host--square) {
   border-radius: var(--radius-md);
+}
 
-  &.avatar-host--lg,
-  &.avatar-host--xl {
-    border-radius: var(--radius-lg);
-  }
+:host(.avatar-host--square.avatar-host--lg),
+:host(.avatar-host--square.avatar-host--xl) {
+  border-radius: var(--radius-lg);
 }

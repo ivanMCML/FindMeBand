@@ -595,12 +595,13 @@
 
 // ── Stars ─────────────────────────────────────────────
 
+/* Ikona se crta ispunom u `currentColor`, pa se stanje zvjezdice
+   zadaje bojom, a ne izravnim `fill`-om. */
 .star {
-  fill: #d1d5db;
-  stroke: none;
+  color: #d1d5db;
 
-  &--full { fill: #f59e0b; }
-  &--half { fill: #f59e0b; }
+  &--full { color: #f59e0b; }
+  &--half { color: #fcd34d; }
 }
 
 // ── Shared empty state ────────────────────────────────

@@ -299,10 +299,13 @@
             <div class="band-rating">
               <div class="stars">
                 @for (star of s.starsArray(band.averageRating); track $index) {
-                  <app-icon name="star" [size]="14" />
+                  <app-icon name="star" [size]="14" [filled]="true"
+                    class="star"
+                    [class.star--full]="star.full"
+                    [class.star--half]="star.half" />
                 }
               </div>
-              <span class="rating-val">{{ band.averageRating }}</span>
+              <span class="rating-val">{{ band.averageRating.toFixed(1) }}</span>
               <span class="rating-count">({{ band.numberOfReviews }} recenzija)</span>
             </div>
           </div>

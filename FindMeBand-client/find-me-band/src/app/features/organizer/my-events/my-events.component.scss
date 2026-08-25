@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
   max-width: 780px;
@@ -671,4 +673,12 @@
 
   &:hover:not(:disabled) { background: var(--color-primary-hover); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ── Responzivno ───────────────────────────────────────────
+
+@include bp.below(bp.$tablet) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }

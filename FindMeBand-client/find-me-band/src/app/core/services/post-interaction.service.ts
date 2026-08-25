@@ -6,6 +6,7 @@ import { FeedPost, PostComment } from '../models/feed.model';
 import { avatarColor, toInitials } from '../utils/avatar.util';
 import { relativeTime } from '../utils/date.util';
 import { AuthService } from './auth.service';
+import { ToastService } from './toast.service';
 
 interface CommentResponse {
   id: number;
@@ -36,6 +37,7 @@ const API = environment.apiBaseUrl;
 export class PostInteractionService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   readonly expandedPostIds = signal<Set<number>>(new Set());
   readonly commentsMap = signal<Map<number, PostComment[]>>(new Map());
@@ -89,6 +91,7 @@ export class PostInteractionService {
       .pipe(
         catchError(() => {
           this.updateFeeds(toggle);
+          this.toast.error('Oznaka sviđanja nije spremljena.');
           return of(null);
         })
       )
@@ -112,7 +115,11 @@ export class PostInteractionService {
 
   deletePost(postId: number): void {
     this.http.delete(`${API}/post/${postId}`).subscribe({
-      next: () => this.updateFeeds(posts => posts.filter(p => p.id !== postId)),
+      next: () => {
+        this.updateFeeds(posts => posts.filter(p => p.id !== postId));
+        this.toast.success('Objava je obrisana.');
+      },
+      error: () => this.toast.error('Objava nije obrisana.'),
     });
   }
 
@@ -139,7 +146,12 @@ export class PostInteractionService {
 
     this.http
       .get<CommentResponse[]>(`${API}/postcomment/post/${postId}`)
-      .pipe(catchError(() => of([])))
+      .pipe(
+        catchError(() => {
+          this.toast.error('Komentare nije bilo moguće učitati.');
+          return of([]);
+        })
+      )
       .subscribe(comments => {
         this.commentsMap.update(map => {
           const next = new Map(map);
@@ -183,7 +195,10 @@ export class PostInteractionService {
           this.setDraft(postId, '');
           this.markSubmitting(postId, false);
         },
-        error: () => this.markSubmitting(postId, false),
+        error: () => {
+          this.markSubmitting(postId, false);
+          this.toast.error('Komentar nije poslan.');
+        },
       });
   }
 
@@ -197,6 +212,7 @@ export class PostInteractionService {
         });
         this.shiftCommentCount(postId, -1);
       },
+      error: () => this.toast.error('Komentar nije obrisan.'),
     });
   }
 

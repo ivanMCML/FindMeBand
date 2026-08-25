@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -542,11 +544,15 @@
   gap: 2px;
 }
 
+/* Ikona se crta ispunom u `currentColor`, pa se stanje zvjezdice
+   zadaje bojom, a ne izravnim `fill`-om. */
 .pub-star {
-  stroke: #d1d5db;
-  fill: #d1d5db;
+  color: #d1d5db;
 
-  &--full { stroke: #f59e0b; fill: #f59e0b; }
+  &--full { color: #f59e0b; }
+  /* Polovična ocjena — blijeđi ton; raniji gradijent nikad nije bio
+     definiran pa se uopće nije iscrtavao. */
+  &--half { color: #fcd34d; }
 }
 
 .pub-review-comment {
@@ -554,4 +560,42 @@
   color: var(--color-text-secondary, #4b5563);
   margin: 0;
   line-height: 1.5;
+}
+
+// ── Responzivno ───────────────────────────────────────────
+
+@include bp.below(bp.$tablet) {
+  .pub-header {
+    padding: var(--space-5) var(--space-4) var(--space-4);
+  }
+
+  .pub-tab-content {
+    padding: var(--space-4);
+  }
+
+  .pub-tab-bar {
+    padding: 0 var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .pub-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  // Ime i gumbi ispod avatara umjesto pokraj njega
+  .pub-hero {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .pub-stats {
+    justify-content: space-between;
+  }
+
+  .pub-stat {
+    padding: 0 var(--space-3);
+  }
 }

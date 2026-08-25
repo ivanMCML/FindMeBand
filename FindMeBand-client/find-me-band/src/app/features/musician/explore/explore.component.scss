@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 .explore {
   display: flex;
   flex-direction: column;
@@ -272,12 +274,15 @@
   gap: 1px;
 }
 
+/* Ikona se crta ispunom u `currentColor`, pa se stanje zvjezdice
+   zadaje bojom, a ne izravnim `fill`-om. */
 .star {
-  fill: var(--color-border);
-  stroke: none;
+  color: var(--color-border);
 
-  &--full { fill: #f59e0b; }
-  &--half { fill: url(#half-grad); }
+  &--full { color: #f59e0b; }
+  /* Polovična ocjena — blijeđi ton; raniji gradijent `url(#half-grad)`
+     nikad nije bio definiran pa se uopće nije iscrtavao. */
+  &--half { color: #fcd34d; }
 }
 
 .card-rating-val {
@@ -308,4 +313,17 @@
 
   &--genre      { background: #f0fdf4; color: #166534; }
   &--instrument { background: #ede9fe; color: #5b21b6; }
+}
+
+// ── Responzivno ───────────────────────────────────────────
+
+@include bp.below(bp.$tablet) {
+  .explore {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-3);
+  }
 }
