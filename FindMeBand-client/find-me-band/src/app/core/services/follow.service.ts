@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { avatarColor, initialsFrom } from '../utils/avatar.util';
 
 export interface SearchResult {
   id: number;
@@ -45,15 +46,9 @@ interface FollowResponse {
   followeeBandId: number | null;
 }
 
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function itemColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function initials(first: string, last: string): string {
-  return ((first[0] ?? '') + (last[0] ?? '')).toUpperCase();
-}
+const itemColor = avatarColor;
+const initials = initialsFrom;
 
 const API = environment.apiBaseUrl;
 

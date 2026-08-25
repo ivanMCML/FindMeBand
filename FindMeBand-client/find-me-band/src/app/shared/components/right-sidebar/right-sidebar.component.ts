@@ -9,11 +9,12 @@ import { MyBandsService } from '../../../core/services/my-bands.service';
 import { MyProfileService } from '../../../core/services/my-profile.service';
 import { OrganizerService } from '../../../core/services/organizer.service';
 import { FollowService, SearchResult } from '../../../core/services/follow.service';
+import { IconComponent } from '../../ui';
 
 @Component({
   selector: 'app-right-sidebar',
   standalone: true,
-  imports: [],
+  imports: [IconComponent],
   templateUrl: './right-sidebar.component.html',
   styleUrl: './right-sidebar.component.scss'
 })

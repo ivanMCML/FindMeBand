@@ -1,29 +1,44 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { HomeService } from '../../../core/services/home.service';
+import { mediaUrl } from '../../../core/utils/media.util';
+import { PostCardComponent } from '../../../shared/components/post-card/post-card.component';
+import {
+  ButtonComponent,
+  CardComponent,
+  EmptyStateComponent,
+  IconComponent,
+  SpinnerComponent,
+} from '../../../shared/ui';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [
+    PostCardComponent,
+    ButtonComponent,
+    CardComponent,
+    EmptyStateComponent,
+    IconComponent,
+    SpinnerComponent,
+  ],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrl: './home.component.scss',
 })
 export class HomeComponent {
   readonly service = inject(HomeService);
+  readonly interactions = this.service.interactions;
 
-  newPostContent = signal('');
-  selectedBandId = signal<number | null>(null);
-  pendingImageUrls = signal<string[]>([]);
-  uploadingImage = signal(false);
-  commentInputs = signal<Record<number, string>>({});
+  readonly newPostContent = signal('');
+  readonly selectedBandId = signal<number | null>(null);
+  readonly pendingImageUrls = signal<string[]>([]);
+  readonly uploadingImage = signal(false);
 
-  readonly staticBase = 'http://localhost:5251';
+  protected readonly mediaUrl = mediaUrl;
 
   onImageSelected(file: File | undefined): void {
     if (!file) return;
     this.uploadingImage.set(true);
-    this.service.uploadPostImage(file, (url) => {
+    this.service.uploadPostImage(file, url => {
       this.pendingImageUrls.update(urls => [...urls, url]);
       this.uploadingImage.set(false);
     });
@@ -34,25 +49,14 @@ export class HomeComponent {
   }
 
   submitPost(): void {
-    this.service.createPost(this.newPostContent(), this.selectedBandId(), this.pendingImageUrls(), () => {
-      this.newPostContent.set('');
-      this.pendingImageUrls.set([]);
-    });
-  }
-
-  commentInput(postId: number): string {
-    return this.commentInputs()[postId] ?? '';
-  }
-
-  setCommentInput(postId: number, value: string): void {
-    this.commentInputs.update(m => ({ ...m, [postId]: value }));
-  }
-
-  submitComment(postId: number): void {
-    const content = this.commentInput(postId);
-    if (!content.trim()) return;
-    this.service.addComment(postId, content, () => {
-      this.setCommentInput(postId, '');
-    });
+    this.service.createPost(
+      this.newPostContent(),
+      this.selectedBandId(),
+      this.pendingImageUrls(),
+      () => {
+        this.newPostContent.set('');
+        this.pendingImageUrls.set([]);
+      }
+    );
   }
 }

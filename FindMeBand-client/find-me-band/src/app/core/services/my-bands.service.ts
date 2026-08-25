@@ -3,7 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { EMPTY, forkJoin, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { FeedPost } from '../models/feed.model';
+import { PostResponse, toFeedPost } from '../utils/post.mapper';
 import { AuthService } from './auth.service';
+import { avatarColor, initialsFrom, toInitials } from '../utils/avatar.util';
 
 export type BandRole = 'Admin' | 'Member';
 export type GigStatus = 'Upcoming' | 'Completed' | 'Cancelled';
@@ -44,14 +47,15 @@ export interface Gig {
   notes?: string;
 }
 
-export interface BandPost {
-  id: number;
-  content: string;
-  createdAt: string;
-  likes: number;
-  comments: number;
-  isLiked: boolean;
-}
+/**
+ * Objave benda koriste isti model kao naslovni feed, pa ih prikazuje ista
+ * `<app-post-card>` komponenta.
+ *
+ * Za razliku od ostalih zaslona, ovdje su objave ugniježđene unutar benda
+ * kojemu pripadaju, pa se lajkovi ne mogu voditi kroz `PostInteractionService`
+ * — on radi nad ravnim popisima objava.
+ */
+export type BandPost = FeedPost;
 
 export interface MusicianEntry {
   id: number;
@@ -120,13 +124,7 @@ interface BandResponse {
   }[];
 }
 
-interface BandPostResponse {
-  id: number;
-  content: string;
-  createdAt: string;
-  likesCount: number;
-  isLiked: boolean;
-}
+type BandPostResponse = PostResponse;
 
 interface MusicianResponse {
   id: number;
@@ -140,19 +138,9 @@ interface MusicianResponse {
 
 const API = environment.apiBaseUrl;
 
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function profileColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function toInitials(name: string): string {
-  return name.split(' ').map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase();
-}
-
-function memberInitials(first: string, last: string): string {
-  return ((first[0] ?? '') + (last[0] ?? '')).toUpperCase();
-}
+const profileColor = avatarColor;
+const memberInitials = initialsFrom;
 
 // ── Service ──────────────────────────────────────────────────
 
@@ -167,6 +155,9 @@ export class MyBandsService {
   readonly selectedBandId = signal<number | null>(null);
   readonly activeTab = signal<BandTab>('overview');
   readonly loading = signal(false);
+
+  /** Profil prijavljenog korisnika — određuje koje objave smije obrisati. */
+  readonly myProfileId = computed(() => this.auth.currentUser()?.profileId ?? null);
 
   // ── Create band state ────────────────────────────────────
 
@@ -323,14 +314,7 @@ export class MyBandsService {
               joinedDate: m.joinedDate,
             })),
             gigs: [],
-            posts: posts.map(p => ({
-              id: p.id,
-              content: p.content,
-              createdAt: p.createdAt,
-              likes: p.likesCount,
-              comments: 0,
-              isLiked: p.isLiked,
-            })),
+            posts: posts.map(toFeedPost),
           }));
 
           this.bands.set(mapped);
@@ -362,6 +346,20 @@ export class MyBandsService {
   }
 
   // ── Post likes ───────────────────────────────────────────
+
+  /** Briše objavu benda i miče je iz ugniježđenog popisa tog benda. */
+  deleteBandPost(bandId: number, postId: number): void {
+    this.http
+      .delete(`${API}/post/${postId}`)
+      .pipe(catchError(() => EMPTY))
+      .subscribe(() => {
+        this.bands.update(bands =>
+          bands.map(b =>
+            b.id !== bandId ? b : { ...b, posts: b.posts.filter(p => p.id !== postId) }
+          )
+        );
+      });
+  }
 
   togglePostLike(bandId: number, postId: number): void {
     const user = this.auth.currentUser();
@@ -679,7 +677,7 @@ export class MyBandsService {
           this.bands.update(bands =>
             bands.map(b => b.id !== bandId ? b : {
               ...b,
-              posts: [{ id: res.id, content: res.content, createdAt: res.createdAt, likes: 0, comments: 0, isLiked: false }, ...b.posts]
+              posts: [toFeedPost(res), ...b.posts]
             })
           );
           this.newPostContent.set('');

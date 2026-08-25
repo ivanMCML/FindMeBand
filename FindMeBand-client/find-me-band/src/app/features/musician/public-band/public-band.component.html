@@ -27,11 +27,7 @@
             }
             @for (loc of b.locations; track loc.id) {
               <span class="pub-location-tag">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="10" height="10">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
+                <app-icon name="map-pin" [size]="10" />
                 {{ loc.name }}
               </span>
             }
@@ -109,11 +105,7 @@
                 @if (member.role === 'Admin') {
                   <span class="pub-admin-badge">Admin</span>
                 }
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14"
-                  class="pub-member-arrow">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
+                <app-icon name="chevron-right" [size]="14" />
               </a>
             }
             @if (b.members.length === 0) {
@@ -132,40 +124,26 @@
       @if (s.posts().length > 0) {
         <div class="pub-posts-feed">
           @for (post of s.posts(); track post.id) {
-            <article class="pub-post-card">
-              <div class="pub-post-header">
-                <div class="pub-post-avatar" [style.background]="b.color">{{ b.initials }}</div>
-                <div class="pub-post-author-info">
-                  <span class="pub-post-author">{{ b.name }}</span>
-                  <span class="pub-post-meta">{{ s.formatDate(post.createdAt) }}</span>
-                </div>
-              </div>
-              <p class="pub-post-content">{{ post.content }}</p>
-              <div class="pub-post-actions">
-                <button
-                  class="pub-post-action"
-                  [class.pub-post-action--liked]="post.isLiked"
-                  (click)="s.togglePostLike(post.id)"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                  {{ post.likes }}
-                </button>
-              </div>
-            </article>
+            <app-post-card
+              [post]="post"
+              [currentProfileId]="s.myProfileId()"
+              [linkToAuthor]="false"
+              [comments]="i.commentsMap().get(post.id) ?? []"
+              [commentsExpanded]="i.expandedPostIds().has(post.id)"
+              [commentsLoading]="i.loadingCommentsIds().has(post.id)"
+              [commentSubmitting]="i.submittingCommentIds().has(post.id)"
+              [commentDraft]="i.draft(post.id)"
+              (likeToggled)="i.toggleLike(post.id)"
+              (commentsToggled)="i.toggleComments(post.id)"
+              (postDeleted)="i.deletePost(post.id)"
+              (commentDeleted)="i.deleteComment(post.id, $event)"
+              (commentDraftChanged)="i.setDraft(post.id, $event)"
+              (commentSubmitted)="i.submitComment(post.id)"
+            />
           }
         </div>
       } @else {
-        <div class="pub-tab-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          <p>Bend još nije objavio ništa</p>
-        </div>
+        <app-empty-state icon="file" message="Bend još nije objavio ništa" />
       }
     </div>
   }
@@ -177,10 +155,7 @@
       <!-- Write review button -->
       @if (b.performerId && !hasReviewed() && !s.showReviewForm()) {
         <button class="pub-write-review-btn" (click)="s.openReviewForm()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
+          <app-icon name="star" [size]="15" />
           Napiši recenziju
         </button>
       }
@@ -200,9 +175,7 @@
                 (click)="s.reviewRating.set(i)"
                 [title]="i + ' zvjezdica'"
               >
-                <svg viewBox="0 0 24 24" width="28" height="28">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>
+                <app-icon name="star" [size]="28" [filled]="true" />
               </button>
             }
             @if (s.reviewRating() > 0) {
@@ -245,12 +218,7 @@
                 </div>
                 <div class="pub-review-stars">
                   @for (star of s.starsArray(review.rating); track $index) {
-                    <svg class="pub-star"
-                      [class.pub-star--full]="star.full"
-                      [class.pub-star--half]="star.half"
-                      viewBox="0 0 24 24" width="14" height="14">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
+                    <app-icon name="star" [size]="14" />
                   }
                 </div>
               </div>
@@ -262,10 +230,7 @@
         </div>
       } @else if (!s.showReviewForm()) {
         <div class="pub-tab-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
+          <app-icon name="star" [size]="40" [strokeWidth]="1.5" />
           <p>Još nema recenzija</p>
         </div>
       }

@@ -4,6 +4,7 @@ import { Observable, catchError, forkJoin, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { OpportunityFilterService } from './opportunity-filter.service';
+import { avatarColor, toInitials } from '../utils/avatar.util';
 
 export interface Opportunity {
   id: number;
@@ -98,15 +99,8 @@ interface OppAppRaw {
   applicantType: 'Musician' | 'Band';
 }
 
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function authorColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function toInitials(name: string): string {
-  return name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
-}
+const authorColor = avatarColor;
 
 function nameToInitials(name: string, type: string): string {
   if (type === 'Band') {
@@ -426,7 +420,7 @@ export class OpportunityService {
       appliedAt: a.appliedAt,
       applicantName: name,
       applicantInitials: nameToInitials(name, type),
-      applicantColor: PALETTE[Math.abs(a.applicantId) % PALETTE.length],
+      applicantColor: avatarColor(a.applicantId),
       applicantType: type,
     };
   }

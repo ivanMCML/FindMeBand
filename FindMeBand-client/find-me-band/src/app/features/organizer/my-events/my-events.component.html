@@ -5,11 +5,7 @@
     <span class="page-count">{{ s.totalEvents() }} {{ s.totalEvents() === 1 ? 'event' : 'evenata' }}</span>
   </div>
   <button class="new-event-btn" (click)="s.openCreateForm()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-      stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-      <line x1="12" y1="5" x2="12" y2="19"/>
-      <line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
+    <app-icon name="plus" [size]="16" [strokeWidth]="2.5" />
     Novi event
   </button>
 </div>
@@ -25,15 +21,7 @@
 <!-- ══ EMPTY STATE ══════════════════════════════════════════ -->
 @if (!s.eventsLoading() && s.events().length === 0) {
   <div class="empty-state">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-      stroke-linecap="round" stroke-linejoin="round" width="48" height="48">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-      <line x1="12" y1="14" x2="12" y2="18"/>
-      <line x1="10" y1="16" x2="14" y2="16"/>
-    </svg>
+    <app-icon name="calendar-plus" [size]="48" [strokeWidth]="1.5" />
     <p>Još nemaš nijednog događaja.</p>
     <button class="empty-create-btn" (click)="s.openCreateForm()">Kreiraj prvi event</button>
   </div>
@@ -62,11 +50,7 @@
         <!-- Title + Location -->
         <h3 class="event-title">{{ event.title }}</h3>
         <div class="event-location">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
-          </svg>
+          <app-icon name="map-pin" [size]="13" />
           {{ event.location }}
         </div>
 
@@ -76,11 +60,7 @@
         <!-- Details row -->
         <div class="event-details">
           <span class="detail-chip detail-chip--budget">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-              <line x1="12" y1="1" x2="12" y2="23"/>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
+            <app-icon name="dollar" [size]="12" />
             {{ s.formatBudget(event.budgetMin, event.budgetMax) }}
           </span>
           @if (event.preferredPerformerType) {
@@ -103,20 +83,10 @@
             [class.apps-toggle-btn--active]="event.isExpanded"
             (click)="s.toggleExpand(event.id)"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
+            <app-icon name="users" [size]="14" />
             Prijave
             <span class="apps-count">{{ event.applicationCount }}</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="12" height="12"
-              class="chevron" [class.chevron--up]="event.isExpanded">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+            <app-icon name="chevron-down" [size]="12" />
           </button>
 
           <!-- Action buttons -->
@@ -125,44 +95,25 @@
             <!-- Status change -->
             @if (event.status !== 'Open') {
               <button class="action-btn action-btn--open" (click)="s.updateEventStatus(event.id, 'Open')" title="Otvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 8 12 12 14 14"/>
-                </svg>
+                <app-icon name="clock" [size]="14" />
                 Otvori
               </button>
             }
             @if (event.status === 'Open') {
               <button class="action-btn action-btn--close" (click)="s.updateEventStatus(event.id, 'Closed')" title="Zatvori">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="15" y1="9" x2="9" y2="15"/>
-                  <line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
+                <app-icon name="x-circle" [size]="14" />
                 Zatvori
               </button>
             }
             @if (event.status !== 'Canceled') {
               <button class="action-btn action-btn--cancel" (click)="s.updateEventStatus(event.id, 'Canceled')" title="Otkaži">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6"/>
-                  <path d="M14 11v6"/>
-                </svg>
+                <app-icon name="trash" [size]="14" />
                 Otkaži
               </button>
             }
 
             <button class="action-btn action-btn--edit" (click)="s.openEditForm(event)" title="Uredi">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
+              <app-icon name="edit" [size]="14" />
               Uredi
             </button>
 
@@ -174,13 +125,7 @@
               </div>
             } @else {
               <button class="action-btn action-btn--delete" (click)="requestDelete(event.id)" title="Obriši">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6"/>
-                  <path d="M14 11v6"/>
-                </svg>
+                <app-icon name="trash" [size]="14" />
                 Obriši
               </button>
             }
@@ -198,11 +143,7 @@
               <p class="apps-loading">Učitavanje prijava...</p>
             } @else if (event.applications.length === 0) {
               <div class="apps-empty">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                  stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                </svg>
+                <app-icon name="users-simple" [size]="32" [strokeWidth]="1.5" />
                 <p>Još nema prijava.</p>
               </div>
             } @else {
@@ -231,18 +172,11 @@
                       @if (app.status === 'Pending') {
                         <div class="app-actions">
                           <button class="app-accept-btn" (click)="s.updateApplicationStatus(event.id, app.id, 'Accepted')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                              stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
+                            <app-icon name="check" [size]="13" [strokeWidth]="2.5" />
                             Prihvati
                           </button>
                           <button class="app-reject-btn" (click)="s.updateApplicationStatus(event.id, app.id, 'Rejected')">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                              stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-                              <line x1="18" y1="6" x2="6" y2="18"/>
-                              <line x1="6" y1="6" x2="18" y2="18"/>
-                            </svg>
+                            <app-icon name="x" [size]="13" [strokeWidth]="2.5" />
                             Odbij
                           </button>
                         </div>
@@ -271,11 +205,7 @@
           {{ s.editingEventId() !== null ? 'Uredi event' : 'Novi event' }}
         </h2>
         <button class="modal-close-btn" (click)="s.closeForm()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+          <app-icon name="x" [size]="18" [strokeWidth]="2.5" />
         </button>
       </div>
 

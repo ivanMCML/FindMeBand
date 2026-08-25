@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { EventService } from '../../../core/services/event.service';
+import { IconComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [],
+  imports: [IconComponent],
   templateUrl: './events.component.html',
   styleUrl: './events.component.scss'
 })

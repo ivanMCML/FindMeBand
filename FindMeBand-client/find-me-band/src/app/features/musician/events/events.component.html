@@ -52,11 +52,7 @@
 
           <!-- Location -->
           <div class="event-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
+            <app-icon name="map-pin" [size]="14" />
             {{ event.location }}
           </div>
 
@@ -67,11 +63,7 @@
           <div class="card-footer">
             <div class="event-details">
               <span class="detail-chip detail-chip--budget">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-                  <line x1="12" y1="1" x2="12" y2="23"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
+                <app-icon name="dollar" [size]="13" />
                 {{ service.formatBudget(event.budgetMin, event.budgetMax) }}
               </span>
               @if (event.preferredPerformerType) {
@@ -90,13 +82,7 @@
             <div class="card-actions-col">
               <div class="card-actions">
                 <span class="app-count">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
+                  <app-icon name="users" [size]="14" />
                   {{ event.applicationCount }}
                 </span>
 
@@ -110,10 +96,7 @@
                       (click)="service.withdrawApplication(event.id, event.myApplicationId!)"
                       title="Klikni za povlačenje prijave"
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
+                      <app-icon name="check" [size]="14" [strokeWidth]="2.5" />
                       Prijavljen/a
                     </button>
                   }
@@ -135,32 +118,19 @@
                   <div class="apply-picker-wrapper">
                     <button class="apply-btn apply-btn--picker" (click)="togglePicker(event.id)">
                       Prijavi se
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
+                      <app-icon name="chevron-down" [size]="11" [strokeWidth]="2.5" />
                     </button>
                     @if (activePickerId() === event.id) {
                       <div class="apply-picker">
                         @if (service.performerId() !== null) {
                           <button class="picker-option" (click)="pickApply(event.id, service.performerId()!)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                              <circle cx="12" cy="7" r="4"/>
-                            </svg>
+                            <app-icon name="user" [size]="14" />
                             Kao muzičar
                           </button>
                         }
                         @for (band of service.bandOptions(); track band.bandId) {
                           <button class="picker-option" (click)="pickApply(event.id, band.bandPerformerId)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                              <circle cx="9" cy="7" r="4"/>
-                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                            </svg>
+                            <app-icon name="users" [size]="14" />
                             Kao {{ band.bandName }}
                           </button>
                         }
@@ -213,13 +183,7 @@
 
       @if (filteredEvents().length === 0) {
         <div class="empty-state">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
+          <app-icon name="calendar" [size]="40" [strokeWidth]="1.5" />
           <p>Nema događaja koji odgovaraju odabranim filtrima.</p>
         </div>
       }

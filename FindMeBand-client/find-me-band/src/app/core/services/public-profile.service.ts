@@ -2,19 +2,17 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { FeedPost } from '../models/feed.model';
+import { avatarColor, initialsFrom } from '../utils/avatar.util';
+import { PostResponse, toFeedPost } from '../utils/post.mapper';
 import { AuthService } from './auth.service';
+import { PostInteractionService } from './post-interaction.service';
 
 const API = environment.apiBaseUrl;
 
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
+const profileColor = avatarColor;
 
-function profileColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function initials(first: string, last: string): string {
-  return ((first[0] ?? '') + (last[0] ?? '')).toUpperCase();
-}
+const initials = initialsFrom;
 
 export type PublicProfileTab = 'overview' | 'posts' | 'reviews';
 
@@ -63,13 +61,11 @@ export interface PublicBand {
   }[];
 }
 
-export interface PublicPost {
-  id: number;
-  content: string;
-  createdAt: string;
-  likes: number;
-  isLiked: boolean;
-}
+/**
+ * Objave na javnom profilu koriste isti model kao naslovni feed, pa ih
+ * prikazuje ista `<app-post-card>` komponenta — sa slikama i komentarima.
+ */
+export type PublicPost = FeedPost;
 
 export interface PublicReview {
   id: number;
@@ -132,14 +128,6 @@ interface ReviewResponse {
   reviewerUserName?: string;
 }
 
-interface PostResponse {
-  id: number;
-  content: string;
-  createdAt: string;
-  likesCount: number;
-  isLiked: boolean;
-}
-
 interface FollowCountResponse {
   id: number;
 }
@@ -148,6 +136,7 @@ interface FollowCountResponse {
 export class PublicProfileService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  readonly interactions = inject(PostInteractionService);
 
   readonly musician = signal<PublicMusician | null>(null);
   readonly band = signal<PublicBand | null>(null);
@@ -160,6 +149,13 @@ export class PublicProfileService {
   readonly reviewRating = signal(0);
   readonly reviewComment = signal('');
   readonly reviewSubmitting = signal(false);
+
+  /** Profil vidi promjene lajkova i komentara napravljene bilo gdje u aplikaciji. */
+  readonly myProfileId = () => this.auth.currentUser()?.profileId ?? null;
+
+  constructor() {
+    this.interactions.registerFeed(this.posts);
+  }
 
   loadMusician(musicianId: number): void {
     this.musician.set(null);
@@ -212,15 +208,7 @@ export class PublicProfileService {
         const viewerId = myId ?? musicianId;
         this.http.get<PostResponse[]>(`${API}/post/profile/${musicianId}?viewerProfileId=${viewerId}`)
           .pipe(catchError(() => of([])))
-          .subscribe(posts => {
-            this.posts.set(posts.map(p => ({
-              id: p.id,
-              content: p.content,
-              createdAt: p.createdAt,
-              likes: p.likesCount,
-              isLiked: p.isLiked,
-            })));
-          });
+          .subscribe(posts => this.posts.set(posts.map(toFeedPost)));
 
         this.loading.set(false);
       },
@@ -279,15 +267,7 @@ export class PublicProfileService {
         const viewerId = myId ?? 0;
         this.http.get<PostResponse[]>(`${API}/post/band/${bandId}?viewerProfileId=${viewerId}`)
           .pipe(catchError(() => of([])))
-          .subscribe(posts => {
-            this.posts.set(posts.map(p => ({
-              id: p.id,
-              content: p.content,
-              createdAt: p.createdAt,
-              likes: p.likesCount,
-              isLiked: p.isLiked,
-            })));
-          });
+          .subscribe(posts => this.posts.set(posts.map(toFeedPost)));
 
         this.loading.set(false);
       },
@@ -372,34 +352,9 @@ export class PublicProfileService {
     this.activeTab.set(tab);
   }
 
+  /** @deprecated Koristi `interactions.toggleLike` — zadržano dok se pozivi ne presele. */
   togglePostLike(postId: number): void {
-    const myId = this.auth.currentUser()?.profileId;
-    if (!myId) return;
-
-    const toggle = (posts: PublicPost[]) =>
-      posts.map(p => p.id !== postId ? p : {
-        ...p,
-        isLiked: !p.isLiked,
-        likes: p.isLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
-      });
-
-    this.posts.update(toggle);
-
-    this.http.post<{ liked: boolean }>(`${API}/postlike`, { postId, profileId: myId })
-      .pipe(catchError(() => {
-        this.posts.update(toggle);
-        return of(null);
-      }))
-      .subscribe(res => {
-        if (res) {
-          this.posts.update(posts =>
-            posts.map(p => {
-              if (p.id !== postId || p.isLiked === res.liked) return p;
-              return { ...p, isLiked: res.liked, likes: res.liked ? p.likes + 1 : Math.max(0, p.likes - 1) };
-            })
-          );
-        }
-      });
+    this.interactions.toggleLike(postId);
   }
 
   starsArray(rating: number): { full: boolean; half: boolean }[] {

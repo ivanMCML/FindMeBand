@@ -5,16 +5,20 @@ import { PublicProfileService } from '../../../core/services/public-profile.serv
 import { FollowService } from '../../../core/services/follow.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MessagesService } from '../../../core/services/messages.service';
+import { PostCardComponent } from '../../../shared/components/post-card/post-card.component';
+import { IconComponent, EmptyStateComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-public-musician',
   standalone: true,
-  imports: [RouterLink],
+  imports: [IconComponent, RouterLink, PostCardComponent, EmptyStateComponent],
   templateUrl: './public-musician.component.html',
   styleUrl: './public-musician.component.scss',
 })
 export class PublicMusicianComponent implements OnInit {
   readonly s = inject(PublicProfileService);
+  /** Kratica za predložak — lajkovi i komentari objava. */
+  readonly i = this.s.interactions;
   readonly followSvc = inject(FollowService);
   private auth = inject(AuthService);
   private msg = inject(MessagesService);

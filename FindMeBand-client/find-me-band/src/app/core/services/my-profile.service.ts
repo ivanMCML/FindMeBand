@@ -3,7 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { FeedPost, FeedPostMedia } from '../models/feed.model';
+import { PostResponse, toFeedPost } from '../utils/post.mapper';
 import { AuthService } from './auth.service';
+import { PostInteractionService } from './post-interaction.service';
+import { avatarColor, initialsFrom } from '../utils/avatar.util';
 
 export type ProfileTab = 'overview' | 'posts' | 'reviews';
 
@@ -58,21 +62,12 @@ export interface MyProfileData {
   bands: ProfileBandEntry[];
 }
 
-export interface ProfilePostMedia {
-  id: number;
-  url: string;
-  type: string;
-}
-
-export interface ProfilePost {
-  id: number;
-  content: string;
-  createdAt: string;
-  likes: number;
-  commentsCount: number;
-  isLiked: boolean;
-  media: ProfilePostMedia[];
-}
+/**
+ * Objave na vlastitom profilu koriste isti model kao naslovni feed, pa ih
+ * prikazuje ista `<app-post-card>` komponenta.
+ */
+export type ProfilePost = FeedPost;
+export type ProfilePostMedia = FeedPostMedia;
 
 // Odgovori koje šalje backend
 interface MusicianResponse {
@@ -103,32 +98,15 @@ interface ReviewResponse {
   createdAt: string;
 }
 
-interface PostResponse {
-  id: number;
-  profileId: number;
-  content: string;
-  createdAt: string;
-  likesCount: number;
-  isLiked: boolean;
-  commentsCount: number;
-  media: { id: number; url: string; type: string }[];
-}
-
 interface FollowResponse {
   id: number;
 }
 
 const API = environment.apiBaseUrl;
 
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function profileColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function initials(firstName: string, lastName: string): string {
-  return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
-}
+const profileColor = avatarColor;
+const initials = initialsFrom;
 
 @Injectable({ providedIn: 'root' })
 export class MyProfileService {
@@ -153,7 +131,11 @@ export class MyProfileService {
   readonly reviews = signal<ProfileReview[]>([]);
   readonly posts = signal<ProfilePost[]>([]);
 
+  readonly interactions = inject(PostInteractionService);
+
   constructor() {
+    this.interactions.registerFeed(this.posts);
+
     // Automatski učitaj profil kad se korisnik prijavi
     effect(() => {
       const user = this.auth.currentUser();
@@ -236,17 +218,7 @@ export class MyProfileService {
   private loadPosts(profileId: number): void {
     this.http.get<PostResponse[]>(`${API}/post/profile/${profileId}?viewerProfileId=${profileId}`)
       .pipe(catchError(() => of([])))
-      .subscribe(posts => {
-        this.posts.set(posts.map(p => ({
-          id: p.id,
-          content: p.content,
-          createdAt: p.createdAt,
-          likes: p.likesCount,
-          commentsCount: p.commentsCount ?? 0,
-          isLiked: p.isLiked,
-          media: p.media ?? [],
-        })));
-      });
+      .subscribe(posts => this.posts.set(posts.map(toFeedPost)));
   }
 
   private resetProfile(): void {
@@ -325,49 +297,14 @@ export class MyProfileService {
       });
   }
 
+  /** @deprecated Koristi `interactions.deletePost` — zadržano dok se pozivi ne presele. */
   deletePost(postId: number): void {
-    this.http.delete(`${API}/post/${postId}`).subscribe({
-      next: () => this.posts.update(posts => posts.filter(p => p.id !== postId))
-    });
+    this.interactions.deletePost(postId);
   }
 
+  /** @deprecated Koristi `interactions.toggleLike` — zadržano dok se pozivi ne presele. */
   togglePostLike(postId: number): void {
-    const user = this.auth.currentUser();
-    if (!user) return;
-
-    const post = this.posts().find(p => p.id === postId);
-    if (!post) return;
-
-    const toggle = (posts: ProfilePost[]) =>
-      posts.map(p =>
-        p.id !== postId ? p : {
-          ...p,
-          isLiked: !p.isLiked,
-          likes: p.isLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
-        }
-      );
-
-    this.posts.update(toggle);
-
-    this.http.post<{ liked: boolean }>(`${API}/postlike`, { postId, profileId: user.profileId })
-      .pipe(catchError(() => {
-        this.posts.update(toggle);
-        return of(null);
-      }))
-      .subscribe(res => {
-        if (res) {
-          this.posts.update(posts =>
-            posts.map(p => {
-              if (p.id !== postId || p.isLiked === res.liked) return p;
-              return {
-                ...p,
-                isLiked: res.liked,
-                likes: res.liked ? p.likes + 1 : Math.max(0, p.likes - 1),
-              };
-            })
-          );
-        }
-      });
+    this.interactions.toggleLike(postId);
   }
 
   starsArray(rating: number): { full: boolean; half: boolean }[] {

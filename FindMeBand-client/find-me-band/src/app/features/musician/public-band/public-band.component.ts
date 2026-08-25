@@ -4,16 +4,20 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicProfileService } from '../../../core/services/public-profile.service';
 import { FollowService } from '../../../core/services/follow.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PostCardComponent } from '../../../shared/components/post-card/post-card.component';
+import { IconComponent, EmptyStateComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-public-band',
   standalone: true,
-  imports: [RouterLink],
+  imports: [IconComponent, RouterLink, PostCardComponent, EmptyStateComponent],
   templateUrl: './public-band.component.html',
   styleUrl: './public-band.component.scss',
 })
 export class PublicBandComponent implements OnInit {
   readonly s = inject(PublicProfileService);
+  /** Kratica za predložak — lajkovi i komentari objava. */
+  readonly i = this.s.interactions;
   readonly followSvc = inject(FollowService);
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);

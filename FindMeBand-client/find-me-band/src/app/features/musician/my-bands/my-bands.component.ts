@@ -4,18 +4,23 @@ import { RouterLink } from '@angular/router';
 import { MyBandsService } from '../../../core/services/my-bands.service';
 import { MyProfileService } from '../../../core/services/my-profile.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PostInteractionService } from '../../../core/services/post-interaction.service';
 import { environment } from '../../../../environments/environment';
+import { PostCardComponent } from '../../../shared/components/post-card/post-card.component';
+import { IconComponent, EmptyStateComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-my-bands',
   standalone: true,
-  imports: [SlicePipe, RouterLink],
+  imports: [IconComponent, SlicePipe, RouterLink, PostCardComponent, EmptyStateComponent],
   templateUrl: './my-bands.component.html',
   styleUrl: './my-bands.component.scss'
 })
 export class MyBandsComponent {
   readonly s = inject(MyBandsService);
   readonly profile = inject(MyProfileService);
+  /** Kratica za predložak — komentari objava benda. */
+  readonly i = inject(PostInteractionService);
   private auth = inject(AuthService);
 
   readonly staticBase = environment.apiBaseUrl.replace('/api', '');

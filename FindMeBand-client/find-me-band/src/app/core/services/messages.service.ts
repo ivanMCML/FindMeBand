@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { avatarColor, initialsFrom } from '../utils/avatar.util';
 
 export interface Contact {
   id: number;
@@ -59,15 +60,9 @@ interface FollowResponse {
   followeeProfileDescription: string | null;
 }
 
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function contactColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function toInitials(first: string, last: string): string {
-  return ((first[0] ?? '') + (last[0] ?? '')).toUpperCase();
-}
+const contactColor = avatarColor;
+const toInitials = initialsFrom;
 
 function toSubtitle(description: string): string {
   if (!description?.trim()) return 'Muzičar';

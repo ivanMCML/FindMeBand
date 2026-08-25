@@ -4,6 +4,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { avatarColor, initialsFrom } from '../utils/avatar.util';
 
 export interface OrganizerData {
   id: number;
@@ -92,15 +93,9 @@ interface ApplicationResponse {
 }
 
 const API = environment.apiBaseUrl;
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function profileColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function toInitials(firstName: string, lastName: string): string {
-  return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
-}
+const profileColor = avatarColor;
+const toInitials = initialsFrom;
 
 function nameToInitials(name: string, type: string): string {
   if (type === 'Band') {

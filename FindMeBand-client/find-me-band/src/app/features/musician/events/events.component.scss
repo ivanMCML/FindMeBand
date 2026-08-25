@@ -180,7 +180,7 @@
   color: var(--color-text-secondary);
   margin-bottom: 12px;
 
-  svg {
+  app-icon {
     flex-shrink: 0;
     color: var(--color-text-tertiary);
   }
@@ -356,12 +356,12 @@
   text-align: left;
   transition: background var(--transition);
 
-  svg { color: var(--color-text-secondary); flex-shrink: 0; }
+  app-icon { color: var(--color-text-secondary); flex-shrink: 0; }
 
   &:hover {
     background: var(--color-bg);
     color: var(--color-primary-text);
-    svg { color: var(--color-primary-text); }
+    app-icon { color: var(--color-primary-text); }
   }
 }
 
@@ -418,6 +418,6 @@
   color: var(--color-text-secondary);
   text-align: center;
 
-  svg { color: var(--color-text-tertiary); }
+  app-icon { color: var(--color-text-tertiary); }
   p { font-size: 15px; }
 }

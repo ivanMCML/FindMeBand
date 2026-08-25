@@ -22,7 +22,26 @@
       "PowerShell(tree *)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName } | Sort-Object)",
       "Bash(dotnet build *)",
-      "Bash(dotnet ef *)"
+      "Bash(dotnet ef *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-client\\\\find-me-band\\\\src\\\\app\" -Recurse -Include \"*.ts\")",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-client\\\\find-me-band\\\\src\\\\app\\\\core\\\\services\\\\*.service.ts\" -Pattern \"mock|signal\\\\\\(\\\\[|HttpClient|http\\\\.\")",
+      "Bash(Select-Object Filename, LineNumber, Line)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\HomePC\\\\Desktop\\\\Završni\\\\FindMeBand\\\\FindMeBand-server\\\\Controllers\")",
+      "Bash(Select-Object Name)",
+      "Bash(git log *)",
+      "Bash(Sort-Object -Unique)",
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(python -c ' *)",
+      "Bash(cd *)",
+      "Bash(git checkout *)",
+      "Bash(python -X utf8 -c ' *)",
+      "Bash(python -X utf8)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:4299/)",
+      "Bash(taskkill //FI \"WINDOWTITLE eq *ng serve*\" //F)",
+      "Bash(netstat -ano)"
     ]
   }
 }

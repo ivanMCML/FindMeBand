@@ -6,11 +6,7 @@
 
     <!-- Search -->
     <div class="search-wrap">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
+      <app-icon name="search" [size]="16" />
       <input
         class="search-input"
         type="text"
@@ -20,11 +16,7 @@
       />
       @if (s.searchQuery()) {
         <button class="search-clear" (click)="s.searchQuery.set('')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+          <app-icon name="x" [size]="14" [strokeWidth]="2.5" />
         </button>
       }
     </div>
@@ -33,21 +25,11 @@
   <!-- ══ TABS ══════════════════════════════════════════════ -->
   <div class="tab-bar">
     <button class="tab" [class.tab--active]="s.activeTab() === 'musicians'" (click)="s.setTab('musicians')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
+      <app-icon name="user" [size]="16" />
       Muzičari
     </button>
     <button class="tab" [class.tab--active]="s.activeTab() === 'bands'" (click)="s.setTab('bands')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
+      <app-icon name="users" [size]="16" />
       Bendovi
     </button>
   </div>
@@ -97,11 +79,7 @@
     @if (s.activeTab() === 'musicians') {
       @if (s.filteredMusicians().length === 0) {
         <div class="explore-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
+          <app-icon name="user" [size]="44" [strokeWidth]="1.5" />
           <p>Nema muzičara koji odgovaraju filteru.</p>
         </div>
       } @else {
@@ -119,10 +97,7 @@
                   <div class="card-rating">
                     <div class="card-stars">
                       @for (star of stars(m.averageRating); track $index) {
-                        <svg class="star" [class.star--full]="star.full" [class.star--half]="star.half"
-                          viewBox="0 0 24 24" width="12" height="12">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
+                        <app-icon name="star" [size]="12" />
                       }
                     </div>
                     <span class="card-rating-val">{{ m.averageRating.toFixed(1) }}</span>
@@ -156,13 +131,7 @@
     @if (s.activeTab() === 'bands') {
       @if (s.filteredBands().length === 0) {
         <div class="explore-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round" width="44" height="44">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
+          <app-icon name="users" [size]="44" [strokeWidth]="1.5" />
           <p>Nema bendova koji odgovaraju filteru.</p>
         </div>
       } @else {
@@ -175,13 +144,7 @@
               <div class="card-body">
                 <div class="card-name">{{ b.name }}</div>
                 <div class="card-sub">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
+                  <app-icon name="users" [size]="12" />
                   {{ b.memberCount }} {{ b.memberCount === 1 ? 'član' : 'članova' }}
                 </div>
 
@@ -189,10 +152,7 @@
                   <div class="card-rating">
                     <div class="card-stars">
                       @for (star of stars(b.averageRating); track $index) {
-                        <svg class="star" [class.star--full]="star.full" [class.star--half]="star.half"
-                          viewBox="0 0 24 24" width="12" height="12">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
+                        <app-icon name="star" [size]="12" />
                       }
                     </div>
                     <span class="card-rating-val">{{ b.averageRating.toFixed(1) }}</span>

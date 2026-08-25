@@ -1,0 +1,173 @@
+:host {
+  display: inline-flex;
+}
+
+:host([fullwidth]) {
+  display: flex;
+  width: 100%;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: inherit;
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
+    transform var(--transition-fast),
+    box-shadow var(--transition-base);
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+/* ── Veličine ──────────────────────────────────────────── */
+
+.btn--sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  min-height: 28px;
+}
+
+.btn--md {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-base);
+  min-height: 36px;
+}
+
+.btn--lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-md);
+  min-height: 44px;
+}
+
+/* ── Oblici ────────────────────────────────────────────── */
+
+.btn--rounded {
+  border-radius: var(--radius-sm);
+}
+
+.btn--pill {
+  border-radius: var(--radius-full);
+
+  &.btn--md {
+    padding-inline: var(--space-5);
+  }
+
+  &.btn--lg {
+    padding-inline: var(--space-8);
+  }
+}
+
+.btn--circle {
+  border-radius: var(--radius-full);
+  padding: 0;
+  aspect-ratio: 1;
+
+  &.btn--sm { width: 28px; }
+  &.btn--md { width: 36px; }
+  &.btn--lg { width: 44px; }
+}
+
+.btn--full {
+  width: 100%;
+}
+
+/* ── Varijante ─────────────────────────────────────────── */
+
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.btn--secondary {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1.5px solid var(--color-border);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+
+  &.btn--active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+  }
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  &.btn--active {
+    color: var(--color-primary-text);
+    background: var(--color-primary-light);
+  }
+}
+
+.btn--subtle {
+  background: var(--color-primary-light);
+  color: var(--color-primary-text);
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-200);
+  }
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--color-text-tertiary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+  }
+
+  &.btn--active {
+    background: var(--color-danger);
+    color: var(--color-text-inverse);
+  }
+}
+
+/* ── Učitavanje ────────────────────────────────────────── */
+
+.btn__spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-full);
+  animation: btn-spin 0.7s linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

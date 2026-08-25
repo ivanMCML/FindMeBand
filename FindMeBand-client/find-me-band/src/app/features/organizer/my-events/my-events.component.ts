@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OrganizerService, OrgEvent } from '../../../core/services/organizer.service';
+import { IconComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-my-events',
   standalone: true,
-  imports: [FormsModule],
+  imports: [IconComponent, FormsModule],
   templateUrl: './my-events.component.html',
   styleUrl: './my-events.component.scss'
 })

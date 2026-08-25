@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { avatarColor, bandColor } from '../utils/avatar.util';
 
 export type ExploreTab = 'musicians' | 'bands';
 
@@ -59,15 +60,8 @@ interface BandResp {
 }
 
 const API = environment.apiBaseUrl;
-const PALETTE = ['#7c3aed', '#0891b2', '#059669', '#dc2626', '#d97706', '#1e40af', '#b45309'];
 
-function profileColor(id: number): string {
-  return PALETTE[Math.abs(id) % PALETTE.length];
-}
-
-function bandColor(id: number): string {
-  return PALETTE[Math.abs(id + 1000) % PALETTE.length];
-}
+const profileColor = avatarColor;
 
 @Injectable({ providedIn: 'root' })
 export class ExploreService {

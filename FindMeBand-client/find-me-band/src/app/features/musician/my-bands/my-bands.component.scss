@@ -187,7 +187,7 @@
   padding: 3px 10px;
   border-radius: 20px;
 
-  svg { color: var(--color-text-tertiary); }
+  app-icon { color: var(--color-text-tertiary); }
 }
 
 // ── Tab bar ──────────────────────────────────────────
@@ -368,7 +368,7 @@
   font-size: 13px;
   color: var(--color-text-secondary);
 
-  svg { color: var(--color-text-tertiary); flex-shrink: 0; }
+  app-icon { color: var(--color-text-tertiary); flex-shrink: 0; }
 }
 
 .next-gig-notes {
@@ -668,7 +668,7 @@
   color: var(--color-text-secondary);
   margin-bottom: 4px;
 
-  svg { color: var(--color-text-tertiary); flex-shrink: 0; }
+  app-icon { color: var(--color-text-tertiary); flex-shrink: 0; }
 }
 
 .gig-notes {
@@ -705,97 +705,6 @@
   gap: 12px;
 }
 
-.post-card {
-  background: var(--color-surface);
-  border-radius: var(--border-radius-lg);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition);
-
-  &:hover { box-shadow: var(--shadow-md); }
-}
-
-.post-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.post-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 13px;
-  color: white;
-  flex-shrink: 0;
-
-  &--img {
-    object-fit: cover;
-    background: var(--color-border);
-  }
-}
-
-.post-author-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.post-author-name {
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--color-text);
-}
-
-.post-author-meta {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.post-content {
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--color-text);
-  margin-bottom: 14px;
-}
-
-.post-actions {
-  display: flex;
-  gap: 4px;
-  border-top: 1px solid var(--color-border);
-  padding-top: 12px;
-}
-
-.post-action-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--border-radius-sm);
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  transition: all var(--transition);
-
-  &:hover {
-    background: var(--color-bg);
-    color: var(--color-text);
-  }
-
-  &--liked {
-    color: #dc2626;
-
-    svg {
-      fill: #dc2626;
-      stroke: #dc2626;
-    }
-  }
-}
-
 // ── Tab empty state ──────────────────────────────────
 
 .tab-empty {
@@ -807,7 +716,7 @@
   text-align: center;
   color: var(--color-text-secondary);
 
-  svg { color: var(--color-text-tertiary); }
+  app-icon { color: var(--color-text-tertiary); }
   p { font-size: 15px; }
 }
 
@@ -1016,7 +925,7 @@
     background: var(--color-bg);
     border: 1px solid var(--color-border);
 
-    svg { color: var(--color-text-tertiary); }
+    app-icon { color: var(--color-text-tertiary); }
   }
 }
 
@@ -1327,7 +1236,7 @@
   padding: 32px;
   color: var(--color-text-secondary);
 
-  svg { color: var(--color-text-tertiary); }
+  app-icon { color: var(--color-text-tertiary); }
 
   h3 {
     font-size: 22px;

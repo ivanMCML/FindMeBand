@@ -1,11 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ExploreService } from '../../../core/services/explore.service';
+import { IconComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-explore',
   standalone: true,
-  imports: [RouterLink],
+  imports: [IconComponent, RouterLink],
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })

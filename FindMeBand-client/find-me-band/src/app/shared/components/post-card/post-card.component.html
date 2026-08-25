@@ -1,0 +1,161 @@
+<app-card padding="lg">
+  <!-- ── Zaglavlje ──────────────────────────────────────── -->
+  <header class="post__header">
+    @if (authorLink(); as link) {
+      <a [routerLink]="link" class="post__avatar-link" tabindex="-1" aria-hidden="true">
+        <app-avatar
+          [name]="post().authorName"
+          [imageUrl]="post().authorAvatarUrl"
+          [colorId]="isBand() ? (post().bandId ?? post().profileId) : post().profileId"
+          [color]="post().authorColor"
+          [shape]="isBand() ? 'square' : 'circle'"
+          size="md"
+        />
+      </a>
+    } @else {
+      <app-avatar
+        [name]="post().authorName"
+        [imageUrl]="post().authorAvatarUrl"
+        [colorId]="isBand() ? (post().bandId ?? post().profileId) : post().profileId"
+        [color]="post().authorColor"
+        [shape]="isBand() ? 'square' : 'circle'"
+        size="md"
+      />
+    }
+
+    <div class="post__author">
+      @if (authorLink(); as link) {
+        <a class="post__author-name" [routerLink]="link">{{ post().authorName }}</a>
+      } @else {
+        <span class="post__author-name">{{ post().authorName }}</span>
+      }
+      <span class="post__meta">
+        &#64;{{ post().authorUserName }} ·
+        <time [attr.datetime]="post().createdAt" [title]="exactTime()">{{ post().timestamp }}</time>
+      </span>
+    </div>
+
+    @if (isOwnPost()) {
+      <app-button
+        variant="danger"
+        size="sm"
+        shape="circle"
+        icon="trash"
+        label="Obriši objavu"
+        (click)="postDeleted.emit()"
+      />
+    }
+  </header>
+
+  <!-- ── Sadržaj ────────────────────────────────────────── -->
+  <p class="post__content">{{ post().content }}</p>
+
+  @if (post().media.length > 0) {
+    <div class="post__media" [class.post__media--grid]="post().media.length > 1">
+      @for (item of post().media; track item.id) {
+        <img
+          class="post__media-img"
+          [src]="mediaUrl(item.url)"
+          [alt]="'Slika uz objavu korisnika ' + post().authorName"
+          loading="lazy"
+        />
+      }
+    </div>
+  }
+
+  <!-- ── Komentari ──────────────────────────────────────── -->
+  @if (commentsExpanded()) {
+    <section class="comments" [attr.aria-label]="'Komentari na objavu'">
+      @if (commentsLoading()) {
+        <p class="comments__loading">
+          <app-spinner [size]="14" label="Učitavam komentare" />
+          Učitavam komentare...
+        </p>
+      } @else {
+        @for (comment of comments(); track comment.id) {
+          <article class="comment">
+            <app-avatar
+              [name]="comment.authorName"
+              [imageUrl]="comment.authorAvatarUrl"
+              [colorId]="comment.profileId"
+              [color]="comment.authorColor"
+              size="sm"
+            />
+            <div class="comment__body">
+              <div class="comment__header">
+                <span class="comment__author">{{ comment.authorName }}</span>
+                <time class="comment__time" [attr.datetime]="comment.createdAt">
+                  {{ comment.timestamp }}
+                </time>
+                @if (isOwnComment(comment)) {
+                  <app-button
+                    class="comment__delete"
+                    variant="danger"
+                    size="sm"
+                    shape="circle"
+                    icon="x"
+                    label="Obriši komentar"
+                    (click)="commentDeleted.emit(comment.id)"
+                  />
+                }
+              </div>
+              <p class="comment__content">{{ comment.content }}</p>
+            </div>
+          </article>
+        }
+      }
+
+      <div class="comment-form">
+        <label class="sr-only" [attr.for]="'comment-input-' + post().id">Napiši komentar</label>
+        <textarea
+          class="comment-form__input"
+          [id]="'comment-input-' + post().id"
+          rows="1"
+          placeholder="Napiši komentar..."
+          [value]="commentDraft()"
+          (input)="onCommentInput($event)"
+          (keydown.enter)="onCommentEnter($event)"
+        ></textarea>
+        <app-button
+          variant="primary"
+          shape="circle"
+          icon="send"
+          label="Pošalji komentar"
+          [disabled]="!canSubmitComment()"
+          [loading]="commentSubmitting()"
+          (click)="commentSubmitted.emit()"
+        />
+      </div>
+    </section>
+  }
+
+  <!-- ── Radnje ─────────────────────────────────────────── -->
+  <footer class="post__actions">
+    <button
+      class="action"
+      [class.action--liked]="post().isLiked"
+      [attr.aria-pressed]="post().isLiked"
+      [attr.aria-label]="post().isLiked ? 'Ukloni oznaku sviđanja' : 'Sviđa mi se'"
+      (click)="likeToggled.emit()"
+    >
+      <app-icon name="heart" [size]="18" [filled]="post().isLiked" />
+      <span>{{ post().likes }}</span>
+    </button>
+
+    <button
+      class="action"
+      [class.action--active]="commentsExpanded()"
+      [attr.aria-expanded]="commentsExpanded()"
+      aria-label="Prikaži komentare"
+      (click)="commentsToggled.emit()"
+    >
+      <app-icon name="message" [size]="18" />
+      <span>{{ post().commentsCount }}</span>
+    </button>
+
+    <button class="action" (click)="shared.emit()">
+      <app-icon name="share" [size]="18" />
+      <span>Dijeli</span>
+    </button>
+  </footer>
+</app-card>

@@ -1,3 +1,7 @@
+/* ══════════════════════════════════════════════════════════════
+   FindMeBand — globalni stilovi i design tokeni
+   ══════════════════════════════════════════════════════════════ */
+
 *,
 *::before,
 *::after {
@@ -7,36 +11,153 @@
 }
 
 :root {
-  --color-primary: #7c3aed;
-  --color-primary-hover: #6d28d9;
-  --color-primary-light: #ede9fe;
-  --color-primary-text: #5b21b6;
+  /* ── Brend ─────────────────────────────────────────────── */
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+
+  --color-primary: var(--color-primary-600);
+  --color-primary-hover: var(--color-primary-700);
+  --color-primary-light: var(--color-primary-100);
+  --color-primary-text: var(--color-primary-800);
+
+  /* ── Semantičke boje ───────────────────────────────────── */
+  --color-success: #059669;
+  --color-success-light: #d1fae5;
+  --color-success-text: #065f46;
+
+  --color-danger: #dc2626;
+  --color-danger-light: #fee2e2;
+  --color-danger-text: #991b1b;
+
+  --color-warning: #d97706;
+  --color-warning-light: #fef3c7;
+  --color-warning-text: #92400e;
+
+  --color-info: #0891b2;
+  --color-info-light: #cffafe;
+  --color-info-text: #155e75;
+
+  /* ── Površine ──────────────────────────────────────────── */
   --color-bg: #f3f4f6;
   --color-surface: #ffffff;
+  --color-surface-alt: #f9fafb;
+  --color-surface-hover: rgba(0, 0, 0, 0.03);
   --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+
+  /* ── Tekst ─────────────────────────────────────────────── */
   --color-text: #111827;
   --color-text-secondary: #6b7280;
   --color-text-tertiary: #9ca3af;
-  --left-sidebar-width: 260px;
-  --right-sidebar-width: 320px;
-  --border-radius-sm: 8px;
-  --border-radius-md: 12px;
-  --border-radius-lg: 16px;
+  --color-text-inverse: #ffffff;
+
+  /* ── Fokus ─────────────────────────────────────────────── */
+  --color-focus-ring: var(--color-primary-400);
+  --focus-ring: 0 0 0 3px rgb(124 58 237 / 0.35);
+
+  /* ── Razmaci (4px baza) ────────────────────────────────── */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Tipografija ───────────────────────────────────────── */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Helvetica Neue', sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* ── Zaobljenja ────────────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* ── Sjene ─────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --transition: 150ms ease;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* ── Animacije ─────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+  --duration-slow: 250ms;
+
+  --transition-fast: var(--duration-fast) ease;
+  --transition-base: var(--duration-base) ease;
+  --transition-slow: var(--duration-slow) var(--ease-out);
+
+  /* ── Slojevi ───────────────────────────────────────────── */
+  --z-base: 1;
+  --z-sticky: 10;
+  --z-dropdown: 100;
+  --z-overlay: 500;
+  --z-modal: 1000;
+  --z-toast: 2000;
+
+  /* ── Layout ────────────────────────────────────────────── */
+  --left-sidebar-width: 260px;
+  --right-sidebar-width: 320px;
+  --content-max-width: 680px;
+  --header-height: 60px;
+
+  /* ── Kompatibilnost sa starijim nazivima ───────────────── */
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+  --transition: var(--transition-base);
+
+  /* Koristi se u nekoliko komponenti, a nikad nije bio definiran — zbog čega
+     su ti hover efekti bili nevidljivi. Zadržan kao alias postojećim pozivima. */
+  --color-bg-secondary: var(--color-surface-alt);
 }
 
 html,
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, 'Helvetica Neue', sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: var(--text-md);
+  line-height: var(--leading-relaxed);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
@@ -50,10 +171,40 @@ button {
   background: none;
   font-family: inherit;
   font-size: inherit;
+  color: inherit;
 }
+
+/* Vidljiv fokus samo za tipkovnicu — miš ne pali prsten */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+img {
+  max-width: 100%;
+}
+
+/* ── Pomoćne klase ───────────────────────────────────────── */
+
+/* Vidljivo samo čitačima ekrana */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Skrolbar ────────────────────────────────────────────── */
 
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -67,4 +218,17 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-tertiary);
+}
+
+/* ── Poštivanje postavke smanjenih animacija ─────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

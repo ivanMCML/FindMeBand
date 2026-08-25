@@ -1,10 +1,11 @@
 import { Component, computed, signal, ElementRef, ViewChild, AfterViewChecked, inject } from '@angular/core';
 import { MessagesService, Message } from '../../../core/services/messages.service';
+import { IconComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [],
+  imports: [IconComponent],
   templateUrl: './messages.component.html',
   styleUrl: './messages.component.scss'
 })

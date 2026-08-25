@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FindMeBand_server.Data;
 using FindMeBand_server.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -71,6 +71,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// --- Punjenje baze demo podacima: dotnet run -- --seed [--reset] ---
+if (args.Contains("--seed"))
+{
+    using var seedScope = app.Services.CreateScope();
+    await DbSeeder.SeedAsync(seedScope.ServiceProvider, args.Contains("--reset"));
+    return;
+}
 
 if (app.Environment.IsDevelopment())
 {
